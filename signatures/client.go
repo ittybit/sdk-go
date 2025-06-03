@@ -4,10 +4,10 @@ package signatures
 
 import (
 	context "context"
-	ittybitgosdk "github.com/fern-demo/ittybit-go-sdk"
-	core "github.com/fern-demo/ittybit-go-sdk/core"
-	internal "github.com/fern-demo/ittybit-go-sdk/internal"
-	option "github.com/fern-demo/ittybit-go-sdk/option"
+	sdkgo "github.com/ittybit/sdk-go"
+	core "github.com/ittybit/sdk-go/core"
+	internal "github.com/ittybit/sdk-go/internal"
+	option "github.com/ittybit/sdk-go/option"
 	http "net/http"
 )
 
@@ -34,9 +34,9 @@ func NewClient(opts ...option.RequestOption) *Client {
 // Creates a cryptographically signed URL that provides temporary and restricted access to a file. The URL can expire after a specified time and be limited to specific HTTP methods.
 func (c *Client) Create(
 	ctx context.Context,
-	request *ittybitgosdk.SignaturesCreateRequest,
+	request *sdkgo.SignaturesCreateRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.SignatureResponse, error) {
+) (*sdkgo.SignatureResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -51,18 +51,18 @@ func (c *Client) Create(
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.SignatureResponse
+	var response *sdkgo.SignatureResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

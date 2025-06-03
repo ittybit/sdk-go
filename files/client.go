@@ -4,10 +4,10 @@ package files
 
 import (
 	context "context"
-	ittybitgosdk "github.com/fern-demo/ittybit-go-sdk"
-	core "github.com/fern-demo/ittybit-go-sdk/core"
-	internal "github.com/fern-demo/ittybit-go-sdk/internal"
-	option "github.com/fern-demo/ittybit-go-sdk/option"
+	sdkgo "github.com/ittybit/sdk-go"
+	core "github.com/ittybit/sdk-go/core"
+	internal "github.com/ittybit/sdk-go/internal"
+	option "github.com/ittybit/sdk-go/option"
 	http "net/http"
 )
 
@@ -34,9 +34,9 @@ func NewClient(opts ...option.RequestOption) *Client {
 // Retrieves a paginated list of all files associated with the current project. Files can be filtered using query parameters.
 func (c *Client) List(
 	ctx context.Context,
-	request *ittybitgosdk.FilesListRequest,
+	request *sdkgo.FilesListRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.FileListResponse, error) {
+) (*sdkgo.FileListResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -57,13 +57,13 @@ func (c *Client) List(
 	)
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.FileListResponse
+	var response *sdkgo.FileListResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -86,9 +86,9 @@ func (c *Client) List(
 // Registers a file from a publicly accessible URL. The file will be ingested asynchronously.
 func (c *Client) Create(
 	ctx context.Context,
-	request *ittybitgosdk.FilesCreateRequest,
+	request *sdkgo.FilesCreateRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.FileResponse, error) {
+) (*sdkgo.FileResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -103,28 +103,28 @@ func (c *Client) Create(
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.FileResponse
+	var response *sdkgo.FileResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -150,7 +150,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.FileResponse, error) {
+) (*sdkgo.FileResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -167,13 +167,13 @@ func (c *Client) Get(
 	)
 	errorCodes := internal.ErrorCodes{
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.FileResponse
+	var response *sdkgo.FileResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -198,7 +198,7 @@ func (c *Client) Delete(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.FilesDeleteResponse, error) {
+) (*sdkgo.FilesDeleteResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -215,23 +215,23 @@ func (c *Client) Delete(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.FilesDeleteResponse
+	var response *sdkgo.FilesDeleteResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -255,9 +255,9 @@ func (c *Client) Delete(
 func (c *Client) Update(
 	ctx context.Context,
 	id string,
-	request *ittybitgosdk.FilesUpdateRequest,
+	request *sdkgo.FilesUpdateRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.FileResponse, error) {
+) (*sdkgo.FileResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -275,28 +275,28 @@ func (c *Client) Update(
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.FileResponse
+	var response *sdkgo.FileResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

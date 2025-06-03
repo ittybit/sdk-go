@@ -3,14 +3,14 @@
 package client
 
 import (
-	automations "github.com/fern-demo/ittybit-go-sdk/automations"
-	core "github.com/fern-demo/ittybit-go-sdk/core"
-	files "github.com/fern-demo/ittybit-go-sdk/files"
-	internal "github.com/fern-demo/ittybit-go-sdk/internal"
-	media "github.com/fern-demo/ittybit-go-sdk/media"
-	option "github.com/fern-demo/ittybit-go-sdk/option"
-	signatures "github.com/fern-demo/ittybit-go-sdk/signatures"
-	tasks "github.com/fern-demo/ittybit-go-sdk/tasks"
+	automations "github.com/ittybit/sdk-go/automations"
+	core "github.com/ittybit/sdk-go/core"
+	files "github.com/ittybit/sdk-go/files"
+	internal "github.com/ittybit/sdk-go/internal"
+	media "github.com/ittybit/sdk-go/media"
+	option "github.com/ittybit/sdk-go/option"
+	signatures "github.com/ittybit/sdk-go/signatures"
+	tasks "github.com/ittybit/sdk-go/tasks"
 	http "net/http"
 )
 

@@ -4,10 +4,10 @@ package automations
 
 import (
 	context "context"
-	ittybitgosdk "github.com/fern-demo/ittybit-go-sdk"
-	core "github.com/fern-demo/ittybit-go-sdk/core"
-	internal "github.com/fern-demo/ittybit-go-sdk/internal"
-	option "github.com/fern-demo/ittybit-go-sdk/option"
+	sdkgo "github.com/ittybit/sdk-go"
+	core "github.com/ittybit/sdk-go/core"
+	internal "github.com/ittybit/sdk-go/internal"
+	option "github.com/ittybit/sdk-go/option"
 	http "net/http"
 )
 
@@ -35,7 +35,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 func (c *Client) List(
 	ctx context.Context,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.AutomationListResponse, error) {
+) (*sdkgo.AutomationListResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -49,18 +49,18 @@ func (c *Client) List(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.AutomationListResponse
+	var response *sdkgo.AutomationListResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -84,7 +84,7 @@ func (c *Client) List(
 func (c *Client) Create(
 	ctx context.Context,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.AutomationResponse, error) {
+) (*sdkgo.AutomationResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -98,23 +98,23 @@ func (c *Client) Create(
 	)
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.AutomationResponse
+	var response *sdkgo.AutomationResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -139,7 +139,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.AutomationResponse, error) {
+) (*sdkgo.AutomationResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -156,23 +156,23 @@ func (c *Client) Get(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.AutomationResponse
+	var response *sdkgo.AutomationResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -196,9 +196,9 @@ func (c *Client) Get(
 func (c *Client) Update(
 	ctx context.Context,
 	id string,
-	request *ittybitgosdk.AutomationsUpdateRequest,
+	request *sdkgo.AutomationsUpdateRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.AutomationResponse, error) {
+) (*sdkgo.AutomationResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -216,28 +216,28 @@ func (c *Client) Update(
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.AutomationResponse
+	var response *sdkgo.AutomationResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -280,17 +280,17 @@ func (c *Client) Delete(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},

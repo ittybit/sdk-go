@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fern-demo/ittybit-go-sdk/core"
+	"github.com/ittybit/sdk-go/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

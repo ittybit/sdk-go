@@ -3,7 +3,7 @@
 package option
 
 import (
-	core "github.com/fern-demo/ittybit-go-sdk/core"
+	core "github.com/ittybit/sdk-go/core"
 	http "net/http"
 	url "net/url"
 )

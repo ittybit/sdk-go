@@ -1,4 +1,4 @@
-module github.com/fern-demo/ittybit-go-sdk
+module github.com/ittybit/sdk-go
 
 go 1.13
 

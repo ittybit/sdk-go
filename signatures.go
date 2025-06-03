@@ -5,7 +5,7 @@ package ittybit
 import (
 	json "encoding/json"
 	fmt "fmt"
-	internal "github.com/fern-demo/ittybit-go-sdk/internal"
+	internal "github.com/ittybit/sdk-go/internal"
 )
 
 type SignaturesCreateRequest struct {

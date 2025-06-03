@@ -4,10 +4,10 @@ package tasks
 
 import (
 	context "context"
-	ittybitgosdk "github.com/fern-demo/ittybit-go-sdk"
-	core "github.com/fern-demo/ittybit-go-sdk/core"
-	internal "github.com/fern-demo/ittybit-go-sdk/internal"
-	option "github.com/fern-demo/ittybit-go-sdk/option"
+	sdkgo "github.com/ittybit/sdk-go"
+	core "github.com/ittybit/sdk-go/core"
+	internal "github.com/ittybit/sdk-go/internal"
+	option "github.com/ittybit/sdk-go/option"
 	http "net/http"
 )
 
@@ -34,9 +34,9 @@ func NewClient(opts ...option.RequestOption) *Client {
 // Retrieves a list of tasks for the project, optionally filtered by status or kind.
 func (c *Client) List(
 	ctx context.Context,
-	request *ittybitgosdk.TasksListRequest,
+	request *sdkgo.TasksListRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.TaskListResponse, error) {
+) (*sdkgo.TaskListResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -57,18 +57,18 @@ func (c *Client) List(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.TaskListResponse
+	var response *sdkgo.TaskListResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -91,9 +91,9 @@ func (c *Client) List(
 // Creates a new processing task (e.g., ingest, video transcode, speech analysis) or a workflow task.
 func (c *Client) Create(
 	ctx context.Context,
-	request *ittybitgosdk.TasksCreateRequest,
+	request *sdkgo.TasksCreateRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.TaskResponse, error) {
+) (*sdkgo.TaskResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -108,28 +108,28 @@ func (c *Client) Create(
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.TaskResponse
+	var response *sdkgo.TaskResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -168,12 +168,12 @@ func (c *Client) GetTaskConfig(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
@@ -204,7 +204,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.TaskResponse, error) {
+) (*sdkgo.TaskResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -221,23 +221,23 @@ func (c *Client) Get(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.TaskResponse
+	var response *sdkgo.TaskResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

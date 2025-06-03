@@ -4,10 +4,10 @@ package media
 
 import (
 	context "context"
-	ittybitgosdk "github.com/fern-demo/ittybit-go-sdk"
-	core "github.com/fern-demo/ittybit-go-sdk/core"
-	internal "github.com/fern-demo/ittybit-go-sdk/internal"
-	option "github.com/fern-demo/ittybit-go-sdk/option"
+	sdkgo "github.com/ittybit/sdk-go"
+	core "github.com/ittybit/sdk-go/core"
+	internal "github.com/ittybit/sdk-go/internal"
+	option "github.com/ittybit/sdk-go/option"
 	http "net/http"
 )
 
@@ -34,9 +34,9 @@ func NewClient(opts ...option.RequestOption) *Client {
 // Retrieves a list of all media for the current project
 func (c *Client) List(
 	ctx context.Context,
-	request *ittybitgosdk.MediaListRequest,
+	request *sdkgo.MediaListRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.MediaListResponse, error) {
+) (*sdkgo.MediaListResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -57,18 +57,18 @@ func (c *Client) List(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.MediaListResponse
+	var response *sdkgo.MediaListResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -91,9 +91,9 @@ func (c *Client) List(
 // Creates a new media item from a URL or as an empty placeholder
 func (c *Client) Create(
 	ctx context.Context,
-	request *ittybitgosdk.MediaCreateRequest,
+	request *sdkgo.MediaCreateRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.MediaResponse, error) {
+) (*sdkgo.MediaResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -108,23 +108,23 @@ func (c *Client) Create(
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.MediaResponse
+	var response *sdkgo.MediaResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -150,7 +150,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.MediaResponse, error) {
+) (*sdkgo.MediaResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -167,23 +167,23 @@ func (c *Client) Get(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.MediaResponse
+	var response *sdkgo.MediaResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -208,7 +208,7 @@ func (c *Client) Delete(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.ConfirmationResponse, error) {
+) (*sdkgo.ConfirmationResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -225,23 +225,23 @@ func (c *Client) Delete(
 	)
 	errorCodes := internal.ErrorCodes{
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.ConfirmationResponse
+	var response *sdkgo.ConfirmationResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -265,9 +265,9 @@ func (c *Client) Delete(
 func (c *Client) Update(
 	ctx context.Context,
 	id string,
-	request *ittybitgosdk.MediaUpdateRequest,
+	request *sdkgo.MediaUpdateRequest,
 	opts ...option.RequestOption,
-) (*ittybitgosdk.MediaResponse, error) {
+) (*sdkgo.MediaResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -285,28 +285,28 @@ func (c *Client) Update(
 	headers.Set("Content-Type", "application/json")
 	errorCodes := internal.ErrorCodes{
 		400: func(apiError *core.APIError) error {
-			return &ittybitgosdk.BadRequestError{
+			return &sdkgo.BadRequestError{
 				APIError: apiError,
 			}
 		},
 		401: func(apiError *core.APIError) error {
-			return &ittybitgosdk.UnauthorizedError{
+			return &sdkgo.UnauthorizedError{
 				APIError: apiError,
 			}
 		},
 		403: func(apiError *core.APIError) error {
-			return &ittybitgosdk.ForbiddenError{
+			return &sdkgo.ForbiddenError{
 				APIError: apiError,
 			}
 		},
 		404: func(apiError *core.APIError) error {
-			return &ittybitgosdk.NotFoundError{
+			return &sdkgo.NotFoundError{
 				APIError: apiError,
 			}
 		},
 	}
 
-	var response *ittybitgosdk.MediaResponse
+	var response *sdkgo.MediaResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

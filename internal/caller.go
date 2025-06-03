@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/fern-demo/ittybit-go-sdk/core"
+	"github.com/ittybit/sdk-go/core"
 )
 
 const (

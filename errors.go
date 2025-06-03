@@ -4,7 +4,7 @@ package ittybit
 
 import (
 	json "encoding/json"
-	core "github.com/fern-demo/ittybit-go-sdk/core"
+	core "github.com/ittybit/sdk-go/core"
 )
 
 // Bad Request

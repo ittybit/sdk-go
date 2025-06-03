@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fern-demo/ittybit-go-sdk/core"
+	"github.com/ittybit/sdk-go/core"
 	"github.com/stretchr/testify/assert"
 )
 

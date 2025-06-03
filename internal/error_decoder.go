@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/fern-demo/ittybit-go-sdk/core"
+	"github.com/ittybit/sdk-go/core"
 )
 
 // ErrorDecoder decodes *http.Response errors and returns a

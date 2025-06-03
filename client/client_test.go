@@ -3,7 +3,7 @@
 package client
 
 import (
-	option "github.com/fern-demo/ittybit-go-sdk/option"
+	option "github.com/ittybit/sdk-go/option"
 	assert "github.com/stretchr/testify/assert"
 	http "net/http"
 	testing "testing"
