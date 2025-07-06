@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// Retrieves a paginated list of all files associated with the current project. Files can be filtered using query parameters.
+// Retrieves a paginated list of all files associated with the current project.
 func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.FilesListRequest,
@@ -55,13 +55,6 @@ func (c *Client) List(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.FileListResponse
 	if err := c.caller.Call(
@@ -75,7 +68,6 @@ func (c *Client) List(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -83,7 +75,7 @@ func (c *Client) List(
 	return response, nil
 }
 
-// Registers a file from a publicly accessible URL. The file will be ingested asynchronously.
+// Creates a new file from a publicly accessible or signed URL.
 func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.FilesCreateRequest,
@@ -101,28 +93,6 @@ func (c *Client) Create(
 		options.ToHeader(),
 	)
 	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.FileResponse
 	if err := c.caller.Call(
@@ -137,7 +107,6 @@ func (c *Client) Create(
 			Client:          options.HTTPClient,
 			Request:         request,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -145,7 +114,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-// Retrieves detailed information about a specific file identified by its unique ID, including its metadata, media associations, and technical properties.
+// Retrieve the file object for a file with the given ID.
 func (c *Client) Get(
 	ctx context.Context,
 	id string,
@@ -165,13 +134,6 @@ func (c *Client) Get(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.FileResponse
 	if err := c.caller.Call(
@@ -185,7 +147,6 @@ func (c *Client) Get(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -193,12 +154,12 @@ func (c *Client) Get(
 	return response, nil
 }
 
-// Permanently removes a file from the system. This action cannot be undone. Associated media entries may still reference this file ID.
+// Permanently removes a file from the system. This action cannot be undone.
 func (c *Client) Delete(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.FilesDeleteResponse, error) {
+) (*sdkgo.ConfirmationResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -213,25 +174,8 @@ func (c *Client) Delete(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
-	var response *sdkgo.FilesDeleteResponse
+	var response *sdkgo.ConfirmationResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -243,7 +187,6 @@ func (c *Client) Delete(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -251,7 +194,7 @@ func (c *Client) Delete(
 	return response, nil
 }
 
-// Updates metadata, filename, or folder properties of an existing file. Only the specified fields will be updated.
+// Update a file's `filename`, `folder`, `ref`, or `metadata`. Only the specified fields will be updated.
 func (c *Client) Update(
 	ctx context.Context,
 	id string,
@@ -273,28 +216,6 @@ func (c *Client) Update(
 		options.ToHeader(),
 	)
 	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.FileResponse
 	if err := c.caller.Call(
@@ -309,7 +230,6 @@ func (c *Client) Update(
 			Client:          options.HTTPClient,
 			Request:         request,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err

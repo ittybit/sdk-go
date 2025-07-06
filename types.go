@@ -11,6 +11,122 @@ import (
 
 type APIResponseBase = interface{}
 
+type Confirmation struct {
+	Message *string `json:"message,omitempty" url:"message,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *Confirmation) GetMessage() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Message
+}
+
+func (c *Confirmation) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *Confirmation) UnmarshalJSON(data []byte) error {
+	type unmarshaler Confirmation
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = Confirmation(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *Confirmation) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ConfirmationResponse struct {
+	Meta  *Meta         `json:"meta,omitempty" url:"meta,omitempty"`
+	Data  *Confirmation `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error        `json:"error,omitempty" url:"error,omitempty"`
+	Links *Links        `json:"links,omitempty" url:"links,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConfirmationResponse) GetMeta() *Meta {
+	if c == nil {
+		return nil
+	}
+	return c.Meta
+}
+
+func (c *ConfirmationResponse) GetData() *Confirmation {
+	if c == nil {
+		return nil
+	}
+	return c.Data
+}
+
+func (c *ConfirmationResponse) GetError() *Error {
+	if c == nil {
+		return nil
+	}
+	return c.Error
+}
+
+func (c *ConfirmationResponse) GetLinks() *Links {
+	if c == nil {
+		return nil
+	}
+	return c.Links
+}
+
+func (c *ConfirmationResponse) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ConfirmationResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConfirmationResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConfirmationResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConfirmationResponse) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
 type Error struct {
 	Message *string `json:"message,omitempty" url:"message,omitempty"`
 
@@ -57,64 +173,8 @@ func (e *Error) String() string {
 	return fmt.Sprintf("%#v", e)
 }
 
-type ErrorResponse struct {
-	Meta  *Meta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Error *Error `json:"error,omitempty" url:"error,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (e *ErrorResponse) GetMeta() *Meta {
-	if e == nil {
-		return nil
-	}
-	return e.Meta
-}
-
-func (e *ErrorResponse) GetError() *Error {
-	if e == nil {
-		return nil
-	}
-	return e.Error
-}
-
-func (e *ErrorResponse) GetExtraProperties() map[string]interface{} {
-	return e.extraProperties
-}
-
-func (e *ErrorResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler ErrorResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*e = ErrorResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *e)
-	if err != nil {
-		return err
-	}
-	e.extraProperties = extraProperties
-	e.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (e *ErrorResponse) String() string {
-	if len(e.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(e.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(e); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", e)
-}
-
 type Links struct {
-	// The absolute URL of the current request, potentially including query parameters.
-	Self *string `json:"self,omitempty" url:"self,omitempty"`
-	// URL for the parent resource.
+	Self   *string `json:"self,omitempty" url:"self,omitempty"`
 	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -168,18 +228,11 @@ func (l *Links) String() string {
 }
 
 type LinksList struct {
-	// The absolute URL of the current request, potentially including query parameters.
-	Self *string `json:"self,omitempty" url:"self,omitempty"`
-	// URL for the next page of results.
-	Next *string `json:"next,omitempty" url:"next,omitempty"`
-	// URL for the previous page of results.
-	Prev *string `json:"prev,omitempty" url:"prev,omitempty"`
-	// URL for the parent resource.
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-	// URL for the first page of results.
+	Self  *string `json:"self,omitempty" url:"self,omitempty"`
 	First *string `json:"first,omitempty" url:"first,omitempty"`
-	// URL for the last page of results.
-	Last *string `json:"last,omitempty" url:"last,omitempty"`
+	Next  *string `json:"next,omitempty" url:"next,omitempty"`
+	Prev  *string `json:"prev,omitempty" url:"prev,omitempty"`
+	Last  *string `json:"last,omitempty" url:"last,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -190,6 +243,13 @@ func (l *LinksList) GetSelf() *string {
 		return nil
 	}
 	return l.Self
+}
+
+func (l *LinksList) GetFirst() *string {
+	if l == nil {
+		return nil
+	}
+	return l.First
 }
 
 func (l *LinksList) GetNext() *string {
@@ -204,20 +264,6 @@ func (l *LinksList) GetPrev() *string {
 		return nil
 	}
 	return l.Prev
-}
-
-func (l *LinksList) GetParent() *string {
-	if l == nil {
-		return nil
-	}
-	return l.Parent
-}
-
-func (l *LinksList) GetFirst() *string {
-	if l == nil {
-		return nil
-	}
-	return l.First
 }
 
 func (l *LinksList) GetLast() *string {
@@ -262,18 +308,15 @@ func (l *LinksList) String() string {
 type Meta = interface{}
 
 type MetaList struct {
-	// Request ID
-	RequestID *string `json:"request_id,omitempty" url:"request_id,omitempty"`
-	// Type of the primary data value in the response
-	Type *string `json:"type,omitempty" url:"type,omitempty"`
-	// Number of items per page.
-	Limit *int `json:"limit,omitempty" url:"limit,omitempty"`
-	// Total number of items matching the query.
-	Total *int `json:"total,omitempty" url:"total,omitempty"`
-	// Current page number.
-	Page *int `json:"page,omitempty" url:"page,omitempty"`
-	// Total number of pages.
-	Pages *int `json:"pages,omitempty" url:"pages,omitempty"`
+	RequestID *string       `json:"request_id,omitempty" url:"request_id,omitempty"`
+	OrgID     *string       `json:"org_id,omitempty" url:"org_id,omitempty"`
+	ProjectID *string       `json:"project_id,omitempty" url:"project_id,omitempty"`
+	Version   *string       `json:"version,omitempty" url:"version,omitempty"`
+	Type      *MetaListType `json:"type,omitempty" url:"type,omitempty"`
+	Limit     *int          `json:"limit,omitempty" url:"limit,omitempty"`
+	Total     *int          `json:"total,omitempty" url:"total,omitempty"`
+	Page      *int          `json:"page,omitempty" url:"page,omitempty"`
+	Pages     *int          `json:"pages,omitempty" url:"pages,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -284,6 +327,34 @@ func (m *MetaList) GetRequestID() *string {
 		return nil
 	}
 	return m.RequestID
+}
+
+func (m *MetaList) GetOrgID() *string {
+	if m == nil {
+		return nil
+	}
+	return m.OrgID
+}
+
+func (m *MetaList) GetProjectID() *string {
+	if m == nil {
+		return nil
+	}
+	return m.ProjectID
+}
+
+func (m *MetaList) GetVersion() *string {
+	if m == nil {
+		return nil
+	}
+	return m.Version
+}
+
+func (m *MetaList) GetType() *MetaListType {
+	if m == nil {
+		return nil
+	}
+	return m.Type
 }
 
 func (m *MetaList) GetLimit() *int {
@@ -346,27 +417,39 @@ func (m *MetaList) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
+type MetaListType string
+
+const (
+	MetaListTypeObject MetaListType = "object"
+	MetaListTypeList   MetaListType = "list"
+)
+
+func NewMetaListTypeFromString(s string) (MetaListType, error) {
+	switch s {
+	case "object":
+		return MetaListTypeObject, nil
+	case "list":
+		return MetaListTypeList, nil
+	}
+	var t MetaListType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (m MetaListType) Ptr() *MetaListType {
+	return &m
+}
+
 type TaskSummary struct {
-	// Unique identifier for the task.
-	ID string `json:"id" url:"id"`
-	// Object type, always 'task'.
-	Object string `json:"object" url:"object"`
-	// The type of operation the task performs.
-	Kind TaskSummaryKind `json:"kind" url:"kind"`
-	// Current status of the task.
-	Status TaskSummaryStatus `json:"status" url:"status"`
-	// Task progress percentage.
-	Progress *int `json:"progress,omitempty" url:"progress,omitempty"`
-	// Error message if the task failed.
-	Error *string `json:"error,omitempty" url:"error,omitempty"`
-	// ID of the entity that created the task (e.g., user ID, automation ID).
-	CreatedBy *string `json:"created_by,omitempty" url:"created_by,omitempty"`
-	// Timestamp when the task was created.
-	Created time.Time `json:"created" url:"created"`
-	// Timestamp when the task was last updated.
-	Updated time.Time `json:"updated" url:"updated"`
-	// ID of the parent task if this is part of a workflow.
-	ParentID *string `json:"parent_id,omitempty" url:"parent_id,omitempty"`
+	ID        string            `json:"id" url:"id"`
+	Object    string            `json:"object" url:"object"`
+	Kind      TaskSummaryKind   `json:"kind" url:"kind"`
+	Status    TaskSummaryStatus `json:"status" url:"status"`
+	Progress  *int              `json:"progress,omitempty" url:"progress,omitempty"`
+	Error     *string           `json:"error,omitempty" url:"error,omitempty"`
+	CreatedBy *string           `json:"created_by,omitempty" url:"created_by,omitempty"`
+	Created   time.Time         `json:"created" url:"created"`
+	Updated   time.Time         `json:"updated" url:"updated"`
+	ParentID  *string           `json:"parent_id,omitempty" url:"parent_id,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -496,68 +579,58 @@ func (t *TaskSummary) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
-// The type of operation the task performs.
 type TaskSummaryKind string
 
 const (
-	TaskSummaryKindIngest     TaskSummaryKind = "ingest"
-	TaskSummaryKindWorkflow   TaskSummaryKind = "workflow"
-	TaskSummaryKindSpeech     TaskSummaryKind = "speech"
-	TaskSummaryKindOutline    TaskSummaryKind = "outline"
-	TaskSummaryKindChapters   TaskSummaryKind = "chapters"
-	TaskSummaryKindSubtitles  TaskSummaryKind = "subtitles"
-	TaskSummaryKindThumbnails TaskSummaryKind = "thumbnails"
-	TaskSummaryKindNsfw       TaskSummaryKind = "nsfw"
-	TaskSummaryKindSummary    TaskSummaryKind = "summary"
-	TaskSummaryKindDescribe   TaskSummaryKind = "describe"
-	TaskSummaryKindVideo      TaskSummaryKind = "video"
-	TaskSummaryKindImage      TaskSummaryKind = "image"
-	TaskSummaryKindAudio      TaskSummaryKind = "audio"
-	TaskSummaryKindHTTP       TaskSummaryKind = "http"
-	TaskSummaryKindConditions TaskSummaryKind = "conditions"
-	TaskSummaryKindStore      TaskSummaryKind = "store"
-	TaskSummaryKindPrompt     TaskSummaryKind = "prompt"
-	TaskSummaryKindTags       TaskSummaryKind = "tags"
+	TaskSummaryKindVideo       TaskSummaryKind = "video"
+	TaskSummaryKindImage       TaskSummaryKind = "image"
+	TaskSummaryKindAudio       TaskSummaryKind = "audio"
+	TaskSummaryKindChapters    TaskSummaryKind = "chapters"
+	TaskSummaryKindSubtitles   TaskSummaryKind = "subtitles"
+	TaskSummaryKindThumbnails  TaskSummaryKind = "thumbnails"
+	TaskSummaryKindSpeech      TaskSummaryKind = "speech"
+	TaskSummaryKindDescription TaskSummaryKind = "description"
+	TaskSummaryKindNsfw        TaskSummaryKind = "nsfw"
+	TaskSummaryKindPrompt      TaskSummaryKind = "prompt"
+	TaskSummaryKindOutline     TaskSummaryKind = "outline"
+	TaskSummaryKindHTTP        TaskSummaryKind = "http"
+	TaskSummaryKindIngest      TaskSummaryKind = "ingest"
+	TaskSummaryKindWorkflow    TaskSummaryKind = "workflow"
+	TaskSummaryKindConditions  TaskSummaryKind = "conditions"
 )
 
 func NewTaskSummaryKindFromString(s string) (TaskSummaryKind, error) {
 	switch s {
-	case "ingest":
-		return TaskSummaryKindIngest, nil
-	case "workflow":
-		return TaskSummaryKindWorkflow, nil
-	case "speech":
-		return TaskSummaryKindSpeech, nil
-	case "outline":
-		return TaskSummaryKindOutline, nil
-	case "chapters":
-		return TaskSummaryKindChapters, nil
-	case "subtitles":
-		return TaskSummaryKindSubtitles, nil
-	case "thumbnails":
-		return TaskSummaryKindThumbnails, nil
-	case "nsfw":
-		return TaskSummaryKindNsfw, nil
-	case "summary":
-		return TaskSummaryKindSummary, nil
-	case "describe":
-		return TaskSummaryKindDescribe, nil
 	case "video":
 		return TaskSummaryKindVideo, nil
 	case "image":
 		return TaskSummaryKindImage, nil
 	case "audio":
 		return TaskSummaryKindAudio, nil
-	case "http":
-		return TaskSummaryKindHTTP, nil
-	case "conditions":
-		return TaskSummaryKindConditions, nil
-	case "store":
-		return TaskSummaryKindStore, nil
+	case "chapters":
+		return TaskSummaryKindChapters, nil
+	case "subtitles":
+		return TaskSummaryKindSubtitles, nil
+	case "thumbnails":
+		return TaskSummaryKindThumbnails, nil
+	case "speech":
+		return TaskSummaryKindSpeech, nil
+	case "description":
+		return TaskSummaryKindDescription, nil
+	case "nsfw":
+		return TaskSummaryKindNsfw, nil
 	case "prompt":
 		return TaskSummaryKindPrompt, nil
-	case "tags":
-		return TaskSummaryKindTags, nil
+	case "outline":
+		return TaskSummaryKindOutline, nil
+	case "http":
+		return TaskSummaryKindHTTP, nil
+	case "ingest":
+		return TaskSummaryKindIngest, nil
+	case "workflow":
+		return TaskSummaryKindWorkflow, nil
+	case "conditions":
+		return TaskSummaryKindConditions, nil
 	}
 	var t TaskSummaryKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -567,7 +640,6 @@ func (t TaskSummaryKind) Ptr() *TaskSummaryKind {
 	return &t
 }
 
-// Current status of the task.
 type TaskSummaryStatus string
 
 const (

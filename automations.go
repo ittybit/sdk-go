@@ -10,24 +10,14 @@ import (
 )
 
 type Automation struct {
-	// Unique identifier for the automation
-	ID string `json:"id" url:"id"`
-	// User-defined name for the automation
-	Name string `json:"name" url:"name"`
-	// Optional description for the automation
-	Description *string `json:"description,omitempty" url:"description,omitempty"`
-	// User-defined key-value metadata for the automation.
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	// The event and conditions that trigger this automation.
-	Trigger *AutomationTrigger `json:"trigger,omitempty" url:"trigger,omitempty"`
-	// The sequence of tasks to be executed when the automation is triggered. The structure of each task object varies depending on its 'kind'.
-	Workflow []*WorkflowTaskStep `json:"workflow,omitempty" url:"workflow,omitempty"`
-	// Current status of the automation
-	Status AutomationStatus `json:"status" url:"status"`
-	// Timestamp when the automation was created
-	Created time.Time `json:"created" url:"created"`
-	// Timestamp when the automation was last updated
-	Updated time.Time `json:"updated" url:"updated"`
+	ID          string              `json:"id" url:"id"`
+	Name        string              `json:"name" url:"name"`
+	Description *string             `json:"description,omitempty" url:"description,omitempty"`
+	Trigger     *AutomationTrigger  `json:"trigger,omitempty" url:"trigger,omitempty"`
+	Workflow    []*WorkflowTaskStep `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Status      AutomationStatus    `json:"status" url:"status"`
+	Created     time.Time           `json:"created" url:"created"`
+	Updated     time.Time           `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -52,13 +42,6 @@ func (a *Automation) GetDescription() *string {
 		return nil
 	}
 	return a.Description
-}
-
-func (a *Automation) GetMetadata() map[string]interface{} {
-	if a == nil {
-		return nil
-	}
-	return a.Metadata
 }
 
 func (a *Automation) GetTrigger() *AutomationTrigger {
@@ -153,6 +136,7 @@ func (a *Automation) String() string {
 type AutomationListResponse struct {
 	Meta  *MetaList     `json:"meta,omitempty" url:"meta,omitempty"`
 	Data  []*Automation `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error        `json:"error,omitempty" url:"error,omitempty"`
 	Links *LinksList    `json:"links,omitempty" url:"links,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -171,6 +155,13 @@ func (a *AutomationListResponse) GetData() []*Automation {
 		return nil
 	}
 	return a.Data
+}
+
+func (a *AutomationListResponse) GetError() *Error {
+	if a == nil {
+		return nil
+	}
+	return a.Error
 }
 
 func (a *AutomationListResponse) GetLinks() *LinksList {
@@ -215,6 +206,7 @@ func (a *AutomationListResponse) String() string {
 type AutomationResponse struct {
 	Meta  *Meta       `json:"meta,omitempty" url:"meta,omitempty"`
 	Data  *Automation `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error      `json:"error,omitempty" url:"error,omitempty"`
 	Links *Links      `json:"links,omitempty" url:"links,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -233,6 +225,13 @@ func (a *AutomationResponse) GetData() *Automation {
 		return nil
 	}
 	return a.Data
+}
+
+func (a *AutomationResponse) GetError() *Error {
+	if a == nil {
+		return nil
+	}
+	return a.Error
 }
 
 func (a *AutomationResponse) GetLinks() *Links {
@@ -274,7 +273,6 @@ func (a *AutomationResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-// Current status of the automation
 type AutomationStatus string
 
 const (
@@ -300,12 +298,9 @@ func (a AutomationStatus) Ptr() *AutomationStatus {
 	return &a
 }
 
-// The event and conditions that trigger this automation.
 type AutomationTrigger struct {
-	// The event that triggers the automation
-	Event string `json:"event" url:"event"`
-	// Conditions that must be met for the trigger to activate.
-	Conditions []*AutomationTriggerConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
+	Kind  *string `json:"kind,omitempty" url:"kind,omitempty"`
+	Event string  `json:"event" url:"event"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -316,13 +311,6 @@ func (a *AutomationTrigger) GetEvent() string {
 		return ""
 	}
 	return a.Event
-}
-
-func (a *AutomationTrigger) GetConditions() []*AutomationTriggerConditionsItem {
-	if a == nil {
-		return nil
-	}
-	return a.Conditions
 }
 
 func (a *AutomationTrigger) GetExtraProperties() map[string]interface{} {
@@ -357,77 +345,18 @@ func (a *AutomationTrigger) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationTriggerConditionsItem struct {
-	// The property to check (e.g., file.type, file.size)
-	Prop string `json:"prop" url:"prop"`
-	// The value the property must match
-	Value string `json:"value" url:"value"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationTriggerConditionsItem) GetProp() string {
-	if a == nil {
-		return ""
-	}
-	return a.Prop
-}
-
-func (a *AutomationTriggerConditionsItem) GetValue() string {
-	if a == nil {
-		return ""
-	}
-	return a.Value
-}
-
-func (a *AutomationTriggerConditionsItem) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationTriggerConditionsItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationTriggerConditionsItem
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationTriggerConditionsItem(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationTriggerConditionsItem) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
 type WorkflowTaskStep struct {
-	// The type of operation the task performs.
-	Kind WorkflowTaskStepKind `json:"kind" url:"kind"`
-	// Optional label for the output of this step.
-	Label *string `json:"label,omitempty" url:"label,omitempty"`
-	// Output format (e.g., mp4, jpg)
-	Format *string `json:"format,omitempty" url:"format,omitempty"`
-	// Output width
-	Width *int `json:"width,omitempty" url:"width,omitempty"`
-	// Output height
-	Height *int `json:"height,omitempty" url:"height,omitempty"`
-	// Resize mode
-	Resize *string `json:"resize,omitempty" url:"resize,omitempty"`
-	// Quality setting
-	Quality *int `json:"quality,omitempty" url:"quality,omitempty"`
+	Kind       WorkflowTaskStepKind `json:"kind" url:"kind"`
+	Ref        *string              `json:"ref,omitempty" url:"ref,omitempty"`
+	Format     *string              `json:"format,omitempty" url:"format,omitempty"`
+	Start      *float64             `json:"start,omitempty" url:"start,omitempty"`
+	End        *float64             `json:"end,omitempty" url:"end,omitempty"`
+	Width      *int                 `json:"width,omitempty" url:"width,omitempty"`
+	Height     *int                 `json:"height,omitempty" url:"height,omitempty"`
+	Fit        *string              `json:"fit,omitempty" url:"fit,omitempty"`
+	Background *string              `json:"background,omitempty" url:"background,omitempty"`
+	Quality    *int                 `json:"quality,omitempty" url:"quality,omitempty"`
+	Next       []interface{}        `json:"next,omitempty" url:"next,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -440,11 +369,11 @@ func (w *WorkflowTaskStep) GetKind() WorkflowTaskStepKind {
 	return w.Kind
 }
 
-func (w *WorkflowTaskStep) GetLabel() *string {
+func (w *WorkflowTaskStep) GetRef() *string {
 	if w == nil {
 		return nil
 	}
-	return w.Label
+	return w.Ref
 }
 
 func (w *WorkflowTaskStep) GetFormat() *string {
@@ -452,6 +381,20 @@ func (w *WorkflowTaskStep) GetFormat() *string {
 		return nil
 	}
 	return w.Format
+}
+
+func (w *WorkflowTaskStep) GetStart() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.Start
+}
+
+func (w *WorkflowTaskStep) GetEnd() *float64 {
+	if w == nil {
+		return nil
+	}
+	return w.End
 }
 
 func (w *WorkflowTaskStep) GetWidth() *int {
@@ -468,11 +411,18 @@ func (w *WorkflowTaskStep) GetHeight() *int {
 	return w.Height
 }
 
-func (w *WorkflowTaskStep) GetResize() *string {
+func (w *WorkflowTaskStep) GetFit() *string {
 	if w == nil {
 		return nil
 	}
-	return w.Resize
+	return w.Fit
+}
+
+func (w *WorkflowTaskStep) GetBackground() *string {
+	if w == nil {
+		return nil
+	}
+	return w.Background
 }
 
 func (w *WorkflowTaskStep) GetQuality() *int {
@@ -480,6 +430,13 @@ func (w *WorkflowTaskStep) GetQuality() *int {
 		return nil
 	}
 	return w.Quality
+}
+
+func (w *WorkflowTaskStep) GetNext() []interface{} {
+	if w == nil {
+		return nil
+	}
+	return w.Next
 }
 
 func (w *WorkflowTaskStep) GetExtraProperties() map[string]interface{} {
@@ -514,68 +471,58 @@ func (w *WorkflowTaskStep) String() string {
 	return fmt.Sprintf("%#v", w)
 }
 
-// The type of operation the task performs.
 type WorkflowTaskStepKind string
 
 const (
-	WorkflowTaskStepKindIngest     WorkflowTaskStepKind = "ingest"
-	WorkflowTaskStepKindWorkflow   WorkflowTaskStepKind = "workflow"
-	WorkflowTaskStepKindSpeech     WorkflowTaskStepKind = "speech"
-	WorkflowTaskStepKindOutline    WorkflowTaskStepKind = "outline"
-	WorkflowTaskStepKindChapters   WorkflowTaskStepKind = "chapters"
-	WorkflowTaskStepKindSubtitles  WorkflowTaskStepKind = "subtitles"
-	WorkflowTaskStepKindThumbnails WorkflowTaskStepKind = "thumbnails"
-	WorkflowTaskStepKindNsfw       WorkflowTaskStepKind = "nsfw"
-	WorkflowTaskStepKindSummary    WorkflowTaskStepKind = "summary"
-	WorkflowTaskStepKindDescribe   WorkflowTaskStepKind = "describe"
-	WorkflowTaskStepKindVideo      WorkflowTaskStepKind = "video"
-	WorkflowTaskStepKindImage      WorkflowTaskStepKind = "image"
-	WorkflowTaskStepKindAudio      WorkflowTaskStepKind = "audio"
-	WorkflowTaskStepKindHTTP       WorkflowTaskStepKind = "http"
-	WorkflowTaskStepKindConditions WorkflowTaskStepKind = "conditions"
-	WorkflowTaskStepKindStore      WorkflowTaskStepKind = "store"
-	WorkflowTaskStepKindPrompt     WorkflowTaskStepKind = "prompt"
-	WorkflowTaskStepKindTags       WorkflowTaskStepKind = "tags"
+	WorkflowTaskStepKindVideo       WorkflowTaskStepKind = "video"
+	WorkflowTaskStepKindImage       WorkflowTaskStepKind = "image"
+	WorkflowTaskStepKindAudio       WorkflowTaskStepKind = "audio"
+	WorkflowTaskStepKindChapters    WorkflowTaskStepKind = "chapters"
+	WorkflowTaskStepKindSubtitles   WorkflowTaskStepKind = "subtitles"
+	WorkflowTaskStepKindThumbnails  WorkflowTaskStepKind = "thumbnails"
+	WorkflowTaskStepKindSpeech      WorkflowTaskStepKind = "speech"
+	WorkflowTaskStepKindDescription WorkflowTaskStepKind = "description"
+	WorkflowTaskStepKindNsfw        WorkflowTaskStepKind = "nsfw"
+	WorkflowTaskStepKindPrompt      WorkflowTaskStepKind = "prompt"
+	WorkflowTaskStepKindOutline     WorkflowTaskStepKind = "outline"
+	WorkflowTaskStepKindHTTP        WorkflowTaskStepKind = "http"
+	WorkflowTaskStepKindIngest      WorkflowTaskStepKind = "ingest"
+	WorkflowTaskStepKindWorkflow    WorkflowTaskStepKind = "workflow"
+	WorkflowTaskStepKindConditions  WorkflowTaskStepKind = "conditions"
 )
 
 func NewWorkflowTaskStepKindFromString(s string) (WorkflowTaskStepKind, error) {
 	switch s {
-	case "ingest":
-		return WorkflowTaskStepKindIngest, nil
-	case "workflow":
-		return WorkflowTaskStepKindWorkflow, nil
-	case "speech":
-		return WorkflowTaskStepKindSpeech, nil
-	case "outline":
-		return WorkflowTaskStepKindOutline, nil
-	case "chapters":
-		return WorkflowTaskStepKindChapters, nil
-	case "subtitles":
-		return WorkflowTaskStepKindSubtitles, nil
-	case "thumbnails":
-		return WorkflowTaskStepKindThumbnails, nil
-	case "nsfw":
-		return WorkflowTaskStepKindNsfw, nil
-	case "summary":
-		return WorkflowTaskStepKindSummary, nil
-	case "describe":
-		return WorkflowTaskStepKindDescribe, nil
 	case "video":
 		return WorkflowTaskStepKindVideo, nil
 	case "image":
 		return WorkflowTaskStepKindImage, nil
 	case "audio":
 		return WorkflowTaskStepKindAudio, nil
-	case "http":
-		return WorkflowTaskStepKindHTTP, nil
-	case "conditions":
-		return WorkflowTaskStepKindConditions, nil
-	case "store":
-		return WorkflowTaskStepKindStore, nil
+	case "chapters":
+		return WorkflowTaskStepKindChapters, nil
+	case "subtitles":
+		return WorkflowTaskStepKindSubtitles, nil
+	case "thumbnails":
+		return WorkflowTaskStepKindThumbnails, nil
+	case "speech":
+		return WorkflowTaskStepKindSpeech, nil
+	case "description":
+		return WorkflowTaskStepKindDescription, nil
+	case "nsfw":
+		return WorkflowTaskStepKindNsfw, nil
 	case "prompt":
 		return WorkflowTaskStepKindPrompt, nil
-	case "tags":
-		return WorkflowTaskStepKindTags, nil
+	case "outline":
+		return WorkflowTaskStepKindOutline, nil
+	case "http":
+		return WorkflowTaskStepKindHTTP, nil
+	case "ingest":
+		return WorkflowTaskStepKindIngest, nil
+	case "workflow":
+		return WorkflowTaskStepKindWorkflow, nil
+	case "conditions":
+		return WorkflowTaskStepKindConditions, nil
 	}
 	var t WorkflowTaskStepKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

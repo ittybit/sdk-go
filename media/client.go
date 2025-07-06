@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// Retrieves a list of all media for the current project
+// Retrieves a paginated list of all media for the current project
 func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.MediaListRequest,
@@ -55,18 +55,6 @@ func (c *Client) List(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.MediaListResponse
 	if err := c.caller.Call(
@@ -80,7 +68,6 @@ func (c *Client) List(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -88,7 +75,7 @@ func (c *Client) List(
 	return response, nil
 }
 
-// Creates a new media item from a URL or as an empty placeholder
+// Creates a new media item.
 func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.MediaCreateRequest,
@@ -106,23 +93,6 @@ func (c *Client) Create(
 		options.ToHeader(),
 	)
 	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.MediaResponse
 	if err := c.caller.Call(
@@ -137,7 +107,6 @@ func (c *Client) Create(
 			Client:          options.HTTPClient,
 			Request:         request,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -145,7 +114,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-// Retrieves a specific media item by its ID
+// Retrieves the media object for a media with the given ID.
 func (c *Client) Get(
 	ctx context.Context,
 	id string,
@@ -165,23 +134,6 @@ func (c *Client) Get(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.MediaResponse
 	if err := c.caller.Call(
@@ -195,7 +147,6 @@ func (c *Client) Get(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -203,7 +154,7 @@ func (c *Client) Get(
 	return response, nil
 }
 
-// Deletes a specific media item by its ID
+// Permanently removes a media object from the system. This action cannot be undone.
 func (c *Client) Delete(
 	ctx context.Context,
 	id string,
@@ -223,23 +174,6 @@ func (c *Client) Delete(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.ConfirmationResponse
 	if err := c.caller.Call(
@@ -253,7 +187,6 @@ func (c *Client) Delete(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -261,7 +194,7 @@ func (c *Client) Delete(
 	return response, nil
 }
 
-// Updates specific fields of a media item by its ID. Only the fields provided in the request body will be updated.
+// Updates a media object's `title`, `alt`, or `metadata`. Only the specified fields will be updated.
 func (c *Client) Update(
 	ctx context.Context,
 	id string,
@@ -283,28 +216,6 @@ func (c *Client) Update(
 		options.ToHeader(),
 	)
 	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.MediaResponse
 	if err := c.caller.Call(
@@ -319,7 +230,6 @@ func (c *Client) Update(
 			Client:          options.HTTPClient,
 			Request:         request,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err

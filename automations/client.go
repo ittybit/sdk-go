@@ -47,18 +47,6 @@ func (c *Client) List(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.AutomationListResponse
 	if err := c.caller.Call(
@@ -72,7 +60,6 @@ func (c *Client) List(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -96,23 +83,6 @@ func (c *Client) Create(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.AutomationResponse
 	if err := c.caller.Call(
@@ -126,7 +96,6 @@ func (c *Client) Create(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -154,23 +123,6 @@ func (c *Client) Get(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.AutomationResponse
 	if err := c.caller.Call(
@@ -184,7 +136,6 @@ func (c *Client) Get(
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -214,28 +165,6 @@ func (c *Client) Update(
 		options.ToHeader(),
 	)
 	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.AutomationResponse
 	if err := c.caller.Call(
@@ -250,7 +179,6 @@ func (c *Client) Update(
 			Client:          options.HTTPClient,
 			Request:         request,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err
@@ -278,23 +206,6 @@ func (c *Client) Delete(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
-	errorCodes := internal.ErrorCodes{
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-		403: func(apiError *core.APIError) error {
-			return &sdkgo.ForbiddenError{
-				APIError: apiError,
-			}
-		},
-		404: func(apiError *core.APIError) error {
-			return &sdkgo.NotFoundError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	if err := c.caller.Call(
 		ctx,
@@ -306,7 +217,6 @@ func (c *Client) Delete(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return err

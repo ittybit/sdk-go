@@ -10,92 +10,51 @@ import (
 )
 
 type FilesCreateRequest struct {
-	// The publicly accessible URL of the file to ingest.
-	URL string `json:"url" url:"-"`
-	// Optional desired filename. If not provided, it may be derived from the URL.
-	Filename *string `json:"filename,omitempty" url:"-"`
-	// Folder path (optional)
-	Folder *string `json:"folder,omitempty" url:"-"`
-	// Optional existing media ID to associate the file with.
-	MediaID *string `json:"media_id,omitempty" url:"-"`
-	// Optional label for the file.
-	Label *string `json:"label,omitempty" url:"-"`
-	// Optional user-defined key-value metadata.
+	URL      string                 `json:"url" url:"-"`
+	MediaID  *string                `json:"media_id,omitempty" url:"-"`
+	Folder   *string                `json:"folder,omitempty" url:"-"`
+	Filename *string                `json:"filename,omitempty" url:"-"`
+	Ref      *string                `json:"ref,omitempty" url:"-"`
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
-	// Whether to process the ingestion asynchronously.
-	Async *bool `json:"async,omitempty" url:"-"`
 }
 
 type FilesListRequest struct {
-	// Items per page
 	Limit *int `json:"-" url:"limit,omitempty"`
 }
 
 type File struct {
-	// Unique identifier for the file.
-	ID string `json:"id" url:"id"`
-	// Identifier for the parent media object.
-	MediaID string `json:"media_id" url:"media_id"`
-	// Object type
-	Object FileObject `json:"object" url:"object"`
-	// The general type of media.
-	Kind FileKind `json:"kind" url:"kind"`
-	// MIME type.
-	Type string `json:"type" url:"type"`
-	// Codec of the file.
-	Codec *string `json:"codec,omitempty" url:"codec,omitempty"`
-	// Container of the file.
-	Container *string `json:"container,omitempty" url:"container,omitempty"`
-	// Width in pixels (for image/video).
-	Width *int `json:"width,omitempty" url:"width,omitempty"`
-	// Height in pixels (for image/video).
-	Height *int `json:"height,omitempty" url:"height,omitempty"`
-	// Orientation of the file.
-	Orientation *string `json:"orientation,omitempty" url:"orientation,omitempty"`
-	// Rotation value for image files with embedded EXIF data.
-	Rotation *float64 `json:"rotation,omitempty" url:"rotation,omitempty"`
-	// Indicates if the file has alpha channel.
-	Transparency *bool `json:"transparency,omitempty" url:"transparency,omitempty"`
-	// Indicates if the file is animated (image only).
-	Animated *bool `json:"animated,omitempty" url:"animated,omitempty"`
-	// Number of frames in the file.
-	Frames *int `json:"frames,omitempty" url:"frames,omitempty"`
-	// Duration in seconds (for audio/video).
-	Duration *float64 `json:"duration,omitempty" url:"duration,omitempty"`
-	// Frames per second (for video).
-	Fps *float64 `json:"fps,omitempty" url:"fps,omitempty"`
-	// File size in bytes.
-	Filesize int `json:"filesize" url:"filesize"`
-	// Bitrate for audio/video files.
-	Bitrate *int `json:"bitrate,omitempty" url:"bitrate,omitempty"`
-	// Language code (e.g., en, es, fr).
-	Language *string `json:"language,omitempty" url:"language,omitempty"`
-	// Label to be used by players (tracks only).
-	Label *string `json:"label,omitempty" url:"label,omitempty"`
-	// Optional reference value. If set, the file URL will be included in the parent media `urls` object.
-	Ref *string `json:"ref,omitempty" url:"ref,omitempty"`
-	// The folder path where the file is stored.
-	Folder *string `json:"folder,omitempty" url:"folder,omitempty"`
-	// The name of the file.
-	Filename *string `json:"filename,omitempty" url:"filename,omitempty"`
-	// Publicly accessible URL for the file.
-	URL string `json:"url" url:"url"`
-	// Base64 encoded placeholder image for the file.
-	Placeholder *string `json:"placeholder,omitempty" url:"placeholder,omitempty"`
-	// Dominant background color hex code.
-	Background *string `json:"background,omitempty" url:"background,omitempty"`
-	// User-defined key-value metadata.
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	// Indicates this is the original file rather than a variant.
-	Original *bool `json:"original,omitempty" url:"original,omitempty"`
-	// ID of the entity (e.g., task, automation, or upload request) that created this file.
-	CreatedBy *string `json:"created_by,omitempty" url:"created_by,omitempty"`
-	// Timestamp when the file record was created.
-	Created time.Time `json:"created" url:"created"`
-	// Timestamp when the file record was last updated.
-	Updated time.Time `json:"updated" url:"updated"`
-	// Processing status of the file.
-	Status FileStatus `json:"status" url:"status"`
+	ID           string                 `json:"id" url:"id"`
+	MediaID      string                 `json:"media_id" url:"media_id"`
+	Object       FileObject             `json:"object" url:"object"`
+	Kind         FileKind               `json:"kind" url:"kind"`
+	Type         string                 `json:"type" url:"type"`
+	Codec        *string                `json:"codec,omitempty" url:"codec,omitempty"`
+	Container    *string                `json:"container,omitempty" url:"container,omitempty"`
+	Width        *int                   `json:"width,omitempty" url:"width,omitempty"`
+	Height       *int                   `json:"height,omitempty" url:"height,omitempty"`
+	Orientation  *string                `json:"orientation,omitempty" url:"orientation,omitempty"`
+	Rotation     *float64               `json:"rotation,omitempty" url:"rotation,omitempty"`
+	Transparency *bool                  `json:"transparency,omitempty" url:"transparency,omitempty"`
+	Animated     *bool                  `json:"animated,omitempty" url:"animated,omitempty"`
+	Frames       *int                   `json:"frames,omitempty" url:"frames,omitempty"`
+	Duration     *float64               `json:"duration,omitempty" url:"duration,omitempty"`
+	Fps          *float64               `json:"fps,omitempty" url:"fps,omitempty"`
+	Filesize     int                    `json:"filesize" url:"filesize"`
+	Bitrate      *int                   `json:"bitrate,omitempty" url:"bitrate,omitempty"`
+	Language     *string                `json:"language,omitempty" url:"language,omitempty"`
+	Label        *string                `json:"label,omitempty" url:"label,omitempty"`
+	Ref          *string                `json:"ref,omitempty" url:"ref,omitempty"`
+	Folder       *string                `json:"folder,omitempty" url:"folder,omitempty"`
+	Filename     *string                `json:"filename,omitempty" url:"filename,omitempty"`
+	URL          string                 `json:"url" url:"url"`
+	Placeholder  *string                `json:"placeholder,omitempty" url:"placeholder,omitempty"`
+	Background   *string                `json:"background,omitempty" url:"background,omitempty"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Original     *bool                  `json:"original,omitempty" url:"original,omitempty"`
+	CreatedBy    *string                `json:"created_by,omitempty" url:"created_by,omitempty"`
+	Created      time.Time              `json:"created" url:"created"`
+	Updated      time.Time              `json:"updated" url:"updated"`
+	Status       FileStatus             `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -379,7 +338,6 @@ func (f *File) String() string {
 	return fmt.Sprintf("%#v", f)
 }
 
-// The general type of media.
 type FileKind string
 
 const (
@@ -408,6 +366,7 @@ func (f FileKind) Ptr() *FileKind {
 type FileListResponse struct {
 	Meta  *MetaList  `json:"meta,omitempty" url:"meta,omitempty"`
 	Data  []*File    `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error     `json:"error,omitempty" url:"error,omitempty"`
 	Links *LinksList `json:"links,omitempty" url:"links,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -426,6 +385,13 @@ func (f *FileListResponse) GetData() []*File {
 		return nil
 	}
 	return f.Data
+}
+
+func (f *FileListResponse) GetError() *Error {
+	if f == nil {
+		return nil
+	}
+	return f.Error
 }
 
 func (f *FileListResponse) GetLinks() *LinksList {
@@ -467,7 +433,6 @@ func (f *FileListResponse) String() string {
 	return fmt.Sprintf("%#v", f)
 }
 
-// Object type
 type FileObject string
 
 const (
@@ -496,6 +461,7 @@ func (f FileObject) Ptr() *FileObject {
 type FileResponse struct {
 	Meta  *Meta  `json:"meta,omitempty" url:"meta,omitempty"`
 	Data  *File  `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error `json:"error,omitempty" url:"error,omitempty"`
 	Links *Links `json:"links,omitempty" url:"links,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -514,6 +480,13 @@ func (f *FileResponse) GetData() *File {
 		return nil
 	}
 	return f.Data
+}
+
+func (f *FileResponse) GetError() *Error {
+	if f == nil {
+		return nil
+	}
+	return f.Error
 }
 
 func (f *FileResponse) GetLinks() *Links {
@@ -555,7 +528,6 @@ func (f *FileResponse) String() string {
 	return fmt.Sprintf("%#v", f)
 }
 
-// Processing status of the file.
 type FileStatus string
 
 const (
@@ -584,122 +556,9 @@ func (f FileStatus) Ptr() *FileStatus {
 	return &f
 }
 
-type FilesDeleteResponse struct {
-	// Contains a confirmation message
-	Data  *FilesDeleteResponseData `json:"data,omitempty" url:"data,omitempty"`
-	Meta  *Meta                    `json:"meta,omitempty" url:"meta,omitempty"`
-	Links *Links                   `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (f *FilesDeleteResponse) GetData() *FilesDeleteResponseData {
-	if f == nil {
-		return nil
-	}
-	return f.Data
-}
-
-func (f *FilesDeleteResponse) GetMeta() *Meta {
-	if f == nil {
-		return nil
-	}
-	return f.Meta
-}
-
-func (f *FilesDeleteResponse) GetLinks() *Links {
-	if f == nil {
-		return nil
-	}
-	return f.Links
-}
-
-func (f *FilesDeleteResponse) GetExtraProperties() map[string]interface{} {
-	return f.extraProperties
-}
-
-func (f *FilesDeleteResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler FilesDeleteResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*f = FilesDeleteResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *f)
-	if err != nil {
-		return err
-	}
-	f.extraProperties = extraProperties
-	f.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (f *FilesDeleteResponse) String() string {
-	if len(f.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(f); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", f)
-}
-
-// Contains a confirmation message
-type FilesDeleteResponseData struct {
-	// Confirmation message
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (f *FilesDeleteResponseData) GetMessage() *string {
-	if f == nil {
-		return nil
-	}
-	return f.Message
-}
-
-func (f *FilesDeleteResponseData) GetExtraProperties() map[string]interface{} {
-	return f.extraProperties
-}
-
-func (f *FilesDeleteResponseData) UnmarshalJSON(data []byte) error {
-	type unmarshaler FilesDeleteResponseData
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*f = FilesDeleteResponseData(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *f)
-	if err != nil {
-		return err
-	}
-	f.extraProperties = extraProperties
-	f.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (f *FilesDeleteResponseData) String() string {
-	if len(f.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(f.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(f); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", f)
-}
-
 type FilesUpdateRequest struct {
-	// An object containing key-value pairs to set or update. Set a key to null to remove it.
+	Folder   *string                `json:"folder,omitempty" url:"-"`
+	Filename *string                `json:"filename,omitempty" url:"-"`
+	Ref      *string                `json:"ref,omitempty" url:"-"`
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
-	// New filename for the file.
-	Filename *string `json:"filename,omitempty" url:"-"`
-	// New folder path for the file.
-	Folder *string `json:"folder,omitempty" url:"-"`
 }

@@ -31,7 +31,7 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// Creates a cryptographically signed URL that provides temporary and restricted access to a file. The URL can expire after a specified time and be limited to specific HTTP methods.
+// You can use signatures to create signed URLs which grant access to your project's resources, without revealing your project's API key. URLs can expire after a specified time and be limited to HTTP `GET` method for read-only access, or HTTP `PUT` method for client-side uploads.
 func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.SignaturesCreateRequest,
@@ -49,18 +49,6 @@ func (c *Client) Create(
 		options.ToHeader(),
 	)
 	headers.Set("Content-Type", "application/json")
-	errorCodes := internal.ErrorCodes{
-		400: func(apiError *core.APIError) error {
-			return &sdkgo.BadRequestError{
-				APIError: apiError,
-			}
-		},
-		401: func(apiError *core.APIError) error {
-			return &sdkgo.UnauthorizedError{
-				APIError: apiError,
-			}
-		},
-	}
 
 	var response *sdkgo.SignatureResponse
 	if err := c.caller.Call(
@@ -75,7 +63,6 @@ func (c *Client) Create(
 			Client:          options.HTTPClient,
 			Request:         request,
 			Response:        &response,
-			ErrorDecoder:    internal.NewErrorDecoder(errorCodes),
 		},
 	); err != nil {
 		return nil, err

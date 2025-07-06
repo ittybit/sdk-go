@@ -10,158 +10,30 @@ import (
 )
 
 type MediaCreateRequest struct {
-	// Title for the media
-	Title *string `json:"title,omitempty" url:"-"`
-	// Additional metadata for the media
+	Title    *string                `json:"title,omitempty" url:"-"`
+	Alt      *string                `json:"alt,omitempty" url:"-"`
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
 }
 
 type MediaListRequest struct {
-	// Number of media items to return per page.
 	Limit *int `json:"-" url:"limit,omitempty"`
 }
 
-type ConfirmationResponse struct {
-	Meta  *Meta                     `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *ConfirmationResponseData `json:"data,omitempty" url:"data,omitempty"`
-	Links *Links                    `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (c *ConfirmationResponse) GetMeta() *Meta {
-	if c == nil {
-		return nil
-	}
-	return c.Meta
-}
-
-func (c *ConfirmationResponse) GetData() *ConfirmationResponseData {
-	if c == nil {
-		return nil
-	}
-	return c.Data
-}
-
-func (c *ConfirmationResponse) GetLinks() *Links {
-	if c == nil {
-		return nil
-	}
-	return c.Links
-}
-
-func (c *ConfirmationResponse) GetExtraProperties() map[string]interface{} {
-	return c.extraProperties
-}
-
-func (c *ConfirmationResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler ConfirmationResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*c = ConfirmationResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *c)
-	if err != nil {
-		return err
-	}
-	c.extraProperties = extraProperties
-	c.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (c *ConfirmationResponse) String() string {
-	if len(c.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(c); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", c)
-}
-
-type ConfirmationResponseData struct {
-	Message string `json:"message" url:"message"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (c *ConfirmationResponseData) GetMessage() string {
-	if c == nil {
-		return ""
-	}
-	return c.Message
-}
-
-func (c *ConfirmationResponseData) GetExtraProperties() map[string]interface{} {
-	return c.extraProperties
-}
-
-func (c *ConfirmationResponseData) UnmarshalJSON(data []byte) error {
-	type unmarshaler ConfirmationResponseData
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*c = ConfirmationResponseData(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *c)
-	if err != nil {
-		return err
-	}
-	c.extraProperties = extraProperties
-	c.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (c *ConfirmationResponseData) String() string {
-	if len(c.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(c); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", c)
-}
-
 type Media struct {
-	// Unique identifier for the media item.
-	ID string `json:"id" url:"id"`
-	// Object type, always 'media'.
-	Object string `json:"object" url:"object"`
-	// The primary kind of the media, derived from the original file.
-	Kind MediaKind `json:"kind" url:"kind"`
-	// Title of the media item.
-	Title *string `json:"title,omitempty" url:"title,omitempty"`
-	// Alternative text for the media item.
-	Alt *string `json:"alt,omitempty" url:"alt,omitempty"`
-	// Width of the primary source in pixels.
-	Width *int `json:"width,omitempty" url:"width,omitempty"`
-	// Height of the primary source in pixels.
-	Height *int `json:"height,omitempty" url:"height,omitempty"`
-	// Duration of the primary source in seconds.
-	Duration *float64 `json:"duration,omitempty" url:"duration,omitempty"`
-	// Array of source files associated with this media item.
-	Files []*MediaSource `json:"files,omitempty" url:"files,omitempty"`
-	// URLs for the media item.
-	URLs *MediaURLs `json:"urls,omitempty" url:"urls,omitempty"`
-	// URL of the poster image (video kinds only).
-	Poster *string `json:"poster,omitempty" url:"poster,omitempty"`
-	// Base64 encoded placeholder image (video/image only).
-	Placeholder *string `json:"placeholder,omitempty" url:"placeholder,omitempty"`
-	// Dominant background color hex code (video/image only).
-	Background *string `json:"background,omitempty" url:"background,omitempty"`
-	// User-defined key-value metadata for the media item.
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	// Timestamp when the media record was created.
-	Created time.Time `json:"created" url:"created"`
-	// Timestamp when the media item was last updated.
-	Updated time.Time `json:"updated" url:"updated"`
+	ID         string                 `json:"id" url:"id"`
+	Object     string                 `json:"object" url:"object"`
+	Kind       *MediaKind             `json:"kind,omitempty" url:"kind,omitempty"`
+	Title      *string                `json:"title,omitempty" url:"title,omitempty"`
+	Alt        *string                `json:"alt,omitempty" url:"alt,omitempty"`
+	Width      *int                   `json:"width,omitempty" url:"width,omitempty"`
+	Height     *int                   `json:"height,omitempty" url:"height,omitempty"`
+	Duration   *float64               `json:"duration,omitempty" url:"duration,omitempty"`
+	Files      []*MediaSource         `json:"files,omitempty" url:"files,omitempty"`
+	URLs       map[string]interface{} `json:"urls,omitempty" url:"urls,omitempty"`
+	Background *string                `json:"background,omitempty" url:"background,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Created    time.Time              `json:"created" url:"created"`
+	Updated    time.Time              `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -181,9 +53,9 @@ func (m *Media) GetObject() string {
 	return m.Object
 }
 
-func (m *Media) GetKind() MediaKind {
+func (m *Media) GetKind() *MediaKind {
 	if m == nil {
-		return ""
+		return nil
 	}
 	return m.Kind
 }
@@ -230,25 +102,11 @@ func (m *Media) GetFiles() []*MediaSource {
 	return m.Files
 }
 
-func (m *Media) GetURLs() *MediaURLs {
+func (m *Media) GetURLs() map[string]interface{} {
 	if m == nil {
 		return nil
 	}
 	return m.URLs
-}
-
-func (m *Media) GetPoster() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Poster
-}
-
-func (m *Media) GetPlaceholder() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Placeholder
 }
 
 func (m *Media) GetBackground() *string {
@@ -333,7 +191,6 @@ func (m *Media) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-// The primary kind of the media, derived from the original file.
 type MediaKind string
 
 const (
@@ -362,6 +219,7 @@ func (m MediaKind) Ptr() *MediaKind {
 type MediaListResponse struct {
 	Meta  *MetaList  `json:"meta,omitempty" url:"meta,omitempty"`
 	Data  []*Media   `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error     `json:"error,omitempty" url:"error,omitempty"`
 	Links *LinksList `json:"links,omitempty" url:"links,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -380,6 +238,13 @@ func (m *MediaListResponse) GetData() []*Media {
 		return nil
 	}
 	return m.Data
+}
+
+func (m *MediaListResponse) GetError() *Error {
+	if m == nil {
+		return nil
+	}
+	return m.Error
 }
 
 func (m *MediaListResponse) GetLinks() *LinksList {
@@ -424,6 +289,7 @@ func (m *MediaListResponse) String() string {
 type MediaResponse struct {
 	Meta  *Meta  `json:"meta,omitempty" url:"meta,omitempty"`
 	Data  *Media `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error `json:"error,omitempty" url:"error,omitempty"`
 	Links *Links `json:"links,omitempty" url:"links,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -442,6 +308,13 @@ func (m *MediaResponse) GetData() *Media {
 		return nil
 	}
 	return m.Data
+}
+
+func (m *MediaResponse) GetError() *Error {
+	if m == nil {
+		return nil
+	}
+	return m.Error
 }
 
 func (m *MediaResponse) GetLinks() *Links {
@@ -484,56 +357,31 @@ func (m *MediaResponse) String() string {
 }
 
 type MediaSource struct {
-	// Unique identifier for the file.
-	ID string `json:"id" url:"id"`
-	// Object type
-	Object MediaSourceObject `json:"object" url:"object"`
-	// The general type of media.
-	Kind MediaSourceKind `json:"kind" url:"kind"`
-	// MIME type.
-	Type string `json:"type" url:"type"`
-	// Codec of the file.
-	Codec *string `json:"codec,omitempty" url:"codec,omitempty"`
-	// Container of the file.
-	Container *string `json:"container,omitempty" url:"container,omitempty"`
-	// Width in pixels (for image/video).
-	Width *int `json:"width,omitempty" url:"width,omitempty"`
-	// Height in pixels (for image/video).
-	Height *int `json:"height,omitempty" url:"height,omitempty"`
-	// Orientation of the file.
-	Orientation *string `json:"orientation,omitempty" url:"orientation,omitempty"`
-	// Rotation value for image files with embedded EXIF data.
-	Rotation *float64 `json:"rotation,omitempty" url:"rotation,omitempty"`
-	// Indicates if the file has alpha channel.
-	Transparency *bool `json:"transparency,omitempty" url:"transparency,omitempty"`
-	// Number of frames in the file.
-	Frames *int `json:"frames,omitempty" url:"frames,omitempty"`
-	// Duration in seconds (for audio/video).
-	Duration *float64 `json:"duration,omitempty" url:"duration,omitempty"`
-	// Frames per second (for video).
-	Fps *float64 `json:"fps,omitempty" url:"fps,omitempty"`
-	// File size in bytes.
-	Filesize int `json:"filesize" url:"filesize"`
-	// Bitrate for audio/video files.
-	Bitrate *int `json:"bitrate,omitempty" url:"bitrate,omitempty"`
-	// Optional reference value. If set, the file URL will be included in the parent media `urls` object.
-	Ref *string `json:"ref,omitempty" url:"ref,omitempty"`
-	// The folder path where the file is stored.
-	Folder *string `json:"folder,omitempty" url:"folder,omitempty"`
-	// The name of the file.
-	Filename *string `json:"filename,omitempty" url:"filename,omitempty"`
-	// Publicly accessible URL for the file.
-	URL string `json:"url" url:"url"`
-	// User-defined key-value metadata.
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"metadata,omitempty"`
-	// Indicates this is the original file rather than a variant.
-	Original *bool `json:"original,omitempty" url:"original,omitempty"`
-	// Timestamp when the file record was created.
-	Created time.Time `json:"created" url:"created"`
-	// Timestamp when the file record was last updated.
-	Updated time.Time `json:"updated" url:"updated"`
-	// Processing status of the file.
-	Status MediaSourceStatus `json:"status" url:"status"`
+	ID           string                  `json:"id" url:"id"`
+	Object       MediaSourceObject       `json:"object" url:"object"`
+	Kind         MediaSourceKind         `json:"kind" url:"kind"`
+	Type         string                  `json:"type" url:"type"`
+	Codec        *string                 `json:"codec,omitempty" url:"codec,omitempty"`
+	Container    *string                 `json:"container,omitempty" url:"container,omitempty"`
+	Width        *int                    `json:"width,omitempty" url:"width,omitempty"`
+	Height       *int                    `json:"height,omitempty" url:"height,omitempty"`
+	Orientation  *MediaSourceOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
+	Rotation     *float64                `json:"rotation,omitempty" url:"rotation,omitempty"`
+	Transparency *bool                   `json:"transparency,omitempty" url:"transparency,omitempty"`
+	Frames       *int                    `json:"frames,omitempty" url:"frames,omitempty"`
+	Duration     *float64                `json:"duration,omitempty" url:"duration,omitempty"`
+	Fps          *float64                `json:"fps,omitempty" url:"fps,omitempty"`
+	Filesize     int                     `json:"filesize" url:"filesize"`
+	Bitrate      *int                    `json:"bitrate,omitempty" url:"bitrate,omitempty"`
+	Ref          *string                 `json:"ref,omitempty" url:"ref,omitempty"`
+	Folder       *string                 `json:"folder,omitempty" url:"folder,omitempty"`
+	Filename     *string                 `json:"filename,omitempty" url:"filename,omitempty"`
+	URL          string                  `json:"url" url:"url"`
+	Metadata     map[string]interface{}  `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Original     *bool                   `json:"original,omitempty" url:"original,omitempty"`
+	Created      time.Time               `json:"created" url:"created"`
+	Updated      time.Time               `json:"updated" url:"updated"`
+	Status       MediaSourceStatus       `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -595,7 +443,7 @@ func (m *MediaSource) GetHeight() *int {
 	return m.Height
 }
 
-func (m *MediaSource) GetOrientation() *string {
+func (m *MediaSource) GetOrientation() *MediaSourceOrientation {
 	if m == nil {
 		return nil
 	}
@@ -768,7 +616,6 @@ func (m *MediaSource) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-// The general type of media.
 type MediaSourceKind string
 
 const (
@@ -794,7 +641,6 @@ func (m MediaSourceKind) Ptr() *MediaSourceKind {
 	return &m
 }
 
-// Object type
 type MediaSourceObject string
 
 const (
@@ -820,7 +666,31 @@ func (m MediaSourceObject) Ptr() *MediaSourceObject {
 	return &m
 }
 
-// Processing status of the file.
+type MediaSourceOrientation string
+
+const (
+	MediaSourceOrientationLandscape MediaSourceOrientation = "landscape"
+	MediaSourceOrientationPortrait  MediaSourceOrientation = "portrait"
+	MediaSourceOrientationSquare    MediaSourceOrientation = "square"
+)
+
+func NewMediaSourceOrientationFromString(s string) (MediaSourceOrientation, error) {
+	switch s {
+	case "landscape":
+		return MediaSourceOrientationLandscape, nil
+	case "portrait":
+		return MediaSourceOrientationPortrait, nil
+	case "square":
+		return MediaSourceOrientationSquare, nil
+	}
+	var t MediaSourceOrientation
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (m MediaSourceOrientation) Ptr() *MediaSourceOrientation {
+	return &m
+}
+
 type MediaSourceStatus string
 
 const (
@@ -849,66 +719,8 @@ func (m MediaSourceStatus) Ptr() *MediaSourceStatus {
 	return &m
 }
 
-// URLs for the media item.
-type MediaURLs struct {
-	// URL of the original source file.
-	Original *string `json:"original,omitempty" url:"original,omitempty"`
-	// Example URL for a file with the ref value "example_ref". Any key with a-z, 0-9, _, or - is possible, but keys must start with a letter.
-	ExampleRef *string `json:"example_ref,omitempty" url:"example_ref,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaURLs) GetOriginal() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Original
-}
-
-func (m *MediaURLs) GetExampleRef() *string {
-	if m == nil {
-		return nil
-	}
-	return m.ExampleRef
-}
-
-func (m *MediaURLs) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaURLs) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaURLs
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaURLs(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaURLs) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
 type MediaUpdateRequest struct {
-	// New title for the media item.
-	Title *string `json:"title,omitempty" url:"-"`
-	// New metadata object for the media item. This will replace the existing metadata.
+	Title    *string                `json:"title,omitempty" url:"-"`
+	Alt      *string                `json:"alt,omitempty" url:"-"`
 	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
 }

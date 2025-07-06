@@ -9,31 +9,20 @@ import (
 )
 
 type SignaturesCreateRequest struct {
-	// The name of the file to generate a signature for. Special characters will be sanitised.
-	Filename string `json:"filename" url:"-"`
-	// Optional folder path where the file resides. Special characters will be sanitised.
-	Folder *string `json:"folder,omitempty" url:"-"`
-	// Optional expiry time for the signature in seconds since epoch. Defaults to 60 minutes from now. Must be a positive integer and in the future.
-	Expiry *int64 `json:"expiry,omitempty" url:"-"`
-	// Optional HTTP method allowed for the signed URL. Defaults to 'get'.
-	Method *SignaturesCreateRequestMethod `json:"method,omitempty" url:"-"`
+	Filename string                         `json:"filename" url:"-"`
+	Folder   *string                        `json:"folder,omitempty" url:"-"`
+	Expiry   *int                           `json:"expiry,omitempty" url:"-"`
+	Method   *SignaturesCreateRequestMethod `json:"method,omitempty" url:"-"`
 }
 
 type Signature struct {
-	// Domain of the signed URL
-	Domain string `json:"domain" url:"domain"`
-	// Filename of the signed file
-	Filename string `json:"filename" url:"filename"`
-	// Folder of the signed file
-	Folder *string `json:"folder,omitempty" url:"folder,omitempty"`
-	// Expiry timestamp of the signed URL
-	Expiry int `json:"expiry" url:"expiry"`
-	// HTTP method for the signed URL
-	Method string `json:"method" url:"method"`
-	// Generated signature for the signed URL
-	Signature string `json:"signature" url:"signature"`
-	// Generated signed URL
-	URL string `json:"url" url:"url"`
+	Domain    string  `json:"domain" url:"domain"`
+	Filename  string  `json:"filename" url:"filename"`
+	Folder    *string `json:"folder,omitempty" url:"folder,omitempty"`
+	Expiry    int     `json:"expiry" url:"expiry"`
+	Method    string  `json:"method" url:"method"`
+	Signature string  `json:"signature" url:"signature"`
+	URL       string  `json:"url" url:"url"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -123,6 +112,7 @@ func (s *Signature) String() string {
 type SignatureResponse struct {
 	Meta  *Meta      `json:"meta,omitempty" url:"meta,omitempty"`
 	Data  *Signature `json:"data,omitempty" url:"data,omitempty"`
+	Error *Error     `json:"error,omitempty" url:"error,omitempty"`
 	Links *Links     `json:"links,omitempty" url:"links,omitempty"`
 
 	extraProperties map[string]interface{}
@@ -141,6 +131,13 @@ func (s *SignatureResponse) GetData() *Signature {
 		return nil
 	}
 	return s.Data
+}
+
+func (s *SignatureResponse) GetError() *Error {
+	if s == nil {
+		return nil
+	}
+	return s.Error
 }
 
 func (s *SignatureResponse) GetLinks() *Links {
@@ -182,14 +179,11 @@ func (s *SignatureResponse) String() string {
 	return fmt.Sprintf("%#v", s)
 }
 
-// Optional HTTP method allowed for the signed URL. Defaults to 'get'.
 type SignaturesCreateRequestMethod string
 
 const (
-	SignaturesCreateRequestMethodGet    SignaturesCreateRequestMethod = "get"
-	SignaturesCreateRequestMethodPut    SignaturesCreateRequestMethod = "put"
-	SignaturesCreateRequestMethodPost   SignaturesCreateRequestMethod = "post"
-	SignaturesCreateRequestMethodDelete SignaturesCreateRequestMethod = "delete"
+	SignaturesCreateRequestMethodGet SignaturesCreateRequestMethod = "get"
+	SignaturesCreateRequestMethodPut SignaturesCreateRequestMethod = "put"
 )
 
 func NewSignaturesCreateRequestMethodFromString(s string) (SignaturesCreateRequestMethod, error) {
@@ -198,10 +192,6 @@ func NewSignaturesCreateRequestMethodFromString(s string) (SignaturesCreateReque
 		return SignaturesCreateRequestMethodGet, nil
 	case "put":
 		return SignaturesCreateRequestMethodPut, nil
-	case "post":
-		return SignaturesCreateRequestMethodPost, nil
-	case "delete":
-		return SignaturesCreateRequestMethodDelete, nil
 	}
 	var t SignaturesCreateRequestMethod
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
