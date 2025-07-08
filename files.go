@@ -19,6 +19,7 @@ type FilesCreateRequest struct {
 }
 
 type FilesListRequest struct {
+	Page  *int `json:"-" url:"page,omitempty"`
 	Limit *int `json:"-" url:"limit,omitempty"`
 }
 

@@ -16,6 +16,7 @@ type MediaCreateRequest struct {
 }
 
 type MediaListRequest struct {
+	Page  *int `json:"-" url:"page,omitempty"`
 	Limit *int `json:"-" url:"limit,omitempty"`
 }
 

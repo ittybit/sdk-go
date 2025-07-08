@@ -71,7 +71,7 @@ func WithToken(token string) *core.TokenOption {
 }
 
 // WithVersion sets the version request header.
-func WithVersion(version *int) *core.VersionOption {
+func WithVersion(version *string) *core.VersionOption {
 	return &core.VersionOption{
 		Version: version,
 	}

@@ -18,6 +18,7 @@ type AutomationsCreateRequest struct {
 }
 
 type AutomationsListRequest struct {
+	Page  *int `json:"-" url:"page,omitempty"`
 	Limit *int `json:"-" url:"limit,omitempty"`
 }
 

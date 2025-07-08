@@ -10,6 +10,7 @@ import (
 )
 
 type TasksListRequest struct {
+	Page  *int `json:"-" url:"page,omitempty"`
 	Limit *int `json:"-" url:"limit,omitempty"`
 }
 
