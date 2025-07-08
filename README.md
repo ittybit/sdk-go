@@ -15,6 +15,7 @@ import (
     client "github.com/ittybit/sdk-go/client"
     option "github.com/ittybit/sdk-go/option"
     context "context"
+    sdk "github.com/ittybit/sdk-go"
 )
 
 func do() () {
@@ -25,6 +26,40 @@ func do() () {
     )
     client.Automations.Create(
         context.TODO(),
+        &sdk.AutomationsCreateRequest{
+            Name: sdk.String(
+                "My Example Automation",
+            ),
+            Description: sdk.String(
+                "This workflow will run whenever new media is created.",
+            ),
+            Trigger: &sdk.AutomationsCreateRequestTrigger{},
+            Workflow: []*sdk.WorkflowTaskStep{
+                &sdk.WorkflowTaskStep{
+                    Kind: sdk.WorkflowTaskStepKindDescription,
+                },
+                &sdk.WorkflowTaskStep{
+                    Kind: sdk.WorkflowTaskStepKindImage,
+                    Ref: sdk.String(
+                        "thumbnail",
+                    ),
+                },
+                &sdk.WorkflowTaskStep{
+                    Kind: sdk.WorkflowTaskStepKindConditions,
+                    Next: []*sdk.WorkflowTaskStepNextItem{
+                        &sdk.WorkflowTaskStepNextItem{
+                            Kind: sdk.String(
+                                "subtitle",
+                            ),
+                            Ref: sdk.String(
+                                "subtitle",
+                            ),
+                        },
+                    },
+                },
+            },
+            Status: sdk.AutomationsCreateRequestStatusActive.Ptr(),
+        },
     )
 }
 ```

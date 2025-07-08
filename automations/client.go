@@ -78,6 +78,7 @@ func (c *Client) List(
 // Creates a new automation.
 func (c *Client) Create(
 	ctx context.Context,
+	request *sdkgo.AutomationsCreateRequest,
 	opts ...option.RequestOption,
 ) (*sdkgo.AutomationResponse, error) {
 	options := core.NewRequestOptions(opts...)
@@ -91,6 +92,7 @@ func (c *Client) Create(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Set("Content-Type", "application/json")
 
 	var response *sdkgo.AutomationResponse
 	if err := c.caller.Call(
@@ -103,6 +105,7 @@ func (c *Client) Create(
 			BodyProperties:  options.BodyProperties,
 			QueryParameters: options.QueryParameters,
 			Client:          options.HTTPClient,
+			Request:         request,
 			Response:        &response,
 		},
 	); err != nil {
@@ -151,43 +154,6 @@ func (c *Client) Get(
 	return response, nil
 }
 
-func (c *Client) Update(
-	ctx context.Context,
-	id string,
-	opts ...option.RequestOption,
-) error {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.ittybit.com",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/automations/%v",
-		id,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPut,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-		},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
 // Permanently removes an automation from the system. This action cannot be undone.
 func (c *Client) Delete(
 	ctx context.Context,
@@ -229,10 +195,10 @@ func (c *Client) Delete(
 }
 
 // Updates an automation's `name`, `description`, `trigger`, `workflow`, or `status`. Only the specified fields will be updated.
-func (c *Client) UpdateAutomation(
+func (c *Client) Update(
 	ctx context.Context,
 	id string,
-	request *sdkgo.UpdateAutomationRequest,
+	request *sdkgo.AutomationsUpdateRequest,
 	opts ...option.RequestOption,
 ) (*sdkgo.AutomationResponse, error) {
 	options := core.NewRequestOptions(opts...)

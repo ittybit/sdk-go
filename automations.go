@@ -9,6 +9,14 @@ import (
 	time "time"
 )
 
+type AutomationsCreateRequest struct {
+	Name        *string                          `json:"name,omitempty" url:"-"`
+	Description *string                          `json:"description,omitempty" url:"-"`
+	Trigger     *AutomationsCreateRequestTrigger `json:"trigger,omitempty" url:"-"`
+	Workflow    []*WorkflowTaskStep              `json:"workflow,omitempty" url:"-"`
+	Status      *AutomationsCreateRequestStatus  `json:"status,omitempty" url:"-"`
+}
+
 type AutomationsListRequest struct {
 	Limit *int `json:"-" url:"limit,omitempty"`
 }
@@ -546,29 +554,29 @@ func (w *WorkflowTaskStepNextItem) String() string {
 	return fmt.Sprintf("%#v", w)
 }
 
-type UpdateAutomationRequestStatus string
+type AutomationsCreateRequestStatus string
 
 const (
-	UpdateAutomationRequestStatusActive UpdateAutomationRequestStatus = "active"
-	UpdateAutomationRequestStatusPaused UpdateAutomationRequestStatus = "paused"
+	AutomationsCreateRequestStatusActive AutomationsCreateRequestStatus = "active"
+	AutomationsCreateRequestStatusPaused AutomationsCreateRequestStatus = "paused"
 )
 
-func NewUpdateAutomationRequestStatusFromString(s string) (UpdateAutomationRequestStatus, error) {
+func NewAutomationsCreateRequestStatusFromString(s string) (AutomationsCreateRequestStatus, error) {
 	switch s {
 	case "active":
-		return UpdateAutomationRequestStatusActive, nil
+		return AutomationsCreateRequestStatusActive, nil
 	case "paused":
-		return UpdateAutomationRequestStatusPaused, nil
+		return AutomationsCreateRequestStatusPaused, nil
 	}
-	var t UpdateAutomationRequestStatus
+	var t AutomationsCreateRequestStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (u UpdateAutomationRequestStatus) Ptr() *UpdateAutomationRequestStatus {
-	return &u
+func (a AutomationsCreateRequestStatus) Ptr() *AutomationsCreateRequestStatus {
+	return &a
 }
 
-type UpdateAutomationRequestTrigger struct {
+type AutomationsCreateRequestTrigger struct {
 	kind  string
 	event string
 
@@ -576,78 +584,176 @@ type UpdateAutomationRequestTrigger struct {
 	rawJSON         json.RawMessage
 }
 
-func (u *UpdateAutomationRequestTrigger) Kind() string {
-	return u.kind
+func (a *AutomationsCreateRequestTrigger) Kind() string {
+	return a.kind
 }
 
-func (u *UpdateAutomationRequestTrigger) Event() string {
-	return u.event
+func (a *AutomationsCreateRequestTrigger) Event() string {
+	return a.event
 }
 
-func (u *UpdateAutomationRequestTrigger) GetExtraProperties() map[string]interface{} {
-	return u.extraProperties
+func (a *AutomationsCreateRequestTrigger) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
 }
 
-func (u *UpdateAutomationRequestTrigger) UnmarshalJSON(data []byte) error {
-	type embed UpdateAutomationRequestTrigger
+func (a *AutomationsCreateRequestTrigger) UnmarshalJSON(data []byte) error {
+	type embed AutomationsCreateRequestTrigger
 	var unmarshaler = struct {
 		embed
 		Kind  string `json:"kind"`
 		Event string `json:"event"`
 	}{
-		embed: embed(*u),
+		embed: embed(*a),
 	}
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*u = UpdateAutomationRequestTrigger(unmarshaler.embed)
+	*a = AutomationsCreateRequestTrigger(unmarshaler.embed)
 	if unmarshaler.Kind != "event" {
-		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", u, "event", unmarshaler.Kind)
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "event", unmarshaler.Kind)
 	}
-	u.kind = unmarshaler.Kind
+	a.kind = unmarshaler.Kind
 	if unmarshaler.Event != "media.created" {
-		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", u, "media.created", unmarshaler.Event)
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "media.created", unmarshaler.Event)
 	}
-	u.event = unmarshaler.Event
-	extraProperties, err := internal.ExtractExtraProperties(data, *u, "kind", "event")
+	a.event = unmarshaler.Event
+	extraProperties, err := internal.ExtractExtraProperties(data, *a, "kind", "event")
 	if err != nil {
 		return err
 	}
-	u.extraProperties = extraProperties
-	u.rawJSON = json.RawMessage(data)
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
 	return nil
 }
 
-func (u *UpdateAutomationRequestTrigger) MarshalJSON() ([]byte, error) {
-	type embed UpdateAutomationRequestTrigger
+func (a *AutomationsCreateRequestTrigger) MarshalJSON() ([]byte, error) {
+	type embed AutomationsCreateRequestTrigger
 	var marshaler = struct {
 		embed
 		Kind  string `json:"kind"`
 		Event string `json:"event"`
 	}{
-		embed: embed(*u),
+		embed: embed(*a),
 		Kind:  "event",
 		Event: "media.created",
 	}
 	return json.Marshal(marshaler)
 }
 
-func (u *UpdateAutomationRequestTrigger) String() string {
-	if len(u.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
+func (a *AutomationsCreateRequestTrigger) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
 		}
 	}
-	if value, err := internal.StringifyJSON(u); err == nil {
+	if value, err := internal.StringifyJSON(a); err == nil {
 		return value
 	}
-	return fmt.Sprintf("%#v", u)
+	return fmt.Sprintf("%#v", a)
 }
 
-type UpdateAutomationRequest struct {
-	Name        *string                         `json:"name,omitempty" url:"-"`
-	Description *string                         `json:"description,omitempty" url:"-"`
-	Trigger     *UpdateAutomationRequestTrigger `json:"trigger,omitempty" url:"-"`
-	Workflow    []*WorkflowTaskStep             `json:"workflow,omitempty" url:"-"`
-	Status      *UpdateAutomationRequestStatus  `json:"status,omitempty" url:"-"`
+type AutomationsUpdateRequestStatus string
+
+const (
+	AutomationsUpdateRequestStatusActive AutomationsUpdateRequestStatus = "active"
+	AutomationsUpdateRequestStatusPaused AutomationsUpdateRequestStatus = "paused"
+)
+
+func NewAutomationsUpdateRequestStatusFromString(s string) (AutomationsUpdateRequestStatus, error) {
+	switch s {
+	case "active":
+		return AutomationsUpdateRequestStatusActive, nil
+	case "paused":
+		return AutomationsUpdateRequestStatusPaused, nil
+	}
+	var t AutomationsUpdateRequestStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (a AutomationsUpdateRequestStatus) Ptr() *AutomationsUpdateRequestStatus {
+	return &a
+}
+
+type AutomationsUpdateRequestTrigger struct {
+	kind  string
+	event string
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (a *AutomationsUpdateRequestTrigger) Kind() string {
+	return a.kind
+}
+
+func (a *AutomationsUpdateRequestTrigger) Event() string {
+	return a.event
+}
+
+func (a *AutomationsUpdateRequestTrigger) GetExtraProperties() map[string]interface{} {
+	return a.extraProperties
+}
+
+func (a *AutomationsUpdateRequestTrigger) UnmarshalJSON(data []byte) error {
+	type embed AutomationsUpdateRequestTrigger
+	var unmarshaler = struct {
+		embed
+		Kind  string `json:"kind"`
+		Event string `json:"event"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*a = AutomationsUpdateRequestTrigger(unmarshaler.embed)
+	if unmarshaler.Kind != "event" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "event", unmarshaler.Kind)
+	}
+	a.kind = unmarshaler.Kind
+	if unmarshaler.Event != "media.created" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "media.created", unmarshaler.Event)
+	}
+	a.event = unmarshaler.Event
+	extraProperties, err := internal.ExtractExtraProperties(data, *a, "kind", "event")
+	if err != nil {
+		return err
+	}
+	a.extraProperties = extraProperties
+	a.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (a *AutomationsUpdateRequestTrigger) MarshalJSON() ([]byte, error) {
+	type embed AutomationsUpdateRequestTrigger
+	var marshaler = struct {
+		embed
+		Kind  string `json:"kind"`
+		Event string `json:"event"`
+	}{
+		embed: embed(*a),
+		Kind:  "event",
+		Event: "media.created",
+	}
+	return json.Marshal(marshaler)
+}
+
+func (a *AutomationsUpdateRequestTrigger) String() string {
+	if len(a.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(a); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", a)
+}
+
+type AutomationsUpdateRequest struct {
+	Name        *string                          `json:"name,omitempty" url:"-"`
+	Description *string                          `json:"description,omitempty" url:"-"`
+	Trigger     *AutomationsUpdateRequestTrigger `json:"trigger,omitempty" url:"-"`
+	Workflow    []*WorkflowTaskStep              `json:"workflow,omitempty" url:"-"`
+	Status      *AutomationsUpdateRequestStatus  `json:"status,omitempty" url:"-"`
 }
