@@ -45,7 +45,7 @@ func do() () {
                     ),
                 },
                 &sdk.WorkflowTaskStep{
-                    Kind: sdk.WorkflowTaskStepKindConditions,
+                    Kind: sdk.WorkflowTaskStepKindVideo,
                     Next: []*sdk.WorkflowTaskStepNextItem{
                         &sdk.WorkflowTaskStepNextItem{
                             Kind: sdk.String(

@@ -717,7 +717,6 @@ const (
 	WorkflowTaskStepKindDescription WorkflowTaskStepKind = "description"
 	WorkflowTaskStepKindOutline     WorkflowTaskStepKind = "outline"
 	WorkflowTaskStepKindPrompt      WorkflowTaskStepKind = "prompt"
-	WorkflowTaskStepKindConditions  WorkflowTaskStepKind = "conditions"
 	WorkflowTaskStepKindHTTP        WorkflowTaskStepKind = "http"
 )
 
@@ -745,8 +744,6 @@ func NewWorkflowTaskStepKindFromString(s string) (WorkflowTaskStepKind, error) {
 		return WorkflowTaskStepKindOutline, nil
 	case "prompt":
 		return WorkflowTaskStepKindPrompt, nil
-	case "conditions":
-		return WorkflowTaskStepKindConditions, nil
 	case "http":
 		return WorkflowTaskStepKindHTTP, nil
 	}
