@@ -75,7 +75,7 @@ func (c *Client) List(
 	return response, nil
 }
 
-// Creates a new media item.
+// Creates a new media item. See [Media Object](/docs/media) for more details.
 func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.MediaCreateRequest,

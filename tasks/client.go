@@ -31,7 +31,6 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// Retrieves a list of tasks for the project, optionally filtered by status or kind.
 func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.TasksListRequest,
@@ -75,10 +74,10 @@ func (c *Client) List(
 	return response, nil
 }
 
-// Creates a new processing task (e.g., ingest, video transcode, speech analysis) or a workflow task.
+// Creates a new task item. See [Tasks](/docs/tasks) for detailed coverage of all available props and values.
 func (c *Client) Create(
 	ctx context.Context,
-	request *sdkgo.TasksCreateRequest,
+	request interface{},
 	opts ...option.RequestOption,
 ) (*sdkgo.TaskResponse, error) {
 	options := core.NewRequestOptions(opts...)
@@ -114,43 +113,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-// Retrieves available task kinds and their configuration options.
-func (c *Client) GetTaskConfig(
-	ctx context.Context,
-	opts ...option.RequestOption,
-) (map[string]interface{}, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.ittybit.com",
-	)
-	endpointURL := baseURL + "/tasks-config"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-
-	var response map[string]interface{}
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-// Retrieves the details of a specific task by its ID.
+// Retrieves the task object for a task with the given ID.
 func (c *Client) Get(
 	ctx context.Context,
 	id string,
@@ -172,6 +135,42 @@ func (c *Client) Get(
 	)
 
 	var response *sdkgo.TaskResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodGet,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Retrieves available task kinds and their configuration options.
+func (c *Client) GetTaskConfig(
+	ctx context.Context,
+	opts ...option.RequestOption,
+) (map[string]interface{}, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.ittybit.com",
+	)
+	endpointURL := baseURL + "/tasks-config"
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response map[string]interface{}
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

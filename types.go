@@ -582,25 +582,27 @@ func (t *TaskSummary) String() string {
 type TaskSummaryKind string
 
 const (
+	TaskSummaryKindIngest      TaskSummaryKind = "ingest"
 	TaskSummaryKindVideo       TaskSummaryKind = "video"
 	TaskSummaryKindImage       TaskSummaryKind = "image"
 	TaskSummaryKindAudio       TaskSummaryKind = "audio"
 	TaskSummaryKindChapters    TaskSummaryKind = "chapters"
 	TaskSummaryKindSubtitles   TaskSummaryKind = "subtitles"
 	TaskSummaryKindThumbnails  TaskSummaryKind = "thumbnails"
+	TaskSummaryKindNsfw        TaskSummaryKind = "nsfw"
 	TaskSummaryKindSpeech      TaskSummaryKind = "speech"
 	TaskSummaryKindDescription TaskSummaryKind = "description"
-	TaskSummaryKindNsfw        TaskSummaryKind = "nsfw"
-	TaskSummaryKindPrompt      TaskSummaryKind = "prompt"
 	TaskSummaryKindOutline     TaskSummaryKind = "outline"
-	TaskSummaryKindHTTP        TaskSummaryKind = "http"
-	TaskSummaryKindIngest      TaskSummaryKind = "ingest"
+	TaskSummaryKindPrompt      TaskSummaryKind = "prompt"
 	TaskSummaryKindWorkflow    TaskSummaryKind = "workflow"
 	TaskSummaryKindConditions  TaskSummaryKind = "conditions"
+	TaskSummaryKindHTTP        TaskSummaryKind = "http"
 )
 
 func NewTaskSummaryKindFromString(s string) (TaskSummaryKind, error) {
 	switch s {
+	case "ingest":
+		return TaskSummaryKindIngest, nil
 	case "video":
 		return TaskSummaryKindVideo, nil
 	case "image":
@@ -613,24 +615,22 @@ func NewTaskSummaryKindFromString(s string) (TaskSummaryKind, error) {
 		return TaskSummaryKindSubtitles, nil
 	case "thumbnails":
 		return TaskSummaryKindThumbnails, nil
+	case "nsfw":
+		return TaskSummaryKindNsfw, nil
 	case "speech":
 		return TaskSummaryKindSpeech, nil
 	case "description":
 		return TaskSummaryKindDescription, nil
-	case "nsfw":
-		return TaskSummaryKindNsfw, nil
-	case "prompt":
-		return TaskSummaryKindPrompt, nil
 	case "outline":
 		return TaskSummaryKindOutline, nil
-	case "http":
-		return TaskSummaryKindHTTP, nil
-	case "ingest":
-		return TaskSummaryKindIngest, nil
+	case "prompt":
+		return TaskSummaryKindPrompt, nil
 	case "workflow":
 		return TaskSummaryKindWorkflow, nil
 	case "conditions":
 		return TaskSummaryKindConditions, nil
+	case "http":
+		return TaskSummaryKindHTTP, nil
 	}
 	var t TaskSummaryKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)

@@ -9,9 +9,13 @@ import (
 	time "time"
 )
 
+type AutomationsListRequest struct {
+	Limit *int `json:"-" url:"limit,omitempty"`
+}
+
 type Automation struct {
 	ID          string              `json:"id" url:"id"`
-	Name        string              `json:"name" url:"name"`
+	Name        *string             `json:"name,omitempty" url:"name,omitempty"`
 	Description *string             `json:"description,omitempty" url:"description,omitempty"`
 	Trigger     *AutomationTrigger  `json:"trigger,omitempty" url:"trigger,omitempty"`
 	Workflow    []*WorkflowTaskStep `json:"workflow,omitempty" url:"workflow,omitempty"`
@@ -30,9 +34,9 @@ func (a *Automation) GetID() string {
 	return a.ID
 }
 
-func (a *Automation) GetName() string {
+func (a *Automation) GetName() *string {
 	if a == nil {
-		return ""
+		return nil
 	}
 	return a.Name
 }
@@ -276,19 +280,16 @@ func (a *AutomationResponse) String() string {
 type AutomationStatus string
 
 const (
-	AutomationStatusActive   AutomationStatus = "active"
-	AutomationStatusInactive AutomationStatus = "inactive"
-	AutomationStatusDraft    AutomationStatus = "draft"
+	AutomationStatusActive AutomationStatus = "active"
+	AutomationStatusPaused AutomationStatus = "paused"
 )
 
 func NewAutomationStatusFromString(s string) (AutomationStatus, error) {
 	switch s {
 	case "active":
 		return AutomationStatusActive, nil
-	case "inactive":
-		return AutomationStatusInactive, nil
-	case "draft":
-		return AutomationStatusDraft, nil
+	case "paused":
+		return AutomationStatusPaused, nil
 	}
 	var t AutomationStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -299,18 +300,19 @@ func (a AutomationStatus) Ptr() *AutomationStatus {
 }
 
 type AutomationTrigger struct {
-	Kind  *string `json:"kind,omitempty" url:"kind,omitempty"`
-	Event string  `json:"event" url:"event"`
+	kind  string
+	event string
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationTrigger) GetEvent() string {
-	if a == nil {
-		return ""
-	}
-	return a.Event
+func (a *AutomationTrigger) Kind() string {
+	return a.kind
+}
+
+func (a *AutomationTrigger) Event() string {
+	return a.event
 }
 
 func (a *AutomationTrigger) GetExtraProperties() map[string]interface{} {
@@ -318,19 +320,47 @@ func (a *AutomationTrigger) GetExtraProperties() map[string]interface{} {
 }
 
 func (a *AutomationTrigger) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationTrigger
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed AutomationTrigger
+	var unmarshaler = struct {
+		embed
+		Kind  string `json:"kind"`
+		Event string `json:"event"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationTrigger(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	*a = AutomationTrigger(unmarshaler.embed)
+	if unmarshaler.Kind != "event" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "event", unmarshaler.Kind)
+	}
+	a.kind = unmarshaler.Kind
+	if unmarshaler.Event != "media.created" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "media.created", unmarshaler.Event)
+	}
+	a.event = unmarshaler.Event
+	extraProperties, err := internal.ExtractExtraProperties(data, *a, "kind", "event")
 	if err != nil {
 		return err
 	}
 	a.extraProperties = extraProperties
 	a.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (a *AutomationTrigger) MarshalJSON() ([]byte, error) {
+	type embed AutomationTrigger
+	var marshaler = struct {
+		embed
+		Kind  string `json:"kind"`
+		Event string `json:"event"`
+	}{
+		embed: embed(*a),
+		Kind:  "event",
+		Event: "media.created",
+	}
+	return json.Marshal(marshaler)
 }
 
 func (a *AutomationTrigger) String() string {
@@ -346,17 +376,9 @@ func (a *AutomationTrigger) String() string {
 }
 
 type WorkflowTaskStep struct {
-	Kind       WorkflowTaskStepKind `json:"kind" url:"kind"`
-	Ref        *string              `json:"ref,omitempty" url:"ref,omitempty"`
-	Format     *string              `json:"format,omitempty" url:"format,omitempty"`
-	Start      *float64             `json:"start,omitempty" url:"start,omitempty"`
-	End        *float64             `json:"end,omitempty" url:"end,omitempty"`
-	Width      *int                 `json:"width,omitempty" url:"width,omitempty"`
-	Height     *int                 `json:"height,omitempty" url:"height,omitempty"`
-	Fit        *string              `json:"fit,omitempty" url:"fit,omitempty"`
-	Background *string              `json:"background,omitempty" url:"background,omitempty"`
-	Quality    *int                 `json:"quality,omitempty" url:"quality,omitempty"`
-	Next       []interface{}        `json:"next,omitempty" url:"next,omitempty"`
+	Kind WorkflowTaskStepKind        `json:"kind" url:"kind"`
+	Ref  *string                     `json:"ref,omitempty" url:"ref,omitempty"`
+	Next []*WorkflowTaskStepNextItem `json:"next,omitempty" url:"next,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -376,63 +398,7 @@ func (w *WorkflowTaskStep) GetRef() *string {
 	return w.Ref
 }
 
-func (w *WorkflowTaskStep) GetFormat() *string {
-	if w == nil {
-		return nil
-	}
-	return w.Format
-}
-
-func (w *WorkflowTaskStep) GetStart() *float64 {
-	if w == nil {
-		return nil
-	}
-	return w.Start
-}
-
-func (w *WorkflowTaskStep) GetEnd() *float64 {
-	if w == nil {
-		return nil
-	}
-	return w.End
-}
-
-func (w *WorkflowTaskStep) GetWidth() *int {
-	if w == nil {
-		return nil
-	}
-	return w.Width
-}
-
-func (w *WorkflowTaskStep) GetHeight() *int {
-	if w == nil {
-		return nil
-	}
-	return w.Height
-}
-
-func (w *WorkflowTaskStep) GetFit() *string {
-	if w == nil {
-		return nil
-	}
-	return w.Fit
-}
-
-func (w *WorkflowTaskStep) GetBackground() *string {
-	if w == nil {
-		return nil
-	}
-	return w.Background
-}
-
-func (w *WorkflowTaskStep) GetQuality() *int {
-	if w == nil {
-		return nil
-	}
-	return w.Quality
-}
-
-func (w *WorkflowTaskStep) GetNext() []interface{} {
+func (w *WorkflowTaskStep) GetNext() []*WorkflowTaskStepNextItem {
 	if w == nil {
 		return nil
 	}
@@ -480,15 +446,13 @@ const (
 	WorkflowTaskStepKindChapters    WorkflowTaskStepKind = "chapters"
 	WorkflowTaskStepKindSubtitles   WorkflowTaskStepKind = "subtitles"
 	WorkflowTaskStepKindThumbnails  WorkflowTaskStepKind = "thumbnails"
+	WorkflowTaskStepKindNsfw        WorkflowTaskStepKind = "nsfw"
 	WorkflowTaskStepKindSpeech      WorkflowTaskStepKind = "speech"
 	WorkflowTaskStepKindDescription WorkflowTaskStepKind = "description"
-	WorkflowTaskStepKindNsfw        WorkflowTaskStepKind = "nsfw"
-	WorkflowTaskStepKindPrompt      WorkflowTaskStepKind = "prompt"
 	WorkflowTaskStepKindOutline     WorkflowTaskStepKind = "outline"
-	WorkflowTaskStepKindHTTP        WorkflowTaskStepKind = "http"
-	WorkflowTaskStepKindIngest      WorkflowTaskStepKind = "ingest"
-	WorkflowTaskStepKindWorkflow    WorkflowTaskStepKind = "workflow"
+	WorkflowTaskStepKindPrompt      WorkflowTaskStepKind = "prompt"
 	WorkflowTaskStepKindConditions  WorkflowTaskStepKind = "conditions"
+	WorkflowTaskStepKindHTTP        WorkflowTaskStepKind = "http"
 )
 
 func NewWorkflowTaskStepKindFromString(s string) (WorkflowTaskStepKind, error) {
@@ -505,24 +469,20 @@ func NewWorkflowTaskStepKindFromString(s string) (WorkflowTaskStepKind, error) {
 		return WorkflowTaskStepKindSubtitles, nil
 	case "thumbnails":
 		return WorkflowTaskStepKindThumbnails, nil
+	case "nsfw":
+		return WorkflowTaskStepKindNsfw, nil
 	case "speech":
 		return WorkflowTaskStepKindSpeech, nil
 	case "description":
 		return WorkflowTaskStepKindDescription, nil
-	case "nsfw":
-		return WorkflowTaskStepKindNsfw, nil
-	case "prompt":
-		return WorkflowTaskStepKindPrompt, nil
 	case "outline":
 		return WorkflowTaskStepKindOutline, nil
-	case "http":
-		return WorkflowTaskStepKindHTTP, nil
-	case "ingest":
-		return WorkflowTaskStepKindIngest, nil
-	case "workflow":
-		return WorkflowTaskStepKindWorkflow, nil
+	case "prompt":
+		return WorkflowTaskStepKindPrompt, nil
 	case "conditions":
 		return WorkflowTaskStepKindConditions, nil
+	case "http":
+		return WorkflowTaskStepKindHTTP, nil
 	}
 	var t WorkflowTaskStepKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
@@ -532,122 +492,162 @@ func (w WorkflowTaskStepKind) Ptr() *WorkflowTaskStepKind {
 	return &w
 }
 
-// Defines the trigger event and conditions. To clear/remove a trigger, provide null. To update, provide the new trigger object.
-type AutomationsUpdateRequestTrigger struct {
-	// The event that triggers the automation
-	Event *string `json:"event,omitempty" url:"event,omitempty"`
-	// Conditions that must be met for the trigger to activate.
-	Conditions []*AutomationsUpdateRequestTriggerConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
+type WorkflowTaskStepNextItem struct {
+	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
+	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateRequestTrigger) GetEvent() *string {
-	if a == nil {
+func (w *WorkflowTaskStepNextItem) GetKind() *string {
+	if w == nil {
 		return nil
 	}
-	return a.Event
+	return w.Kind
 }
 
-func (a *AutomationsUpdateRequestTrigger) GetConditions() []*AutomationsUpdateRequestTriggerConditionsItem {
-	if a == nil {
+func (w *WorkflowTaskStepNextItem) GetRef() *string {
+	if w == nil {
 		return nil
 	}
-	return a.Conditions
+	return w.Ref
 }
 
-func (a *AutomationsUpdateRequestTrigger) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
+func (w *WorkflowTaskStepNextItem) GetExtraProperties() map[string]interface{} {
+	return w.extraProperties
 }
 
-func (a *AutomationsUpdateRequestTrigger) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateRequestTrigger
+func (w *WorkflowTaskStepNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler WorkflowTaskStepNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateRequestTrigger(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	*w = WorkflowTaskStepNextItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *w)
 	if err != nil {
 		return err
 	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
+	w.extraProperties = extraProperties
+	w.rawJSON = json.RawMessage(data)
 	return nil
 }
 
-func (a *AutomationsUpdateRequestTrigger) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+func (w *WorkflowTaskStepNextItem) String() string {
+	if len(w.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(w.rawJSON); err == nil {
 			return value
 		}
 	}
-	if value, err := internal.StringifyJSON(a); err == nil {
+	if value, err := internal.StringifyJSON(w); err == nil {
 		return value
 	}
-	return fmt.Sprintf("%#v", a)
+	return fmt.Sprintf("%#v", w)
 }
 
-type AutomationsUpdateRequestTriggerConditionsItem struct {
-	Prop  string `json:"prop" url:"prop"`
-	Value string `json:"value" url:"value"`
+type UpdateAutomationRequestStatus string
+
+const (
+	UpdateAutomationRequestStatusActive UpdateAutomationRequestStatus = "active"
+	UpdateAutomationRequestStatusPaused UpdateAutomationRequestStatus = "paused"
+)
+
+func NewUpdateAutomationRequestStatusFromString(s string) (UpdateAutomationRequestStatus, error) {
+	switch s {
+	case "active":
+		return UpdateAutomationRequestStatusActive, nil
+	case "paused":
+		return UpdateAutomationRequestStatusPaused, nil
+	}
+	var t UpdateAutomationRequestStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (u UpdateAutomationRequestStatus) Ptr() *UpdateAutomationRequestStatus {
+	return &u
+}
+
+type UpdateAutomationRequestTrigger struct {
+	kind  string
+	event string
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateRequestTriggerConditionsItem) GetProp() string {
-	if a == nil {
-		return ""
+func (u *UpdateAutomationRequestTrigger) Kind() string {
+	return u.kind
+}
+
+func (u *UpdateAutomationRequestTrigger) Event() string {
+	return u.event
+}
+
+func (u *UpdateAutomationRequestTrigger) GetExtraProperties() map[string]interface{} {
+	return u.extraProperties
+}
+
+func (u *UpdateAutomationRequestTrigger) UnmarshalJSON(data []byte) error {
+	type embed UpdateAutomationRequestTrigger
+	var unmarshaler = struct {
+		embed
+		Kind  string `json:"kind"`
+		Event string `json:"event"`
+	}{
+		embed: embed(*u),
 	}
-	return a.Prop
-}
-
-func (a *AutomationsUpdateRequestTriggerConditionsItem) GetValue() string {
-	if a == nil {
-		return ""
-	}
-	return a.Value
-}
-
-func (a *AutomationsUpdateRequestTriggerConditionsItem) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsUpdateRequestTriggerConditionsItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateRequestTriggerConditionsItem
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateRequestTriggerConditionsItem(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
+	*u = UpdateAutomationRequestTrigger(unmarshaler.embed)
+	if unmarshaler.Kind != "event" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", u, "event", unmarshaler.Kind)
+	}
+	u.kind = unmarshaler.Kind
+	if unmarshaler.Event != "media.created" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", u, "media.created", unmarshaler.Event)
+	}
+	u.event = unmarshaler.Event
+	extraProperties, err := internal.ExtractExtraProperties(data, *u, "kind", "event")
 	if err != nil {
 		return err
 	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
+	u.extraProperties = extraProperties
+	u.rawJSON = json.RawMessage(data)
 	return nil
 }
 
-func (a *AutomationsUpdateRequestTriggerConditionsItem) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
+func (u *UpdateAutomationRequestTrigger) MarshalJSON() ([]byte, error) {
+	type embed UpdateAutomationRequestTrigger
+	var marshaler = struct {
+		embed
+		Kind  string `json:"kind"`
+		Event string `json:"event"`
+	}{
+		embed: embed(*u),
+		Kind:  "event",
+		Event: "media.created",
+	}
+	return json.Marshal(marshaler)
+}
+
+func (u *UpdateAutomationRequestTrigger) String() string {
+	if len(u.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(u.rawJSON); err == nil {
 			return value
 		}
 	}
-	if value, err := internal.StringifyJSON(a); err == nil {
+	if value, err := internal.StringifyJSON(u); err == nil {
 		return value
 	}
-	return fmt.Sprintf("%#v", a)
+	return fmt.Sprintf("%#v", u)
 }
 
-type AutomationsUpdateRequest struct {
-	Name        string  `json:"name" url:"-"`
-	Description *string `json:"description,omitempty" url:"-"`
-	// Defines the trigger event and conditions. To clear/remove a trigger, provide null. To update, provide the new trigger object.
-	Trigger *AutomationsUpdateRequestTrigger `json:"trigger,omitempty" url:"-"`
-	// The updated sequence of tasks for the automation.
-	Workflow []*WorkflowTaskStep `json:"workflow,omitempty" url:"-"`
+type UpdateAutomationRequest struct {
+	Name        *string                         `json:"name,omitempty" url:"-"`
+	Description *string                         `json:"description,omitempty" url:"-"`
+	Trigger     *UpdateAutomationRequestTrigger `json:"trigger,omitempty" url:"-"`
+	Workflow    []*WorkflowTaskStep             `json:"workflow,omitempty" url:"-"`
+	Status      *UpdateAutomationRequestStatus  `json:"status,omitempty" url:"-"`
 }

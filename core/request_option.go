@@ -25,7 +25,7 @@ type RequestOptions struct {
 	QueryParameters url.Values
 	MaxAttempts     uint
 	Token           string
-	Version         *string
+	Version         *int
 }
 
 // NewRequestOptions returns a new *RequestOptions value.
@@ -61,8 +61,8 @@ func (r *RequestOptions) cloneHeader() http.Header {
 	headers := r.HTTPHeader.Clone()
 	headers.Set("X-Fern-Language", "Go")
 	headers.Set("X-Fern-SDK-Name", "github.com/ittybit/sdk-go")
-	headers.Set("X-Fern-SDK-Version", "v0.7.6")
-	headers.Set("User-Agent", "github.com/ittybit/sdk-go/0.7.6")
+	headers.Set("X-Fern-SDK-Version", "v0.8.0")
+	headers.Set("User-Agent", "github.com/ittybit/sdk-go/0.8.0")
 	return headers
 }
 
@@ -131,7 +131,7 @@ func (t *TokenOption) applyRequestOptions(opts *RequestOptions) {
 
 // VersionOption implements the RequestOption interface.
 type VersionOption struct {
-	Version *string
+	Version *int
 }
 
 func (v *VersionOption) applyRequestOptions(opts *RequestOptions) {

@@ -31,9 +31,10 @@ func NewClient(opts ...option.RequestOption) *Client {
 	}
 }
 
-// Retrieves a list of all automations for the current project
+// Retrieves a paginated list of all automations for the current project
 func (c *Client) List(
 	ctx context.Context,
+	request *sdkgo.AutomationsListRequest,
 	opts ...option.RequestOption,
 ) (*sdkgo.AutomationListResponse, error) {
 	options := core.NewRequestOptions(opts...)
@@ -43,6 +44,13 @@ func (c *Client) List(
 		"https://api.ittybit.com",
 	)
 	endpointURL := baseURL + "/automations"
+	queryParams, err := internal.QueryValues(request)
+	if err != nil {
+		return nil, err
+	}
+	if len(queryParams) > 0 {
+		endpointURL += "?" + queryParams.Encode()
+	}
 	headers := internal.MergeHeaders(
 		c.header.Clone(),
 		options.ToHeader(),
@@ -67,7 +75,7 @@ func (c *Client) List(
 	return response, nil
 }
 
-// Creates a new automation for the current project
+// Creates a new automation.
 func (c *Client) Create(
 	ctx context.Context,
 	opts ...option.RequestOption,
@@ -103,7 +111,7 @@ func (c *Client) Create(
 	return response, nil
 }
 
-// Retrieves a specific automation by its ID
+// Retrieve the automation object for a automation with the given ID.
 func (c *Client) Get(
 	ctx context.Context,
 	id string,
@@ -143,51 +151,7 @@ func (c *Client) Get(
 	return response, nil
 }
 
-// Updates an existing automation by its ID
 func (c *Client) Update(
-	ctx context.Context,
-	id string,
-	request *sdkgo.AutomationsUpdateRequest,
-	opts ...option.RequestOption,
-) (*sdkgo.AutomationResponse, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.ittybit.com",
-	)
-	endpointURL := internal.EncodeURL(
-		baseURL+"/automations/%v",
-		id,
-	)
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-	headers.Set("Content-Type", "application/json")
-
-	var response *sdkgo.AutomationResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodPut,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Request:         request,
-			Response:        &response,
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-// Deletes an automation by its ID
-func (c *Client) Delete(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
@@ -211,7 +175,7 @@ func (c *Client) Delete(
 		ctx,
 		&internal.CallParams{
 			URL:             endpointURL,
-			Method:          http.MethodDelete,
+			Method:          http.MethodPut,
 			Headers:         headers,
 			MaxAttempts:     options.MaxAttempts,
 			BodyProperties:  options.BodyProperties,
@@ -222,4 +186,87 @@ func (c *Client) Delete(
 		return err
 	}
 	return nil
+}
+
+// Permanently removes an automation from the system. This action cannot be undone.
+func (c *Client) Delete(
+	ctx context.Context,
+	id string,
+	opts ...option.RequestOption,
+) (*sdkgo.ConfirmationResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.ittybit.com",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/automations/%v",
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+
+	var response *sdkgo.ConfirmationResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodDelete,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+// Updates an automation's `name`, `description`, `trigger`, `workflow`, or `status`. Only the specified fields will be updated.
+func (c *Client) UpdateAutomation(
+	ctx context.Context,
+	id string,
+	request *sdkgo.UpdateAutomationRequest,
+	opts ...option.RequestOption,
+) (*sdkgo.AutomationResponse, error) {
+	options := core.NewRequestOptions(opts...)
+	baseURL := internal.ResolveBaseURL(
+		options.BaseURL,
+		c.baseURL,
+		"https://api.ittybit.com",
+	)
+	endpointURL := internal.EncodeURL(
+		baseURL+"/automations/%v",
+		id,
+	)
+	headers := internal.MergeHeaders(
+		c.header.Clone(),
+		options.ToHeader(),
+	)
+	headers.Set("Content-Type", "application/json")
+
+	var response *sdkgo.AutomationResponse
+	if err := c.caller.Call(
+		ctx,
+		&internal.CallParams{
+			URL:             endpointURL,
+			Method:          http.MethodPatch,
+			Headers:         headers,
+			MaxAttempts:     options.MaxAttempts,
+			BodyProperties:  options.BodyProperties,
+			QueryParameters: options.QueryParameters,
+			Client:          options.HTTPClient,
+			Request:         request,
+			Response:        &response,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
