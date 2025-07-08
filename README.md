@@ -49,10 +49,10 @@ func do() () {
                     Next: []*sdk.WorkflowTaskStepNextItem{
                         &sdk.WorkflowTaskStepNextItem{
                             Kind: sdk.String(
-                                "subtitle",
+                                "subtitles",
                             ),
                             Ref: sdk.String(
-                                "subtitle",
+                                "subtitles",
                             ),
                         },
                     },

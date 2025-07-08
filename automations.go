@@ -22,14 +22,14 @@ type AutomationsListRequest struct {
 }
 
 type Automation struct {
-	ID          string              `json:"id" url:"id"`
-	Name        *string             `json:"name,omitempty" url:"name,omitempty"`
-	Description *string             `json:"description,omitempty" url:"description,omitempty"`
-	Trigger     *AutomationTrigger  `json:"trigger,omitempty" url:"trigger,omitempty"`
-	Workflow    []*WorkflowTaskStep `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Status      AutomationStatus    `json:"status" url:"status"`
-	Created     time.Time           `json:"created" url:"created"`
-	Updated     time.Time           `json:"updated" url:"updated"`
+	ID          string                    `json:"id" url:"id"`
+	Name        *string                   `json:"name,omitempty" url:"name,omitempty"`
+	Description *string                   `json:"description,omitempty" url:"description,omitempty"`
+	Trigger     *AutomationTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
+	Workflow    []*AutomationWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Status      AutomationStatus          `json:"status" url:"status"`
+	Created     time.Time                 `json:"created" url:"created"`
+	Updated     time.Time                 `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
@@ -63,7 +63,7 @@ func (a *Automation) GetTrigger() *AutomationTrigger {
 	return a.Trigger
 }
 
-func (a *Automation) GetWorkflow() []*WorkflowTaskStep {
+func (a *Automation) GetWorkflow() []*AutomationWorkflowItem {
 	if a == nil {
 		return nil
 	}
@@ -381,6 +381,264 @@ func (a *AutomationTrigger) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
+}
+
+type AutomationWorkflowItem struct {
+	WorkflowTaskStep   *WorkflowTaskStep
+	ConditionsTaskStep *ConditionsTaskStep
+
+	typ string
+}
+
+func NewAutomationWorkflowItemFromWorkflowTaskStep(value *WorkflowTaskStep) *AutomationWorkflowItem {
+	return &AutomationWorkflowItem{typ: "WorkflowTaskStep", WorkflowTaskStep: value}
+}
+
+func NewAutomationWorkflowItemFromConditionsTaskStep(value *ConditionsTaskStep) *AutomationWorkflowItem {
+	return &AutomationWorkflowItem{typ: "ConditionsTaskStep", ConditionsTaskStep: value}
+}
+
+func (a *AutomationWorkflowItem) GetWorkflowTaskStep() *WorkflowTaskStep {
+	if a == nil {
+		return nil
+	}
+	return a.WorkflowTaskStep
+}
+
+func (a *AutomationWorkflowItem) GetConditionsTaskStep() *ConditionsTaskStep {
+	if a == nil {
+		return nil
+	}
+	return a.ConditionsTaskStep
+}
+
+func (a *AutomationWorkflowItem) UnmarshalJSON(data []byte) error {
+	valueWorkflowTaskStep := new(WorkflowTaskStep)
+	if err := json.Unmarshal(data, &valueWorkflowTaskStep); err == nil {
+		a.typ = "WorkflowTaskStep"
+		a.WorkflowTaskStep = valueWorkflowTaskStep
+		return nil
+	}
+	valueConditionsTaskStep := new(ConditionsTaskStep)
+	if err := json.Unmarshal(data, &valueConditionsTaskStep); err == nil {
+		a.typ = "ConditionsTaskStep"
+		a.ConditionsTaskStep = valueConditionsTaskStep
+		return nil
+	}
+	return fmt.Errorf("%s cannot be deserialized as a %T", data, a)
+}
+
+func (a AutomationWorkflowItem) MarshalJSON() ([]byte, error) {
+	if a.typ == "WorkflowTaskStep" || a.WorkflowTaskStep != nil {
+		return json.Marshal(a.WorkflowTaskStep)
+	}
+	if a.typ == "ConditionsTaskStep" || a.ConditionsTaskStep != nil {
+		return json.Marshal(a.ConditionsTaskStep)
+	}
+	return nil, fmt.Errorf("type %T does not include a non-empty union type", a)
+}
+
+type AutomationWorkflowItemVisitor interface {
+	VisitWorkflowTaskStep(*WorkflowTaskStep) error
+	VisitConditionsTaskStep(*ConditionsTaskStep) error
+}
+
+func (a *AutomationWorkflowItem) Accept(visitor AutomationWorkflowItemVisitor) error {
+	if a.typ == "WorkflowTaskStep" || a.WorkflowTaskStep != nil {
+		return visitor.VisitWorkflowTaskStep(a.WorkflowTaskStep)
+	}
+	if a.typ == "ConditionsTaskStep" || a.ConditionsTaskStep != nil {
+		return visitor.VisitConditionsTaskStep(a.ConditionsTaskStep)
+	}
+	return fmt.Errorf("type %T does not include a non-empty union type", a)
+}
+
+type ConditionsTaskStep struct {
+	Conditions []*ConditionsTaskStepConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
+	Next       []*ConditionsTaskStepNextItem       `json:"next,omitempty" url:"next,omitempty"`
+	kind       string
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConditionsTaskStep) GetConditions() []*ConditionsTaskStepConditionsItem {
+	if c == nil {
+		return nil
+	}
+	return c.Conditions
+}
+
+func (c *ConditionsTaskStep) GetNext() []*ConditionsTaskStepNextItem {
+	if c == nil {
+		return nil
+	}
+	return c.Next
+}
+
+func (c *ConditionsTaskStep) Kind() string {
+	return c.kind
+}
+
+func (c *ConditionsTaskStep) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ConditionsTaskStep) UnmarshalJSON(data []byte) error {
+	type embed ConditionsTaskStep
+	var unmarshaler = struct {
+		embed
+		Kind string `json:"kind"`
+	}{
+		embed: embed(*c),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
+		return err
+	}
+	*c = ConditionsTaskStep(unmarshaler.embed)
+	if unmarshaler.Kind != "conditions" {
+		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", c, "conditions", unmarshaler.Kind)
+	}
+	c.kind = unmarshaler.Kind
+	extraProperties, err := internal.ExtractExtraProperties(data, *c, "kind")
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConditionsTaskStep) MarshalJSON() ([]byte, error) {
+	type embed ConditionsTaskStep
+	var marshaler = struct {
+		embed
+		Kind string `json:"kind"`
+	}{
+		embed: embed(*c),
+		Kind:  "conditions",
+	}
+	return json.Marshal(marshaler)
+}
+
+func (c *ConditionsTaskStep) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ConditionsTaskStepConditionsItem struct {
+	Prop  *string `json:"prop,omitempty" url:"prop,omitempty"`
+	Value *string `json:"value,omitempty" url:"value,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConditionsTaskStepConditionsItem) GetProp() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Prop
+}
+
+func (c *ConditionsTaskStepConditionsItem) GetValue() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Value
+}
+
+func (c *ConditionsTaskStepConditionsItem) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ConditionsTaskStepConditionsItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConditionsTaskStepConditionsItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConditionsTaskStepConditionsItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConditionsTaskStepConditionsItem) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
+}
+
+type ConditionsTaskStepNextItem struct {
+	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
+	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (c *ConditionsTaskStepNextItem) GetKind() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Kind
+}
+
+func (c *ConditionsTaskStepNextItem) GetRef() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Ref
+}
+
+func (c *ConditionsTaskStepNextItem) GetExtraProperties() map[string]interface{} {
+	return c.extraProperties
+}
+
+func (c *ConditionsTaskStepNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler ConditionsTaskStepNextItem
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*c = ConditionsTaskStepNextItem(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *c)
+	if err != nil {
+		return err
+	}
+	c.extraProperties = extraProperties
+	c.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (c *ConditionsTaskStepNextItem) String() string {
+	if len(c.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(c.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(c); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", c)
 }
 
 type WorkflowTaskStep struct {
