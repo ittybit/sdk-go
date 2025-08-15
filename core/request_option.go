@@ -24,7 +24,7 @@ type RequestOptions struct {
 	BodyProperties  map[string]interface{}
 	QueryParameters url.Values
 	MaxAttempts     uint
-	Token           string
+	APIKey          string
 	Version         *string
 }
 
@@ -48,8 +48,8 @@ func NewRequestOptions(opts ...RequestOption) *RequestOptions {
 // for the request(s).
 func (r *RequestOptions) ToHeader() http.Header {
 	header := r.cloneHeader()
-	if r.Token != "" {
-		header.Set("Authorization", "Bearer "+r.Token)
+	if r.APIKey != "" {
+		header.Set("Authorization", "Bearer "+r.APIKey)
 	}
 	if r.Version != nil {
 		header.Set("ACCEPT_VERSION", fmt.Sprintf("%v", *r.Version))
@@ -61,8 +61,8 @@ func (r *RequestOptions) cloneHeader() http.Header {
 	headers := r.HTTPHeader.Clone()
 	headers.Set("X-Fern-Language", "Go")
 	headers.Set("X-Fern-SDK-Name", "github.com/ittybit/sdk-go")
-	headers.Set("X-Fern-SDK-Version", "v0.8.7")
-	headers.Set("User-Agent", "github.com/ittybit/sdk-go/0.8.7")
+	headers.Set("X-Fern-SDK-Version", "v0.8.14")
+	headers.Set("User-Agent", "github.com/ittybit/sdk-go/0.8.14")
 	return headers
 }
 
@@ -120,13 +120,13 @@ func (m *MaxAttemptsOption) applyRequestOptions(opts *RequestOptions) {
 	opts.MaxAttempts = m.MaxAttempts
 }
 
-// TokenOption implements the RequestOption interface.
-type TokenOption struct {
-	Token string
+// APIKeyOption implements the RequestOption interface.
+type APIKeyOption struct {
+	APIKey string
 }
 
-func (t *TokenOption) applyRequestOptions(opts *RequestOptions) {
-	opts.Token = t.Token
+func (a *APIKeyOption) applyRequestOptions(opts *RequestOptions) {
+	opts.APIKey = a.APIKey
 }
 
 // VersionOption implements the RequestOption interface.

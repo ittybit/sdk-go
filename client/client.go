@@ -12,6 +12,7 @@ import (
 	signatures "github.com/ittybit/sdk-go/signatures"
 	tasks "github.com/ittybit/sdk-go/tasks"
 	http "net/http"
+	os "os"
 )
 
 type Client struct {
@@ -28,6 +29,9 @@ type Client struct {
 
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
+	if options.APIKey == "" {
+		options.APIKey = os.Getenv("ITTYBIT_API_KEY")
+	}
 	return &Client{
 		baseURL: options.BaseURL,
 		caller: internal.NewCaller(

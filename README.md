@@ -20,7 +20,7 @@ import (
 
 func do() () {
     client := client.NewClient(
-        option.WithToken(
+        option.WithAPIKey(
             "<token>",
         ),
     )

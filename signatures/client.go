@@ -9,6 +9,7 @@ import (
 	internal "github.com/ittybit/sdk-go/internal"
 	option "github.com/ittybit/sdk-go/option"
 	http "net/http"
+	os "os"
 )
 
 type Client struct {
@@ -19,6 +20,9 @@ type Client struct {
 
 func NewClient(opts ...option.RequestOption) *Client {
 	options := core.NewRequestOptions(opts...)
+	if options.APIKey == "" {
+		options.APIKey = os.Getenv("ITTYBIT_API_KEY")
+	}
 	return &Client{
 		baseURL: options.BaseURL,
 		caller: internal.NewCaller(
