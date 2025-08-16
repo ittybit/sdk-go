@@ -40,7 +40,7 @@ func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.SignaturesCreateRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.SignatureResponse, error) {
+) (*sdkgo.SignaturesCreateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -54,7 +54,7 @@ func (c *Client) Create(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.SignatureResponse
+	var response *sdkgo.SignaturesCreateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

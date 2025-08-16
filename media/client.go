@@ -84,7 +84,7 @@ func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.MediaCreateRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.MediaResponse, error) {
+) (*sdkgo.MediaCreateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -98,7 +98,7 @@ func (c *Client) Create(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.MediaResponse
+	var response *sdkgo.MediaCreateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -123,7 +123,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.MediaResponse, error) {
+) (*sdkgo.MediaGetResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -139,7 +139,7 @@ func (c *Client) Get(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.MediaResponse
+	var response *sdkgo.MediaGetResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -163,7 +163,7 @@ func (c *Client) Delete(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.ConfirmationResponse, error) {
+) (*sdkgo.MediaDeleteResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -179,7 +179,7 @@ func (c *Client) Delete(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.ConfirmationResponse
+	var response *sdkgo.MediaDeleteResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -204,7 +204,7 @@ func (c *Client) Update(
 	id string,
 	request *sdkgo.MediaUpdateRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.MediaResponse, error) {
+) (*sdkgo.MediaUpdateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -221,7 +221,7 @@ func (c *Client) Update(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.MediaResponse
+	var response *sdkgo.MediaUpdateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

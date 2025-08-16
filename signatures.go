@@ -15,170 +15,6 @@ type SignaturesCreateRequest struct {
 	Method   *SignaturesCreateRequestMethod `json:"method,omitempty" url:"-"`
 }
 
-type Signature struct {
-	Domain    string  `json:"domain" url:"domain"`
-	Filename  string  `json:"filename" url:"filename"`
-	Folder    *string `json:"folder,omitempty" url:"folder,omitempty"`
-	Expiry    int     `json:"expiry" url:"expiry"`
-	Method    string  `json:"method" url:"method"`
-	Signature string  `json:"signature" url:"signature"`
-	URL       string  `json:"url" url:"url"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *Signature) GetDomain() string {
-	if s == nil {
-		return ""
-	}
-	return s.Domain
-}
-
-func (s *Signature) GetFilename() string {
-	if s == nil {
-		return ""
-	}
-	return s.Filename
-}
-
-func (s *Signature) GetFolder() *string {
-	if s == nil {
-		return nil
-	}
-	return s.Folder
-}
-
-func (s *Signature) GetExpiry() int {
-	if s == nil {
-		return 0
-	}
-	return s.Expiry
-}
-
-func (s *Signature) GetMethod() string {
-	if s == nil {
-		return ""
-	}
-	return s.Method
-}
-
-func (s *Signature) GetSignature() string {
-	if s == nil {
-		return ""
-	}
-	return s.Signature
-}
-
-func (s *Signature) GetURL() string {
-	if s == nil {
-		return ""
-	}
-	return s.URL
-}
-
-func (s *Signature) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *Signature) UnmarshalJSON(data []byte) error {
-	type unmarshaler Signature
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = Signature(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *Signature) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
-type SignatureResponse struct {
-	Meta  *Meta      `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *Signature `json:"data,omitempty" url:"data,omitempty"`
-	Error *Error     `json:"error,omitempty" url:"error,omitempty"`
-	Links *Links     `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (s *SignatureResponse) GetMeta() *Meta {
-	if s == nil {
-		return nil
-	}
-	return s.Meta
-}
-
-func (s *SignatureResponse) GetData() *Signature {
-	if s == nil {
-		return nil
-	}
-	return s.Data
-}
-
-func (s *SignatureResponse) GetError() *Error {
-	if s == nil {
-		return nil
-	}
-	return s.Error
-}
-
-func (s *SignatureResponse) GetLinks() *Links {
-	if s == nil {
-		return nil
-	}
-	return s.Links
-}
-
-func (s *SignatureResponse) GetExtraProperties() map[string]interface{} {
-	return s.extraProperties
-}
-
-func (s *SignatureResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler SignatureResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*s = SignatureResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *s)
-	if err != nil {
-		return err
-	}
-	s.extraProperties = extraProperties
-	s.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (s *SignatureResponse) String() string {
-	if len(s.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(s); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", s)
-}
-
 type SignaturesCreateRequestMethod string
 
 const (
@@ -198,5 +34,369 @@ func NewSignaturesCreateRequestMethodFromString(s string) (SignaturesCreateReque
 }
 
 func (s SignaturesCreateRequestMethod) Ptr() *SignaturesCreateRequestMethod {
+	return &s
+}
+
+type SignaturesCreateResponse struct {
+	Meta  *SignaturesCreateResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
+	Data  *SignaturesCreateResponseData  `json:"data,omitempty" url:"data,omitempty"`
+	Error *SignaturesCreateResponseError `json:"error,omitempty" url:"error,omitempty"`
+	Links *SignaturesCreateResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SignaturesCreateResponse) GetMeta() *SignaturesCreateResponseMeta {
+	if s == nil {
+		return nil
+	}
+	return s.Meta
+}
+
+func (s *SignaturesCreateResponse) GetData() *SignaturesCreateResponseData {
+	if s == nil {
+		return nil
+	}
+	return s.Data
+}
+
+func (s *SignaturesCreateResponse) GetError() *SignaturesCreateResponseError {
+	if s == nil {
+		return nil
+	}
+	return s.Error
+}
+
+func (s *SignaturesCreateResponse) GetLinks() *SignaturesCreateResponseLinks {
+	if s == nil {
+		return nil
+	}
+	return s.Links
+}
+
+func (s *SignaturesCreateResponse) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SignaturesCreateResponse) UnmarshalJSON(data []byte) error {
+	type unmarshaler SignaturesCreateResponse
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SignaturesCreateResponse(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SignaturesCreateResponse) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SignaturesCreateResponseData struct {
+	Domain    string  `json:"domain" url:"domain"`
+	Filename  string  `json:"filename" url:"filename"`
+	Folder    *string `json:"folder,omitempty" url:"folder,omitempty"`
+	Expiry    int     `json:"expiry" url:"expiry"`
+	Method    string  `json:"method" url:"method"`
+	Signature string  `json:"signature" url:"signature"`
+	URL       string  `json:"url" url:"url"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SignaturesCreateResponseData) GetDomain() string {
+	if s == nil {
+		return ""
+	}
+	return s.Domain
+}
+
+func (s *SignaturesCreateResponseData) GetFilename() string {
+	if s == nil {
+		return ""
+	}
+	return s.Filename
+}
+
+func (s *SignaturesCreateResponseData) GetFolder() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Folder
+}
+
+func (s *SignaturesCreateResponseData) GetExpiry() int {
+	if s == nil {
+		return 0
+	}
+	return s.Expiry
+}
+
+func (s *SignaturesCreateResponseData) GetMethod() string {
+	if s == nil {
+		return ""
+	}
+	return s.Method
+}
+
+func (s *SignaturesCreateResponseData) GetSignature() string {
+	if s == nil {
+		return ""
+	}
+	return s.Signature
+}
+
+func (s *SignaturesCreateResponseData) GetURL() string {
+	if s == nil {
+		return ""
+	}
+	return s.URL
+}
+
+func (s *SignaturesCreateResponseData) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SignaturesCreateResponseData) UnmarshalJSON(data []byte) error {
+	type unmarshaler SignaturesCreateResponseData
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SignaturesCreateResponseData(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SignaturesCreateResponseData) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SignaturesCreateResponseError struct {
+	Message *string `json:"message,omitempty" url:"message,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SignaturesCreateResponseError) GetMessage() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Message
+}
+
+func (s *SignaturesCreateResponseError) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SignaturesCreateResponseError) UnmarshalJSON(data []byte) error {
+	type unmarshaler SignaturesCreateResponseError
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SignaturesCreateResponseError(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SignaturesCreateResponseError) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SignaturesCreateResponseLinks struct {
+	Self   *string `json:"self,omitempty" url:"self,omitempty"`
+	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SignaturesCreateResponseLinks) GetSelf() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Self
+}
+
+func (s *SignaturesCreateResponseLinks) GetParent() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Parent
+}
+
+func (s *SignaturesCreateResponseLinks) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SignaturesCreateResponseLinks) UnmarshalJSON(data []byte) error {
+	type unmarshaler SignaturesCreateResponseLinks
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SignaturesCreateResponseLinks(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SignaturesCreateResponseLinks) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SignaturesCreateResponseMeta struct {
+	RequestID *string                           `json:"request_id,omitempty" url:"request_id,omitempty"`
+	OrgID     *string                           `json:"org_id,omitempty" url:"org_id,omitempty"`
+	ProjectID *string                           `json:"project_id,omitempty" url:"project_id,omitempty"`
+	Version   *string                           `json:"version,omitempty" url:"version,omitempty"`
+	Type      *SignaturesCreateResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (s *SignaturesCreateResponseMeta) GetRequestID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.RequestID
+}
+
+func (s *SignaturesCreateResponseMeta) GetOrgID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.OrgID
+}
+
+func (s *SignaturesCreateResponseMeta) GetProjectID() *string {
+	if s == nil {
+		return nil
+	}
+	return s.ProjectID
+}
+
+func (s *SignaturesCreateResponseMeta) GetVersion() *string {
+	if s == nil {
+		return nil
+	}
+	return s.Version
+}
+
+func (s *SignaturesCreateResponseMeta) GetType() *SignaturesCreateResponseMetaType {
+	if s == nil {
+		return nil
+	}
+	return s.Type
+}
+
+func (s *SignaturesCreateResponseMeta) GetExtraProperties() map[string]interface{} {
+	return s.extraProperties
+}
+
+func (s *SignaturesCreateResponseMeta) UnmarshalJSON(data []byte) error {
+	type unmarshaler SignaturesCreateResponseMeta
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*s = SignaturesCreateResponseMeta(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *s)
+	if err != nil {
+		return err
+	}
+	s.extraProperties = extraProperties
+	s.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (s *SignaturesCreateResponseMeta) String() string {
+	if len(s.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(s.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(s); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", s)
+}
+
+type SignaturesCreateResponseMetaType string
+
+const (
+	SignaturesCreateResponseMetaTypeObject SignaturesCreateResponseMetaType = "object"
+	SignaturesCreateResponseMetaTypeList   SignaturesCreateResponseMetaType = "list"
+)
+
+func NewSignaturesCreateResponseMetaTypeFromString(s string) (SignaturesCreateResponseMetaType, error) {
+	switch s {
+	case "object":
+		return SignaturesCreateResponseMetaTypeObject, nil
+	case "list":
+		return SignaturesCreateResponseMetaTypeList, nil
+	}
+	var t SignaturesCreateResponseMetaType
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (s SignaturesCreateResponseMetaType) Ptr() *SignaturesCreateResponseMetaType {
 	return &s
 }

@@ -40,7 +40,7 @@ func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.TasksListRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.TaskListResponse, error) {
+) (*sdkgo.TasksListResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -60,7 +60,7 @@ func (c *Client) List(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.TaskListResponse
+	var response *sdkgo.TasksListResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -84,7 +84,7 @@ func (c *Client) Create(
 	ctx context.Context,
 	request interface{},
 	opts ...option.RequestOption,
-) (*sdkgo.TaskResponse, error) {
+) (*sdkgo.TasksCreateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -98,7 +98,7 @@ func (c *Client) Create(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.TaskResponse
+	var response *sdkgo.TasksCreateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -123,7 +123,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.TaskResponse, error) {
+) (*sdkgo.TasksGetResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -139,7 +139,7 @@ func (c *Client) Get(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.TaskResponse
+	var response *sdkgo.TasksGetResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

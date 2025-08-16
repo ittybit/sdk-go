@@ -40,7 +40,7 @@ func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.AutomationsListRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.AutomationListResponse, error) {
+) (*sdkgo.AutomationsListResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -60,7 +60,7 @@ func (c *Client) List(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.AutomationListResponse
+	var response *sdkgo.AutomationsListResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -84,7 +84,7 @@ func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.AutomationsCreateRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.AutomationResponse, error) {
+) (*sdkgo.AutomationsCreateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -98,7 +98,7 @@ func (c *Client) Create(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.AutomationResponse
+	var response *sdkgo.AutomationsCreateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -123,7 +123,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.AutomationResponse, error) {
+) (*sdkgo.AutomationsGetResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -139,7 +139,7 @@ func (c *Client) Get(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.AutomationResponse
+	var response *sdkgo.AutomationsGetResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -163,7 +163,7 @@ func (c *Client) Delete(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.ConfirmationResponse, error) {
+) (*sdkgo.AutomationsDeleteResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -179,7 +179,7 @@ func (c *Client) Delete(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.ConfirmationResponse
+	var response *sdkgo.AutomationsDeleteResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -204,7 +204,7 @@ func (c *Client) Update(
 	id string,
 	request *sdkgo.AutomationsUpdateRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.AutomationResponse, error) {
+) (*sdkgo.AutomationsUpdateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -221,7 +221,7 @@ func (c *Client) Update(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.AutomationResponse
+	var response *sdkgo.AutomationsUpdateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

@@ -40,7 +40,7 @@ func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.FilesListRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.FileListResponse, error) {
+) (*sdkgo.FilesListResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -60,7 +60,7 @@ func (c *Client) List(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.FileListResponse
+	var response *sdkgo.FilesListResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -84,7 +84,7 @@ func (c *Client) Create(
 	ctx context.Context,
 	request *sdkgo.FilesCreateRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.FileResponse, error) {
+) (*sdkgo.FilesCreateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -98,7 +98,7 @@ func (c *Client) Create(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.FileResponse
+	var response *sdkgo.FilesCreateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -123,7 +123,7 @@ func (c *Client) Get(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.FileResponse, error) {
+) (*sdkgo.FilesGetResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -139,7 +139,7 @@ func (c *Client) Get(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.FileResponse
+	var response *sdkgo.FilesGetResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -163,7 +163,7 @@ func (c *Client) Delete(
 	ctx context.Context,
 	id string,
 	opts ...option.RequestOption,
-) (*sdkgo.ConfirmationResponse, error) {
+) (*sdkgo.FilesDeleteResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -179,7 +179,7 @@ func (c *Client) Delete(
 		options.ToHeader(),
 	)
 
-	var response *sdkgo.ConfirmationResponse
+	var response *sdkgo.FilesDeleteResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -204,7 +204,7 @@ func (c *Client) Update(
 	id string,
 	request *sdkgo.FilesUpdateRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.FileResponse, error) {
+) (*sdkgo.FilesUpdateResponse, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -221,7 +221,7 @@ func (c *Client) Update(
 	)
 	headers.Set("Content-Type", "application/json")
 
-	var response *sdkgo.FileResponse
+	var response *sdkgo.FilesUpdateResponse
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
