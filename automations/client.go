@@ -4,6 +4,7 @@ package automations
 
 import (
 	context "context"
+	fmt "fmt"
 	sdkgo "github.com/ittybit/sdk-go"
 	core "github.com/ittybit/sdk-go/core"
 	internal "github.com/ittybit/sdk-go/internal"
@@ -40,7 +41,7 @@ func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.AutomationsListRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.AutomationsListResponse, error) {
+) ([]*sdkgo.AutomationsListResponseItem, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -59,8 +60,9 @@ func (c *Client) List(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Add("Accept-Version", fmt.Sprintf("%v", "2025-08-20"))
 
-	var response *sdkgo.AutomationsListResponse
+	var response []*sdkgo.AutomationsListResponseItem
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -219,6 +221,7 @@ func (c *Client) Update(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Add("Accept-Version", fmt.Sprintf("%v", "2025-08-20"))
 	headers.Set("Content-Type", "application/json")
 
 	var response *sdkgo.AutomationsUpdateResponse

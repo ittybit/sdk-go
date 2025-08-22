@@ -4,6 +4,7 @@ package tasks
 
 import (
 	context "context"
+	fmt "fmt"
 	sdkgo "github.com/ittybit/sdk-go"
 	core "github.com/ittybit/sdk-go/core"
 	internal "github.com/ittybit/sdk-go/internal"
@@ -40,7 +41,7 @@ func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.TasksListRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.TasksListResponse, error) {
+) ([]*sdkgo.TasksListResponseItem, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -59,8 +60,9 @@ func (c *Client) List(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Add("Accept-Version", fmt.Sprintf("%v", "2025-08-20"))
 
-	var response *sdkgo.TasksListResponse
+	var response []*sdkgo.TasksListResponseItem
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -140,42 +142,6 @@ func (c *Client) Get(
 	)
 
 	var response *sdkgo.TasksGetResponse
-	if err := c.caller.Call(
-		ctx,
-		&internal.CallParams{
-			URL:             endpointURL,
-			Method:          http.MethodGet,
-			Headers:         headers,
-			MaxAttempts:     options.MaxAttempts,
-			BodyProperties:  options.BodyProperties,
-			QueryParameters: options.QueryParameters,
-			Client:          options.HTTPClient,
-			Response:        &response,
-		},
-	); err != nil {
-		return nil, err
-	}
-	return response, nil
-}
-
-// Retrieves available task kinds and their configuration options.
-func (c *Client) GetTaskConfig(
-	ctx context.Context,
-	opts ...option.RequestOption,
-) (map[string]interface{}, error) {
-	options := core.NewRequestOptions(opts...)
-	baseURL := internal.ResolveBaseURL(
-		options.BaseURL,
-		c.baseURL,
-		"https://api.ittybit.com",
-	)
-	endpointURL := baseURL + "/tasks-config"
-	headers := internal.MergeHeaders(
-		c.header.Clone(),
-		options.ToHeader(),
-	)
-
-	var response map[string]interface{}
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{

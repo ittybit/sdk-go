@@ -4,6 +4,7 @@ package files
 
 import (
 	context "context"
+	fmt "fmt"
 	sdkgo "github.com/ittybit/sdk-go"
 	core "github.com/ittybit/sdk-go/core"
 	internal "github.com/ittybit/sdk-go/internal"
@@ -40,7 +41,7 @@ func (c *Client) List(
 	ctx context.Context,
 	request *sdkgo.FilesListRequest,
 	opts ...option.RequestOption,
-) (*sdkgo.FilesListResponse, error) {
+) ([]*sdkgo.FilesListResponseItem, error) {
 	options := core.NewRequestOptions(opts...)
 	baseURL := internal.ResolveBaseURL(
 		options.BaseURL,
@@ -59,8 +60,9 @@ func (c *Client) List(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Add("Accept-Version", fmt.Sprintf("%v", "2025-08-20"))
 
-	var response *sdkgo.FilesListResponse
+	var response []*sdkgo.FilesListResponseItem
 	if err := c.caller.Call(
 		ctx,
 		&internal.CallParams{
@@ -96,6 +98,7 @@ func (c *Client) Create(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Add("Accept-Version", fmt.Sprintf("%v", "2025-08-20"))
 	headers.Set("Content-Type", "application/json")
 
 	var response *sdkgo.FilesCreateResponse
@@ -219,6 +222,7 @@ func (c *Client) Update(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Add("Accept-Version", fmt.Sprintf("%v", "2025-08-20"))
 	headers.Set("Content-Type", "application/json")
 
 	var response *sdkgo.FilesUpdateResponse

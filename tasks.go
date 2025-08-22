@@ -10,46 +10,140 @@ import (
 )
 
 type TasksListRequest struct {
-	Page  *int `json:"-" url:"page,omitempty"`
-	Limit *int `json:"-" url:"limit,omitempty"`
+	// Specifies the API Version
+	Page          *int `json:"-" url:"page,omitempty"`
+	Limit         *int `json:"-" url:"limit,omitempty"`
+	acceptVersion string
+}
+
+func (t *TasksListRequest) AcceptVersion() string {
+	return t.acceptVersion
 }
 
 type TasksCreateResponse struct {
-	Meta  *TasksCreateResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *TasksCreateResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *TasksCreateResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *TasksCreateResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+	ID        string                      `json:"id" url:"id"`
+	Object    string                      `json:"object" url:"object"`
+	Kind      TasksCreateResponseKind     `json:"kind" url:"kind"`
+	Input     map[string]interface{}      `json:"input,omitempty" url:"input,omitempty"`
+	Options   map[string]interface{}      `json:"options,omitempty" url:"options,omitempty"`
+	Output    map[string]interface{}      `json:"output,omitempty" url:"output,omitempty"`
+	Status    TasksCreateResponseStatus   `json:"status" url:"status"`
+	Progress  *int                        `json:"progress,omitempty" url:"progress,omitempty"`
+	Error     *string                     `json:"error,omitempty" url:"error,omitempty"`
+	CreatedBy *string                     `json:"created_by,omitempty" url:"created_by,omitempty"`
+	Created   time.Time                   `json:"created" url:"created"`
+	Updated   time.Time                   `json:"updated" url:"updated"`
+	ParentID  *string                     `json:"parent_id,omitempty" url:"parent_id,omitempty"`
+	Workflow  []interface{}               `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Results   *TasksCreateResponseResults `json:"results,omitempty" url:"results,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (t *TasksCreateResponse) GetMeta() *TasksCreateResponseMeta {
+func (t *TasksCreateResponse) GetID() string {
+	if t == nil {
+		return ""
+	}
+	return t.ID
+}
+
+func (t *TasksCreateResponse) GetObject() string {
+	if t == nil {
+		return ""
+	}
+	return t.Object
+}
+
+func (t *TasksCreateResponse) GetKind() TasksCreateResponseKind {
+	if t == nil {
+		return ""
+	}
+	return t.Kind
+}
+
+func (t *TasksCreateResponse) GetInput() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
-	return t.Meta
+	return t.Input
 }
 
-func (t *TasksCreateResponse) GetData() *TasksCreateResponseData {
+func (t *TasksCreateResponse) GetOptions() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
-	return t.Data
+	return t.Options
 }
 
-func (t *TasksCreateResponse) GetError() *TasksCreateResponseError {
+func (t *TasksCreateResponse) GetOutput() map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.Output
+}
+
+func (t *TasksCreateResponse) GetStatus() TasksCreateResponseStatus {
+	if t == nil {
+		return ""
+	}
+	return t.Status
+}
+
+func (t *TasksCreateResponse) GetProgress() *int {
+	if t == nil {
+		return nil
+	}
+	return t.Progress
+}
+
+func (t *TasksCreateResponse) GetError() *string {
 	if t == nil {
 		return nil
 	}
 	return t.Error
 }
 
-func (t *TasksCreateResponse) GetLinks() *TasksCreateResponseLinks {
+func (t *TasksCreateResponse) GetCreatedBy() *string {
 	if t == nil {
 		return nil
 	}
-	return t.Links
+	return t.CreatedBy
+}
+
+func (t *TasksCreateResponse) GetCreated() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return t.Created
+}
+
+func (t *TasksCreateResponse) GetUpdated() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return t.Updated
+}
+
+func (t *TasksCreateResponse) GetParentID() *string {
+	if t == nil {
+		return nil
+	}
+	return t.ParentID
+}
+
+func (t *TasksCreateResponse) GetWorkflow() []interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.Workflow
+}
+
+func (t *TasksCreateResponse) GetResults() *TasksCreateResponseResults {
+	if t == nil {
+		return nil
+	}
+	return t.Results
 }
 
 func (t *TasksCreateResponse) GetExtraProperties() map[string]interface{} {
@@ -57,12 +151,20 @@ func (t *TasksCreateResponse) GetExtraProperties() map[string]interface{} {
 }
 
 func (t *TasksCreateResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksCreateResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed TasksCreateResponse
+	var unmarshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed: embed(*t),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*t = TasksCreateResponse(value)
+	*t = TasksCreateResponse(unmarshaler.embed)
+	t.Created = unmarshaler.Created.Time()
+	t.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *t)
 	if err != nil {
 		return err
@@ -70,6 +172,20 @@ func (t *TasksCreateResponse) UnmarshalJSON(data []byte) error {
 	t.extraProperties = extraProperties
 	t.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (t *TasksCreateResponse) MarshalJSON() ([]byte, error) {
+	type embed TasksCreateResponse
+	var marshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed:   embed(*t),
+		Created: internal.NewDateTime(t.Created),
+		Updated: internal.NewDateTime(t.Updated),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (t *TasksCreateResponse) String() string {
@@ -84,138 +200,301 @@ func (t *TasksCreateResponse) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
-type TasksCreateResponseData struct {
-	ID        string                          `json:"id" url:"id"`
-	Object    string                          `json:"object" url:"object"`
-	Kind      TasksCreateResponseDataKind     `json:"kind" url:"kind"`
-	Input     map[string]interface{}          `json:"input,omitempty" url:"input,omitempty"`
-	Options   map[string]interface{}          `json:"options,omitempty" url:"options,omitempty"`
-	Output    map[string]interface{}          `json:"output,omitempty" url:"output,omitempty"`
-	Status    TasksCreateResponseDataStatus   `json:"status" url:"status"`
-	Progress  *int                            `json:"progress,omitempty" url:"progress,omitempty"`
-	Error     *string                         `json:"error,omitempty" url:"error,omitempty"`
-	CreatedBy *string                         `json:"created_by,omitempty" url:"created_by,omitempty"`
-	Created   time.Time                       `json:"created" url:"created"`
-	Updated   time.Time                       `json:"updated" url:"updated"`
-	ParentID  *string                         `json:"parent_id,omitempty" url:"parent_id,omitempty"`
-	Workflow  []interface{}                   `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Results   *TasksCreateResponseDataResults `json:"results,omitempty" url:"results,omitempty"`
+type TasksCreateResponseKind string
+
+const (
+	TasksCreateResponseKindIngest      TasksCreateResponseKind = "ingest"
+	TasksCreateResponseKindVideo       TasksCreateResponseKind = "video"
+	TasksCreateResponseKindImage       TasksCreateResponseKind = "image"
+	TasksCreateResponseKindAudio       TasksCreateResponseKind = "audio"
+	TasksCreateResponseKindChapters    TasksCreateResponseKind = "chapters"
+	TasksCreateResponseKindSubtitles   TasksCreateResponseKind = "subtitles"
+	TasksCreateResponseKindThumbnails  TasksCreateResponseKind = "thumbnails"
+	TasksCreateResponseKindNsfw        TasksCreateResponseKind = "nsfw"
+	TasksCreateResponseKindSpeech      TasksCreateResponseKind = "speech"
+	TasksCreateResponseKindDescription TasksCreateResponseKind = "description"
+	TasksCreateResponseKindOutline     TasksCreateResponseKind = "outline"
+	TasksCreateResponseKindPrompt      TasksCreateResponseKind = "prompt"
+	TasksCreateResponseKindWorkflow    TasksCreateResponseKind = "workflow"
+	TasksCreateResponseKindConditions  TasksCreateResponseKind = "conditions"
+	TasksCreateResponseKindHTTP        TasksCreateResponseKind = "http"
+)
+
+func NewTasksCreateResponseKindFromString(s string) (TasksCreateResponseKind, error) {
+	switch s {
+	case "ingest":
+		return TasksCreateResponseKindIngest, nil
+	case "video":
+		return TasksCreateResponseKindVideo, nil
+	case "image":
+		return TasksCreateResponseKindImage, nil
+	case "audio":
+		return TasksCreateResponseKindAudio, nil
+	case "chapters":
+		return TasksCreateResponseKindChapters, nil
+	case "subtitles":
+		return TasksCreateResponseKindSubtitles, nil
+	case "thumbnails":
+		return TasksCreateResponseKindThumbnails, nil
+	case "nsfw":
+		return TasksCreateResponseKindNsfw, nil
+	case "speech":
+		return TasksCreateResponseKindSpeech, nil
+	case "description":
+		return TasksCreateResponseKindDescription, nil
+	case "outline":
+		return TasksCreateResponseKindOutline, nil
+	case "prompt":
+		return TasksCreateResponseKindPrompt, nil
+	case "workflow":
+		return TasksCreateResponseKindWorkflow, nil
+	case "conditions":
+		return TasksCreateResponseKindConditions, nil
+	case "http":
+		return TasksCreateResponseKindHTTP, nil
+	}
+	var t TasksCreateResponseKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TasksCreateResponseKind) Ptr() *TasksCreateResponseKind {
+	return &t
+}
+
+type TasksCreateResponseResults struct {
+	Passed   []map[string]interface{} `json:"passed,omitempty" url:"passed,omitempty"`
+	Failed   []map[string]interface{} `json:"failed,omitempty" url:"failed,omitempty"`
+	Continue *bool                    `json:"continue,omitempty" url:"continue,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (t *TasksCreateResponseData) GetID() string {
+func (t *TasksCreateResponseResults) GetPassed() []map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.Passed
+}
+
+func (t *TasksCreateResponseResults) GetFailed() []map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.Failed
+}
+
+func (t *TasksCreateResponseResults) GetContinue() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Continue
+}
+
+func (t *TasksCreateResponseResults) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TasksCreateResponseResults) UnmarshalJSON(data []byte) error {
+	type unmarshaler TasksCreateResponseResults
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TasksCreateResponseResults(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TasksCreateResponseResults) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+type TasksCreateResponseStatus string
+
+const (
+	TasksCreateResponseStatusPending    TasksCreateResponseStatus = "pending"
+	TasksCreateResponseStatusWaiting    TasksCreateResponseStatus = "waiting"
+	TasksCreateResponseStatusProcessing TasksCreateResponseStatus = "processing"
+	TasksCreateResponseStatusReady      TasksCreateResponseStatus = "ready"
+	TasksCreateResponseStatusCompleted  TasksCreateResponseStatus = "completed"
+	TasksCreateResponseStatusFailed     TasksCreateResponseStatus = "failed"
+	TasksCreateResponseStatusError      TasksCreateResponseStatus = "error"
+	TasksCreateResponseStatusCancelled  TasksCreateResponseStatus = "cancelled"
+)
+
+func NewTasksCreateResponseStatusFromString(s string) (TasksCreateResponseStatus, error) {
+	switch s {
+	case "pending":
+		return TasksCreateResponseStatusPending, nil
+	case "waiting":
+		return TasksCreateResponseStatusWaiting, nil
+	case "processing":
+		return TasksCreateResponseStatusProcessing, nil
+	case "ready":
+		return TasksCreateResponseStatusReady, nil
+	case "completed":
+		return TasksCreateResponseStatusCompleted, nil
+	case "failed":
+		return TasksCreateResponseStatusFailed, nil
+	case "error":
+		return TasksCreateResponseStatusError, nil
+	case "cancelled":
+		return TasksCreateResponseStatusCancelled, nil
+	}
+	var t TasksCreateResponseStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TasksCreateResponseStatus) Ptr() *TasksCreateResponseStatus {
+	return &t
+}
+
+type TasksGetResponse struct {
+	ID        string                   `json:"id" url:"id"`
+	Object    string                   `json:"object" url:"object"`
+	Kind      TasksGetResponseKind     `json:"kind" url:"kind"`
+	Input     map[string]interface{}   `json:"input,omitempty" url:"input,omitempty"`
+	Options   map[string]interface{}   `json:"options,omitempty" url:"options,omitempty"`
+	Output    map[string]interface{}   `json:"output,omitempty" url:"output,omitempty"`
+	Status    TasksGetResponseStatus   `json:"status" url:"status"`
+	Progress  *int                     `json:"progress,omitempty" url:"progress,omitempty"`
+	Error     *string                  `json:"error,omitempty" url:"error,omitempty"`
+	CreatedBy *string                  `json:"created_by,omitempty" url:"created_by,omitempty"`
+	Created   time.Time                `json:"created" url:"created"`
+	Updated   time.Time                `json:"updated" url:"updated"`
+	ParentID  *string                  `json:"parent_id,omitempty" url:"parent_id,omitempty"`
+	Workflow  []interface{}            `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Results   *TasksGetResponseResults `json:"results,omitempty" url:"results,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TasksGetResponse) GetID() string {
 	if t == nil {
 		return ""
 	}
 	return t.ID
 }
 
-func (t *TasksCreateResponseData) GetObject() string {
+func (t *TasksGetResponse) GetObject() string {
 	if t == nil {
 		return ""
 	}
 	return t.Object
 }
 
-func (t *TasksCreateResponseData) GetKind() TasksCreateResponseDataKind {
+func (t *TasksGetResponse) GetKind() TasksGetResponseKind {
 	if t == nil {
 		return ""
 	}
 	return t.Kind
 }
 
-func (t *TasksCreateResponseData) GetInput() map[string]interface{} {
+func (t *TasksGetResponse) GetInput() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Input
 }
 
-func (t *TasksCreateResponseData) GetOptions() map[string]interface{} {
+func (t *TasksGetResponse) GetOptions() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Options
 }
 
-func (t *TasksCreateResponseData) GetOutput() map[string]interface{} {
+func (t *TasksGetResponse) GetOutput() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Output
 }
 
-func (t *TasksCreateResponseData) GetStatus() TasksCreateResponseDataStatus {
+func (t *TasksGetResponse) GetStatus() TasksGetResponseStatus {
 	if t == nil {
 		return ""
 	}
 	return t.Status
 }
 
-func (t *TasksCreateResponseData) GetProgress() *int {
+func (t *TasksGetResponse) GetProgress() *int {
 	if t == nil {
 		return nil
 	}
 	return t.Progress
 }
 
-func (t *TasksCreateResponseData) GetError() *string {
+func (t *TasksGetResponse) GetError() *string {
 	if t == nil {
 		return nil
 	}
 	return t.Error
 }
 
-func (t *TasksCreateResponseData) GetCreatedBy() *string {
+func (t *TasksGetResponse) GetCreatedBy() *string {
 	if t == nil {
 		return nil
 	}
 	return t.CreatedBy
 }
 
-func (t *TasksCreateResponseData) GetCreated() time.Time {
+func (t *TasksGetResponse) GetCreated() time.Time {
 	if t == nil {
 		return time.Time{}
 	}
 	return t.Created
 }
 
-func (t *TasksCreateResponseData) GetUpdated() time.Time {
+func (t *TasksGetResponse) GetUpdated() time.Time {
 	if t == nil {
 		return time.Time{}
 	}
 	return t.Updated
 }
 
-func (t *TasksCreateResponseData) GetParentID() *string {
+func (t *TasksGetResponse) GetParentID() *string {
 	if t == nil {
 		return nil
 	}
 	return t.ParentID
 }
 
-func (t *TasksCreateResponseData) GetWorkflow() []interface{} {
+func (t *TasksGetResponse) GetWorkflow() []interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Workflow
 }
 
-func (t *TasksCreateResponseData) GetResults() *TasksCreateResponseDataResults {
+func (t *TasksGetResponse) GetResults() *TasksGetResponseResults {
 	if t == nil {
 		return nil
 	}
 	return t.Results
 }
 
-func (t *TasksCreateResponseData) GetExtraProperties() map[string]interface{} {
+func (t *TasksGetResponse) GetExtraProperties() map[string]interface{} {
 	return t.extraProperties
 }
 
-func (t *TasksCreateResponseData) UnmarshalJSON(data []byte) error {
-	type embed TasksCreateResponseData
+func (t *TasksGetResponse) UnmarshalJSON(data []byte) error {
+	type embed TasksGetResponse
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -226,7 +505,7 @@ func (t *TasksCreateResponseData) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*t = TasksCreateResponseData(unmarshaler.embed)
+	*t = TasksGetResponse(unmarshaler.embed)
 	t.Created = unmarshaler.Created.Time()
 	t.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *t)
@@ -238,8 +517,8 @@ func (t *TasksCreateResponseData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (t *TasksCreateResponseData) MarshalJSON() ([]byte, error) {
-	type embed TasksCreateResponseData
+func (t *TasksGetResponse) MarshalJSON() ([]byte, error) {
+	type embed TasksGetResponse
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -250,439 +529,6 @@ func (t *TasksCreateResponseData) MarshalJSON() ([]byte, error) {
 		Updated: internal.NewDateTime(t.Updated),
 	}
 	return json.Marshal(marshaler)
-}
-
-func (t *TasksCreateResponseData) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksCreateResponseDataKind string
-
-const (
-	TasksCreateResponseDataKindIngest      TasksCreateResponseDataKind = "ingest"
-	TasksCreateResponseDataKindVideo       TasksCreateResponseDataKind = "video"
-	TasksCreateResponseDataKindImage       TasksCreateResponseDataKind = "image"
-	TasksCreateResponseDataKindAudio       TasksCreateResponseDataKind = "audio"
-	TasksCreateResponseDataKindChapters    TasksCreateResponseDataKind = "chapters"
-	TasksCreateResponseDataKindSubtitles   TasksCreateResponseDataKind = "subtitles"
-	TasksCreateResponseDataKindThumbnails  TasksCreateResponseDataKind = "thumbnails"
-	TasksCreateResponseDataKindNsfw        TasksCreateResponseDataKind = "nsfw"
-	TasksCreateResponseDataKindSpeech      TasksCreateResponseDataKind = "speech"
-	TasksCreateResponseDataKindDescription TasksCreateResponseDataKind = "description"
-	TasksCreateResponseDataKindOutline     TasksCreateResponseDataKind = "outline"
-	TasksCreateResponseDataKindPrompt      TasksCreateResponseDataKind = "prompt"
-	TasksCreateResponseDataKindWorkflow    TasksCreateResponseDataKind = "workflow"
-	TasksCreateResponseDataKindConditions  TasksCreateResponseDataKind = "conditions"
-	TasksCreateResponseDataKindHTTP        TasksCreateResponseDataKind = "http"
-)
-
-func NewTasksCreateResponseDataKindFromString(s string) (TasksCreateResponseDataKind, error) {
-	switch s {
-	case "ingest":
-		return TasksCreateResponseDataKindIngest, nil
-	case "video":
-		return TasksCreateResponseDataKindVideo, nil
-	case "image":
-		return TasksCreateResponseDataKindImage, nil
-	case "audio":
-		return TasksCreateResponseDataKindAudio, nil
-	case "chapters":
-		return TasksCreateResponseDataKindChapters, nil
-	case "subtitles":
-		return TasksCreateResponseDataKindSubtitles, nil
-	case "thumbnails":
-		return TasksCreateResponseDataKindThumbnails, nil
-	case "nsfw":
-		return TasksCreateResponseDataKindNsfw, nil
-	case "speech":
-		return TasksCreateResponseDataKindSpeech, nil
-	case "description":
-		return TasksCreateResponseDataKindDescription, nil
-	case "outline":
-		return TasksCreateResponseDataKindOutline, nil
-	case "prompt":
-		return TasksCreateResponseDataKindPrompt, nil
-	case "workflow":
-		return TasksCreateResponseDataKindWorkflow, nil
-	case "conditions":
-		return TasksCreateResponseDataKindConditions, nil
-	case "http":
-		return TasksCreateResponseDataKindHTTP, nil
-	}
-	var t TasksCreateResponseDataKind
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TasksCreateResponseDataKind) Ptr() *TasksCreateResponseDataKind {
-	return &t
-}
-
-type TasksCreateResponseDataResults struct {
-	Passed   []map[string]interface{} `json:"passed,omitempty" url:"passed,omitempty"`
-	Failed   []map[string]interface{} `json:"failed,omitempty" url:"failed,omitempty"`
-	Continue *bool                    `json:"continue,omitempty" url:"continue,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksCreateResponseDataResults) GetPassed() []map[string]interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Passed
-}
-
-func (t *TasksCreateResponseDataResults) GetFailed() []map[string]interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Failed
-}
-
-func (t *TasksCreateResponseDataResults) GetContinue() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Continue
-}
-
-func (t *TasksCreateResponseDataResults) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksCreateResponseDataResults) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksCreateResponseDataResults
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksCreateResponseDataResults(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksCreateResponseDataResults) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksCreateResponseDataStatus string
-
-const (
-	TasksCreateResponseDataStatusPending    TasksCreateResponseDataStatus = "pending"
-	TasksCreateResponseDataStatusWaiting    TasksCreateResponseDataStatus = "waiting"
-	TasksCreateResponseDataStatusProcessing TasksCreateResponseDataStatus = "processing"
-	TasksCreateResponseDataStatusReady      TasksCreateResponseDataStatus = "ready"
-	TasksCreateResponseDataStatusCompleted  TasksCreateResponseDataStatus = "completed"
-	TasksCreateResponseDataStatusFailed     TasksCreateResponseDataStatus = "failed"
-	TasksCreateResponseDataStatusError      TasksCreateResponseDataStatus = "error"
-	TasksCreateResponseDataStatusCancelled  TasksCreateResponseDataStatus = "cancelled"
-)
-
-func NewTasksCreateResponseDataStatusFromString(s string) (TasksCreateResponseDataStatus, error) {
-	switch s {
-	case "pending":
-		return TasksCreateResponseDataStatusPending, nil
-	case "waiting":
-		return TasksCreateResponseDataStatusWaiting, nil
-	case "processing":
-		return TasksCreateResponseDataStatusProcessing, nil
-	case "ready":
-		return TasksCreateResponseDataStatusReady, nil
-	case "completed":
-		return TasksCreateResponseDataStatusCompleted, nil
-	case "failed":
-		return TasksCreateResponseDataStatusFailed, nil
-	case "error":
-		return TasksCreateResponseDataStatusError, nil
-	case "cancelled":
-		return TasksCreateResponseDataStatusCancelled, nil
-	}
-	var t TasksCreateResponseDataStatus
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TasksCreateResponseDataStatus) Ptr() *TasksCreateResponseDataStatus {
-	return &t
-}
-
-type TasksCreateResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksCreateResponseError) GetMessage() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Message
-}
-
-func (t *TasksCreateResponseError) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksCreateResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksCreateResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksCreateResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksCreateResponseError) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksCreateResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksCreateResponseLinks) GetSelf() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Self
-}
-
-func (t *TasksCreateResponseLinks) GetParent() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Parent
-}
-
-func (t *TasksCreateResponseLinks) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksCreateResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksCreateResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksCreateResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksCreateResponseLinks) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksCreateResponseMeta struct {
-	RequestID *string                      `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                      `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                      `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                      `json:"version,omitempty" url:"version,omitempty"`
-	Type      *TasksCreateResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksCreateResponseMeta) GetRequestID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.RequestID
-}
-
-func (t *TasksCreateResponseMeta) GetOrgID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.OrgID
-}
-
-func (t *TasksCreateResponseMeta) GetProjectID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.ProjectID
-}
-
-func (t *TasksCreateResponseMeta) GetVersion() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Version
-}
-
-func (t *TasksCreateResponseMeta) GetType() *TasksCreateResponseMetaType {
-	if t == nil {
-		return nil
-	}
-	return t.Type
-}
-
-func (t *TasksCreateResponseMeta) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksCreateResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksCreateResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksCreateResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksCreateResponseMeta) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksCreateResponseMetaType string
-
-const (
-	TasksCreateResponseMetaTypeObject TasksCreateResponseMetaType = "object"
-	TasksCreateResponseMetaTypeList   TasksCreateResponseMetaType = "list"
-)
-
-func NewTasksCreateResponseMetaTypeFromString(s string) (TasksCreateResponseMetaType, error) {
-	switch s {
-	case "object":
-		return TasksCreateResponseMetaTypeObject, nil
-	case "list":
-		return TasksCreateResponseMetaTypeList, nil
-	}
-	var t TasksCreateResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TasksCreateResponseMetaType) Ptr() *TasksCreateResponseMetaType {
-	return &t
-}
-
-type TasksGetResponse struct {
-	Meta  *TasksGetResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *TasksGetResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *TasksGetResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *TasksGetResponseLinks `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksGetResponse) GetMeta() *TasksGetResponseMeta {
-	if t == nil {
-		return nil
-	}
-	return t.Meta
-}
-
-func (t *TasksGetResponse) GetData() *TasksGetResponseData {
-	if t == nil {
-		return nil
-	}
-	return t.Data
-}
-
-func (t *TasksGetResponse) GetError() *TasksGetResponseError {
-	if t == nil {
-		return nil
-	}
-	return t.Error
-}
-
-func (t *TasksGetResponse) GetLinks() *TasksGetResponseLinks {
-	if t == nil {
-		return nil
-	}
-	return t.Links
-}
-
-func (t *TasksGetResponse) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksGetResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksGetResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksGetResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
 }
 
 func (t *TasksGetResponse) String() string {
@@ -697,138 +543,301 @@ func (t *TasksGetResponse) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
-type TasksGetResponseData struct {
-	ID        string                       `json:"id" url:"id"`
-	Object    string                       `json:"object" url:"object"`
-	Kind      TasksGetResponseDataKind     `json:"kind" url:"kind"`
-	Input     map[string]interface{}       `json:"input,omitempty" url:"input,omitempty"`
-	Options   map[string]interface{}       `json:"options,omitempty" url:"options,omitempty"`
-	Output    map[string]interface{}       `json:"output,omitempty" url:"output,omitempty"`
-	Status    TasksGetResponseDataStatus   `json:"status" url:"status"`
-	Progress  *int                         `json:"progress,omitempty" url:"progress,omitempty"`
-	Error     *string                      `json:"error,omitempty" url:"error,omitempty"`
-	CreatedBy *string                      `json:"created_by,omitempty" url:"created_by,omitempty"`
-	Created   time.Time                    `json:"created" url:"created"`
-	Updated   time.Time                    `json:"updated" url:"updated"`
-	ParentID  *string                      `json:"parent_id,omitempty" url:"parent_id,omitempty"`
-	Workflow  []interface{}                `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Results   *TasksGetResponseDataResults `json:"results,omitempty" url:"results,omitempty"`
+type TasksGetResponseKind string
+
+const (
+	TasksGetResponseKindIngest      TasksGetResponseKind = "ingest"
+	TasksGetResponseKindVideo       TasksGetResponseKind = "video"
+	TasksGetResponseKindImage       TasksGetResponseKind = "image"
+	TasksGetResponseKindAudio       TasksGetResponseKind = "audio"
+	TasksGetResponseKindChapters    TasksGetResponseKind = "chapters"
+	TasksGetResponseKindSubtitles   TasksGetResponseKind = "subtitles"
+	TasksGetResponseKindThumbnails  TasksGetResponseKind = "thumbnails"
+	TasksGetResponseKindNsfw        TasksGetResponseKind = "nsfw"
+	TasksGetResponseKindSpeech      TasksGetResponseKind = "speech"
+	TasksGetResponseKindDescription TasksGetResponseKind = "description"
+	TasksGetResponseKindOutline     TasksGetResponseKind = "outline"
+	TasksGetResponseKindPrompt      TasksGetResponseKind = "prompt"
+	TasksGetResponseKindWorkflow    TasksGetResponseKind = "workflow"
+	TasksGetResponseKindConditions  TasksGetResponseKind = "conditions"
+	TasksGetResponseKindHTTP        TasksGetResponseKind = "http"
+)
+
+func NewTasksGetResponseKindFromString(s string) (TasksGetResponseKind, error) {
+	switch s {
+	case "ingest":
+		return TasksGetResponseKindIngest, nil
+	case "video":
+		return TasksGetResponseKindVideo, nil
+	case "image":
+		return TasksGetResponseKindImage, nil
+	case "audio":
+		return TasksGetResponseKindAudio, nil
+	case "chapters":
+		return TasksGetResponseKindChapters, nil
+	case "subtitles":
+		return TasksGetResponseKindSubtitles, nil
+	case "thumbnails":
+		return TasksGetResponseKindThumbnails, nil
+	case "nsfw":
+		return TasksGetResponseKindNsfw, nil
+	case "speech":
+		return TasksGetResponseKindSpeech, nil
+	case "description":
+		return TasksGetResponseKindDescription, nil
+	case "outline":
+		return TasksGetResponseKindOutline, nil
+	case "prompt":
+		return TasksGetResponseKindPrompt, nil
+	case "workflow":
+		return TasksGetResponseKindWorkflow, nil
+	case "conditions":
+		return TasksGetResponseKindConditions, nil
+	case "http":
+		return TasksGetResponseKindHTTP, nil
+	}
+	var t TasksGetResponseKind
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TasksGetResponseKind) Ptr() *TasksGetResponseKind {
+	return &t
+}
+
+type TasksGetResponseResults struct {
+	Passed   []map[string]interface{} `json:"passed,omitempty" url:"passed,omitempty"`
+	Failed   []map[string]interface{} `json:"failed,omitempty" url:"failed,omitempty"`
+	Continue *bool                    `json:"continue,omitempty" url:"continue,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (t *TasksGetResponseData) GetID() string {
+func (t *TasksGetResponseResults) GetPassed() []map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.Passed
+}
+
+func (t *TasksGetResponseResults) GetFailed() []map[string]interface{} {
+	if t == nil {
+		return nil
+	}
+	return t.Failed
+}
+
+func (t *TasksGetResponseResults) GetContinue() *bool {
+	if t == nil {
+		return nil
+	}
+	return t.Continue
+}
+
+func (t *TasksGetResponseResults) GetExtraProperties() map[string]interface{} {
+	return t.extraProperties
+}
+
+func (t *TasksGetResponseResults) UnmarshalJSON(data []byte) error {
+	type unmarshaler TasksGetResponseResults
+	var value unmarshaler
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	*t = TasksGetResponseResults(value)
+	extraProperties, err := internal.ExtractExtraProperties(data, *t)
+	if err != nil {
+		return err
+	}
+	t.extraProperties = extraProperties
+	t.rawJSON = json.RawMessage(data)
+	return nil
+}
+
+func (t *TasksGetResponseResults) String() string {
+	if len(t.rawJSON) > 0 {
+		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
+			return value
+		}
+	}
+	if value, err := internal.StringifyJSON(t); err == nil {
+		return value
+	}
+	return fmt.Sprintf("%#v", t)
+}
+
+type TasksGetResponseStatus string
+
+const (
+	TasksGetResponseStatusPending    TasksGetResponseStatus = "pending"
+	TasksGetResponseStatusWaiting    TasksGetResponseStatus = "waiting"
+	TasksGetResponseStatusProcessing TasksGetResponseStatus = "processing"
+	TasksGetResponseStatusReady      TasksGetResponseStatus = "ready"
+	TasksGetResponseStatusCompleted  TasksGetResponseStatus = "completed"
+	TasksGetResponseStatusFailed     TasksGetResponseStatus = "failed"
+	TasksGetResponseStatusError      TasksGetResponseStatus = "error"
+	TasksGetResponseStatusCancelled  TasksGetResponseStatus = "cancelled"
+)
+
+func NewTasksGetResponseStatusFromString(s string) (TasksGetResponseStatus, error) {
+	switch s {
+	case "pending":
+		return TasksGetResponseStatusPending, nil
+	case "waiting":
+		return TasksGetResponseStatusWaiting, nil
+	case "processing":
+		return TasksGetResponseStatusProcessing, nil
+	case "ready":
+		return TasksGetResponseStatusReady, nil
+	case "completed":
+		return TasksGetResponseStatusCompleted, nil
+	case "failed":
+		return TasksGetResponseStatusFailed, nil
+	case "error":
+		return TasksGetResponseStatusError, nil
+	case "cancelled":
+		return TasksGetResponseStatusCancelled, nil
+	}
+	var t TasksGetResponseStatus
+	return "", fmt.Errorf("%s is not a valid %T", s, t)
+}
+
+func (t TasksGetResponseStatus) Ptr() *TasksGetResponseStatus {
+	return &t
+}
+
+type TasksListResponseItem struct {
+	ID        string                        `json:"id" url:"id"`
+	Object    string                        `json:"object" url:"object"`
+	Kind      TasksListResponseItemKind     `json:"kind" url:"kind"`
+	Input     map[string]interface{}        `json:"input,omitempty" url:"input,omitempty"`
+	Options   map[string]interface{}        `json:"options,omitempty" url:"options,omitempty"`
+	Output    map[string]interface{}        `json:"output,omitempty" url:"output,omitempty"`
+	Status    TasksListResponseItemStatus   `json:"status" url:"status"`
+	Progress  *int                          `json:"progress,omitempty" url:"progress,omitempty"`
+	Error     *string                       `json:"error,omitempty" url:"error,omitempty"`
+	CreatedBy *string                       `json:"created_by,omitempty" url:"created_by,omitempty"`
+	Created   time.Time                     `json:"created" url:"created"`
+	Updated   time.Time                     `json:"updated" url:"updated"`
+	ParentID  *string                       `json:"parent_id,omitempty" url:"parent_id,omitempty"`
+	Workflow  []interface{}                 `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Results   *TasksListResponseItemResults `json:"results,omitempty" url:"results,omitempty"`
+
+	extraProperties map[string]interface{}
+	rawJSON         json.RawMessage
+}
+
+func (t *TasksListResponseItem) GetID() string {
 	if t == nil {
 		return ""
 	}
 	return t.ID
 }
 
-func (t *TasksGetResponseData) GetObject() string {
+func (t *TasksListResponseItem) GetObject() string {
 	if t == nil {
 		return ""
 	}
 	return t.Object
 }
 
-func (t *TasksGetResponseData) GetKind() TasksGetResponseDataKind {
+func (t *TasksListResponseItem) GetKind() TasksListResponseItemKind {
 	if t == nil {
 		return ""
 	}
 	return t.Kind
 }
 
-func (t *TasksGetResponseData) GetInput() map[string]interface{} {
+func (t *TasksListResponseItem) GetInput() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Input
 }
 
-func (t *TasksGetResponseData) GetOptions() map[string]interface{} {
+func (t *TasksListResponseItem) GetOptions() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Options
 }
 
-func (t *TasksGetResponseData) GetOutput() map[string]interface{} {
+func (t *TasksListResponseItem) GetOutput() map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Output
 }
 
-func (t *TasksGetResponseData) GetStatus() TasksGetResponseDataStatus {
+func (t *TasksListResponseItem) GetStatus() TasksListResponseItemStatus {
 	if t == nil {
 		return ""
 	}
 	return t.Status
 }
 
-func (t *TasksGetResponseData) GetProgress() *int {
+func (t *TasksListResponseItem) GetProgress() *int {
 	if t == nil {
 		return nil
 	}
 	return t.Progress
 }
 
-func (t *TasksGetResponseData) GetError() *string {
+func (t *TasksListResponseItem) GetError() *string {
 	if t == nil {
 		return nil
 	}
 	return t.Error
 }
 
-func (t *TasksGetResponseData) GetCreatedBy() *string {
+func (t *TasksListResponseItem) GetCreatedBy() *string {
 	if t == nil {
 		return nil
 	}
 	return t.CreatedBy
 }
 
-func (t *TasksGetResponseData) GetCreated() time.Time {
+func (t *TasksListResponseItem) GetCreated() time.Time {
 	if t == nil {
 		return time.Time{}
 	}
 	return t.Created
 }
 
-func (t *TasksGetResponseData) GetUpdated() time.Time {
+func (t *TasksListResponseItem) GetUpdated() time.Time {
 	if t == nil {
 		return time.Time{}
 	}
 	return t.Updated
 }
 
-func (t *TasksGetResponseData) GetParentID() *string {
+func (t *TasksListResponseItem) GetParentID() *string {
 	if t == nil {
 		return nil
 	}
 	return t.ParentID
 }
 
-func (t *TasksGetResponseData) GetWorkflow() []interface{} {
+func (t *TasksListResponseItem) GetWorkflow() []interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Workflow
 }
 
-func (t *TasksGetResponseData) GetResults() *TasksGetResponseDataResults {
+func (t *TasksListResponseItem) GetResults() *TasksListResponseItemResults {
 	if t == nil {
 		return nil
 	}
 	return t.Results
 }
 
-func (t *TasksGetResponseData) GetExtraProperties() map[string]interface{} {
+func (t *TasksListResponseItem) GetExtraProperties() map[string]interface{} {
 	return t.extraProperties
 }
 
-func (t *TasksGetResponseData) UnmarshalJSON(data []byte) error {
-	type embed TasksGetResponseData
+func (t *TasksListResponseItem) UnmarshalJSON(data []byte) error {
+	type embed TasksListResponseItem
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -839,7 +848,7 @@ func (t *TasksGetResponseData) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*t = TasksGetResponseData(unmarshaler.embed)
+	*t = TasksListResponseItem(unmarshaler.embed)
 	t.Created = unmarshaler.Created.Time()
 	t.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *t)
@@ -851,8 +860,8 @@ func (t *TasksGetResponseData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (t *TasksGetResponseData) MarshalJSON() ([]byte, error) {
-	type embed TasksGetResponseData
+func (t *TasksListResponseItem) MarshalJSON() ([]byte, error) {
+	type embed TasksListResponseItem
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -865,7 +874,7 @@ func (t *TasksGetResponseData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (t *TasksGetResponseData) String() string {
+func (t *TasksListResponseItem) String() string {
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value
@@ -877,68 +886,68 @@ func (t *TasksGetResponseData) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
-type TasksGetResponseDataKind string
+type TasksListResponseItemKind string
 
 const (
-	TasksGetResponseDataKindIngest      TasksGetResponseDataKind = "ingest"
-	TasksGetResponseDataKindVideo       TasksGetResponseDataKind = "video"
-	TasksGetResponseDataKindImage       TasksGetResponseDataKind = "image"
-	TasksGetResponseDataKindAudio       TasksGetResponseDataKind = "audio"
-	TasksGetResponseDataKindChapters    TasksGetResponseDataKind = "chapters"
-	TasksGetResponseDataKindSubtitles   TasksGetResponseDataKind = "subtitles"
-	TasksGetResponseDataKindThumbnails  TasksGetResponseDataKind = "thumbnails"
-	TasksGetResponseDataKindNsfw        TasksGetResponseDataKind = "nsfw"
-	TasksGetResponseDataKindSpeech      TasksGetResponseDataKind = "speech"
-	TasksGetResponseDataKindDescription TasksGetResponseDataKind = "description"
-	TasksGetResponseDataKindOutline     TasksGetResponseDataKind = "outline"
-	TasksGetResponseDataKindPrompt      TasksGetResponseDataKind = "prompt"
-	TasksGetResponseDataKindWorkflow    TasksGetResponseDataKind = "workflow"
-	TasksGetResponseDataKindConditions  TasksGetResponseDataKind = "conditions"
-	TasksGetResponseDataKindHTTP        TasksGetResponseDataKind = "http"
+	TasksListResponseItemKindIngest      TasksListResponseItemKind = "ingest"
+	TasksListResponseItemKindVideo       TasksListResponseItemKind = "video"
+	TasksListResponseItemKindImage       TasksListResponseItemKind = "image"
+	TasksListResponseItemKindAudio       TasksListResponseItemKind = "audio"
+	TasksListResponseItemKindChapters    TasksListResponseItemKind = "chapters"
+	TasksListResponseItemKindSubtitles   TasksListResponseItemKind = "subtitles"
+	TasksListResponseItemKindThumbnails  TasksListResponseItemKind = "thumbnails"
+	TasksListResponseItemKindNsfw        TasksListResponseItemKind = "nsfw"
+	TasksListResponseItemKindSpeech      TasksListResponseItemKind = "speech"
+	TasksListResponseItemKindDescription TasksListResponseItemKind = "description"
+	TasksListResponseItemKindOutline     TasksListResponseItemKind = "outline"
+	TasksListResponseItemKindPrompt      TasksListResponseItemKind = "prompt"
+	TasksListResponseItemKindWorkflow    TasksListResponseItemKind = "workflow"
+	TasksListResponseItemKindConditions  TasksListResponseItemKind = "conditions"
+	TasksListResponseItemKindHTTP        TasksListResponseItemKind = "http"
 )
 
-func NewTasksGetResponseDataKindFromString(s string) (TasksGetResponseDataKind, error) {
+func NewTasksListResponseItemKindFromString(s string) (TasksListResponseItemKind, error) {
 	switch s {
 	case "ingest":
-		return TasksGetResponseDataKindIngest, nil
+		return TasksListResponseItemKindIngest, nil
 	case "video":
-		return TasksGetResponseDataKindVideo, nil
+		return TasksListResponseItemKindVideo, nil
 	case "image":
-		return TasksGetResponseDataKindImage, nil
+		return TasksListResponseItemKindImage, nil
 	case "audio":
-		return TasksGetResponseDataKindAudio, nil
+		return TasksListResponseItemKindAudio, nil
 	case "chapters":
-		return TasksGetResponseDataKindChapters, nil
+		return TasksListResponseItemKindChapters, nil
 	case "subtitles":
-		return TasksGetResponseDataKindSubtitles, nil
+		return TasksListResponseItemKindSubtitles, nil
 	case "thumbnails":
-		return TasksGetResponseDataKindThumbnails, nil
+		return TasksListResponseItemKindThumbnails, nil
 	case "nsfw":
-		return TasksGetResponseDataKindNsfw, nil
+		return TasksListResponseItemKindNsfw, nil
 	case "speech":
-		return TasksGetResponseDataKindSpeech, nil
+		return TasksListResponseItemKindSpeech, nil
 	case "description":
-		return TasksGetResponseDataKindDescription, nil
+		return TasksListResponseItemKindDescription, nil
 	case "outline":
-		return TasksGetResponseDataKindOutline, nil
+		return TasksListResponseItemKindOutline, nil
 	case "prompt":
-		return TasksGetResponseDataKindPrompt, nil
+		return TasksListResponseItemKindPrompt, nil
 	case "workflow":
-		return TasksGetResponseDataKindWorkflow, nil
+		return TasksListResponseItemKindWorkflow, nil
 	case "conditions":
-		return TasksGetResponseDataKindConditions, nil
+		return TasksListResponseItemKindConditions, nil
 	case "http":
-		return TasksGetResponseDataKindHTTP, nil
+		return TasksListResponseItemKindHTTP, nil
 	}
-	var t TasksGetResponseDataKind
+	var t TasksListResponseItemKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (t TasksGetResponseDataKind) Ptr() *TasksGetResponseDataKind {
+func (t TasksListResponseItemKind) Ptr() *TasksListResponseItemKind {
 	return &t
 }
 
-type TasksGetResponseDataResults struct {
+type TasksListResponseItemResults struct {
 	Passed   []map[string]interface{} `json:"passed,omitempty" url:"passed,omitempty"`
 	Failed   []map[string]interface{} `json:"failed,omitempty" url:"failed,omitempty"`
 	Continue *bool                    `json:"continue,omitempty" url:"continue,omitempty"`
@@ -947,38 +956,38 @@ type TasksGetResponseDataResults struct {
 	rawJSON         json.RawMessage
 }
 
-func (t *TasksGetResponseDataResults) GetPassed() []map[string]interface{} {
+func (t *TasksListResponseItemResults) GetPassed() []map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Passed
 }
 
-func (t *TasksGetResponseDataResults) GetFailed() []map[string]interface{} {
+func (t *TasksListResponseItemResults) GetFailed() []map[string]interface{} {
 	if t == nil {
 		return nil
 	}
 	return t.Failed
 }
 
-func (t *TasksGetResponseDataResults) GetContinue() *bool {
+func (t *TasksListResponseItemResults) GetContinue() *bool {
 	if t == nil {
 		return nil
 	}
 	return t.Continue
 }
 
-func (t *TasksGetResponseDataResults) GetExtraProperties() map[string]interface{} {
+func (t *TasksListResponseItemResults) GetExtraProperties() map[string]interface{} {
 	return t.extraProperties
 }
 
-func (t *TasksGetResponseDataResults) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksGetResponseDataResults
+func (t *TasksListResponseItemResults) UnmarshalJSON(data []byte) error {
+	type unmarshaler TasksListResponseItemResults
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*t = TasksGetResponseDataResults(value)
+	*t = TasksListResponseItemResults(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *t)
 	if err != nil {
 		return err
@@ -988,7 +997,7 @@ func (t *TasksGetResponseDataResults) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (t *TasksGetResponseDataResults) String() string {
+func (t *TasksListResponseItemResults) String() string {
 	if len(t.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
 			return value
@@ -1000,911 +1009,42 @@ func (t *TasksGetResponseDataResults) String() string {
 	return fmt.Sprintf("%#v", t)
 }
 
-type TasksGetResponseDataStatus string
+type TasksListResponseItemStatus string
 
 const (
-	TasksGetResponseDataStatusPending    TasksGetResponseDataStatus = "pending"
-	TasksGetResponseDataStatusWaiting    TasksGetResponseDataStatus = "waiting"
-	TasksGetResponseDataStatusProcessing TasksGetResponseDataStatus = "processing"
-	TasksGetResponseDataStatusReady      TasksGetResponseDataStatus = "ready"
-	TasksGetResponseDataStatusCompleted  TasksGetResponseDataStatus = "completed"
-	TasksGetResponseDataStatusFailed     TasksGetResponseDataStatus = "failed"
-	TasksGetResponseDataStatusError      TasksGetResponseDataStatus = "error"
-	TasksGetResponseDataStatusCancelled  TasksGetResponseDataStatus = "cancelled"
+	TasksListResponseItemStatusPending    TasksListResponseItemStatus = "pending"
+	TasksListResponseItemStatusWaiting    TasksListResponseItemStatus = "waiting"
+	TasksListResponseItemStatusProcessing TasksListResponseItemStatus = "processing"
+	TasksListResponseItemStatusReady      TasksListResponseItemStatus = "ready"
+	TasksListResponseItemStatusCompleted  TasksListResponseItemStatus = "completed"
+	TasksListResponseItemStatusFailed     TasksListResponseItemStatus = "failed"
+	TasksListResponseItemStatusError      TasksListResponseItemStatus = "error"
+	TasksListResponseItemStatusCancelled  TasksListResponseItemStatus = "cancelled"
 )
 
-func NewTasksGetResponseDataStatusFromString(s string) (TasksGetResponseDataStatus, error) {
+func NewTasksListResponseItemStatusFromString(s string) (TasksListResponseItemStatus, error) {
 	switch s {
 	case "pending":
-		return TasksGetResponseDataStatusPending, nil
+		return TasksListResponseItemStatusPending, nil
 	case "waiting":
-		return TasksGetResponseDataStatusWaiting, nil
+		return TasksListResponseItemStatusWaiting, nil
 	case "processing":
-		return TasksGetResponseDataStatusProcessing, nil
+		return TasksListResponseItemStatusProcessing, nil
 	case "ready":
-		return TasksGetResponseDataStatusReady, nil
+		return TasksListResponseItemStatusReady, nil
 	case "completed":
-		return TasksGetResponseDataStatusCompleted, nil
+		return TasksListResponseItemStatusCompleted, nil
 	case "failed":
-		return TasksGetResponseDataStatusFailed, nil
+		return TasksListResponseItemStatusFailed, nil
 	case "error":
-		return TasksGetResponseDataStatusError, nil
+		return TasksListResponseItemStatusError, nil
 	case "cancelled":
-		return TasksGetResponseDataStatusCancelled, nil
+		return TasksListResponseItemStatusCancelled, nil
 	}
-	var t TasksGetResponseDataStatus
+	var t TasksListResponseItemStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (t TasksGetResponseDataStatus) Ptr() *TasksGetResponseDataStatus {
-	return &t
-}
-
-type TasksGetResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksGetResponseError) GetMessage() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Message
-}
-
-func (t *TasksGetResponseError) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksGetResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksGetResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksGetResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksGetResponseError) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksGetResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksGetResponseLinks) GetSelf() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Self
-}
-
-func (t *TasksGetResponseLinks) GetParent() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Parent
-}
-
-func (t *TasksGetResponseLinks) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksGetResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksGetResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksGetResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksGetResponseLinks) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksGetResponseMeta struct {
-	RequestID *string                   `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                   `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                   `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                   `json:"version,omitempty" url:"version,omitempty"`
-	Type      *TasksGetResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksGetResponseMeta) GetRequestID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.RequestID
-}
-
-func (t *TasksGetResponseMeta) GetOrgID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.OrgID
-}
-
-func (t *TasksGetResponseMeta) GetProjectID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.ProjectID
-}
-
-func (t *TasksGetResponseMeta) GetVersion() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Version
-}
-
-func (t *TasksGetResponseMeta) GetType() *TasksGetResponseMetaType {
-	if t == nil {
-		return nil
-	}
-	return t.Type
-}
-
-func (t *TasksGetResponseMeta) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksGetResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksGetResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksGetResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksGetResponseMeta) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksGetResponseMetaType string
-
-const (
-	TasksGetResponseMetaTypeObject TasksGetResponseMetaType = "object"
-	TasksGetResponseMetaTypeList   TasksGetResponseMetaType = "list"
-)
-
-func NewTasksGetResponseMetaTypeFromString(s string) (TasksGetResponseMetaType, error) {
-	switch s {
-	case "object":
-		return TasksGetResponseMetaTypeObject, nil
-	case "list":
-		return TasksGetResponseMetaTypeList, nil
-	}
-	var t TasksGetResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TasksGetResponseMetaType) Ptr() *TasksGetResponseMetaType {
-	return &t
-}
-
-type TasksListResponse struct {
-	Meta  *TasksListResponseMeta       `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  []*TasksListResponseDataItem `json:"data,omitempty" url:"data,omitempty"`
-	Error *TasksListResponseError      `json:"error,omitempty" url:"error,omitempty"`
-	Links *TasksListResponseLinks      `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksListResponse) GetMeta() *TasksListResponseMeta {
-	if t == nil {
-		return nil
-	}
-	return t.Meta
-}
-
-func (t *TasksListResponse) GetData() []*TasksListResponseDataItem {
-	if t == nil {
-		return nil
-	}
-	return t.Data
-}
-
-func (t *TasksListResponse) GetError() *TasksListResponseError {
-	if t == nil {
-		return nil
-	}
-	return t.Error
-}
-
-func (t *TasksListResponse) GetLinks() *TasksListResponseLinks {
-	if t == nil {
-		return nil
-	}
-	return t.Links
-}
-
-func (t *TasksListResponse) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksListResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksListResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksListResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksListResponse) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksListResponseDataItem struct {
-	ID        string                            `json:"id" url:"id"`
-	Object    string                            `json:"object" url:"object"`
-	Kind      TasksListResponseDataItemKind     `json:"kind" url:"kind"`
-	Input     map[string]interface{}            `json:"input,omitempty" url:"input,omitempty"`
-	Options   map[string]interface{}            `json:"options,omitempty" url:"options,omitempty"`
-	Output    map[string]interface{}            `json:"output,omitempty" url:"output,omitempty"`
-	Status    TasksListResponseDataItemStatus   `json:"status" url:"status"`
-	Progress  *int                              `json:"progress,omitempty" url:"progress,omitempty"`
-	Error     *string                           `json:"error,omitempty" url:"error,omitempty"`
-	CreatedBy *string                           `json:"created_by,omitempty" url:"created_by,omitempty"`
-	Created   time.Time                         `json:"created" url:"created"`
-	Updated   time.Time                         `json:"updated" url:"updated"`
-	ParentID  *string                           `json:"parent_id,omitempty" url:"parent_id,omitempty"`
-	Workflow  []interface{}                     `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Results   *TasksListResponseDataItemResults `json:"results,omitempty" url:"results,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksListResponseDataItem) GetID() string {
-	if t == nil {
-		return ""
-	}
-	return t.ID
-}
-
-func (t *TasksListResponseDataItem) GetObject() string {
-	if t == nil {
-		return ""
-	}
-	return t.Object
-}
-
-func (t *TasksListResponseDataItem) GetKind() TasksListResponseDataItemKind {
-	if t == nil {
-		return ""
-	}
-	return t.Kind
-}
-
-func (t *TasksListResponseDataItem) GetInput() map[string]interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Input
-}
-
-func (t *TasksListResponseDataItem) GetOptions() map[string]interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Options
-}
-
-func (t *TasksListResponseDataItem) GetOutput() map[string]interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Output
-}
-
-func (t *TasksListResponseDataItem) GetStatus() TasksListResponseDataItemStatus {
-	if t == nil {
-		return ""
-	}
-	return t.Status
-}
-
-func (t *TasksListResponseDataItem) GetProgress() *int {
-	if t == nil {
-		return nil
-	}
-	return t.Progress
-}
-
-func (t *TasksListResponseDataItem) GetError() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Error
-}
-
-func (t *TasksListResponseDataItem) GetCreatedBy() *string {
-	if t == nil {
-		return nil
-	}
-	return t.CreatedBy
-}
-
-func (t *TasksListResponseDataItem) GetCreated() time.Time {
-	if t == nil {
-		return time.Time{}
-	}
-	return t.Created
-}
-
-func (t *TasksListResponseDataItem) GetUpdated() time.Time {
-	if t == nil {
-		return time.Time{}
-	}
-	return t.Updated
-}
-
-func (t *TasksListResponseDataItem) GetParentID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.ParentID
-}
-
-func (t *TasksListResponseDataItem) GetWorkflow() []interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Workflow
-}
-
-func (t *TasksListResponseDataItem) GetResults() *TasksListResponseDataItemResults {
-	if t == nil {
-		return nil
-	}
-	return t.Results
-}
-
-func (t *TasksListResponseDataItem) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksListResponseDataItem) UnmarshalJSON(data []byte) error {
-	type embed TasksListResponseDataItem
-	var unmarshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed: embed(*t),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*t = TasksListResponseDataItem(unmarshaler.embed)
-	t.Created = unmarshaler.Created.Time()
-	t.Updated = unmarshaler.Updated.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksListResponseDataItem) MarshalJSON() ([]byte, error) {
-	type embed TasksListResponseDataItem
-	var marshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed:   embed(*t),
-		Created: internal.NewDateTime(t.Created),
-		Updated: internal.NewDateTime(t.Updated),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (t *TasksListResponseDataItem) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksListResponseDataItemKind string
-
-const (
-	TasksListResponseDataItemKindIngest      TasksListResponseDataItemKind = "ingest"
-	TasksListResponseDataItemKindVideo       TasksListResponseDataItemKind = "video"
-	TasksListResponseDataItemKindImage       TasksListResponseDataItemKind = "image"
-	TasksListResponseDataItemKindAudio       TasksListResponseDataItemKind = "audio"
-	TasksListResponseDataItemKindChapters    TasksListResponseDataItemKind = "chapters"
-	TasksListResponseDataItemKindSubtitles   TasksListResponseDataItemKind = "subtitles"
-	TasksListResponseDataItemKindThumbnails  TasksListResponseDataItemKind = "thumbnails"
-	TasksListResponseDataItemKindNsfw        TasksListResponseDataItemKind = "nsfw"
-	TasksListResponseDataItemKindSpeech      TasksListResponseDataItemKind = "speech"
-	TasksListResponseDataItemKindDescription TasksListResponseDataItemKind = "description"
-	TasksListResponseDataItemKindOutline     TasksListResponseDataItemKind = "outline"
-	TasksListResponseDataItemKindPrompt      TasksListResponseDataItemKind = "prompt"
-	TasksListResponseDataItemKindWorkflow    TasksListResponseDataItemKind = "workflow"
-	TasksListResponseDataItemKindConditions  TasksListResponseDataItemKind = "conditions"
-	TasksListResponseDataItemKindHTTP        TasksListResponseDataItemKind = "http"
-)
-
-func NewTasksListResponseDataItemKindFromString(s string) (TasksListResponseDataItemKind, error) {
-	switch s {
-	case "ingest":
-		return TasksListResponseDataItemKindIngest, nil
-	case "video":
-		return TasksListResponseDataItemKindVideo, nil
-	case "image":
-		return TasksListResponseDataItemKindImage, nil
-	case "audio":
-		return TasksListResponseDataItemKindAudio, nil
-	case "chapters":
-		return TasksListResponseDataItemKindChapters, nil
-	case "subtitles":
-		return TasksListResponseDataItemKindSubtitles, nil
-	case "thumbnails":
-		return TasksListResponseDataItemKindThumbnails, nil
-	case "nsfw":
-		return TasksListResponseDataItemKindNsfw, nil
-	case "speech":
-		return TasksListResponseDataItemKindSpeech, nil
-	case "description":
-		return TasksListResponseDataItemKindDescription, nil
-	case "outline":
-		return TasksListResponseDataItemKindOutline, nil
-	case "prompt":
-		return TasksListResponseDataItemKindPrompt, nil
-	case "workflow":
-		return TasksListResponseDataItemKindWorkflow, nil
-	case "conditions":
-		return TasksListResponseDataItemKindConditions, nil
-	case "http":
-		return TasksListResponseDataItemKindHTTP, nil
-	}
-	var t TasksListResponseDataItemKind
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TasksListResponseDataItemKind) Ptr() *TasksListResponseDataItemKind {
-	return &t
-}
-
-type TasksListResponseDataItemResults struct {
-	Passed   []map[string]interface{} `json:"passed,omitempty" url:"passed,omitempty"`
-	Failed   []map[string]interface{} `json:"failed,omitempty" url:"failed,omitempty"`
-	Continue *bool                    `json:"continue,omitempty" url:"continue,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksListResponseDataItemResults) GetPassed() []map[string]interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Passed
-}
-
-func (t *TasksListResponseDataItemResults) GetFailed() []map[string]interface{} {
-	if t == nil {
-		return nil
-	}
-	return t.Failed
-}
-
-func (t *TasksListResponseDataItemResults) GetContinue() *bool {
-	if t == nil {
-		return nil
-	}
-	return t.Continue
-}
-
-func (t *TasksListResponseDataItemResults) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksListResponseDataItemResults) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksListResponseDataItemResults
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksListResponseDataItemResults(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksListResponseDataItemResults) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksListResponseDataItemStatus string
-
-const (
-	TasksListResponseDataItemStatusPending    TasksListResponseDataItemStatus = "pending"
-	TasksListResponseDataItemStatusWaiting    TasksListResponseDataItemStatus = "waiting"
-	TasksListResponseDataItemStatusProcessing TasksListResponseDataItemStatus = "processing"
-	TasksListResponseDataItemStatusReady      TasksListResponseDataItemStatus = "ready"
-	TasksListResponseDataItemStatusCompleted  TasksListResponseDataItemStatus = "completed"
-	TasksListResponseDataItemStatusFailed     TasksListResponseDataItemStatus = "failed"
-	TasksListResponseDataItemStatusError      TasksListResponseDataItemStatus = "error"
-	TasksListResponseDataItemStatusCancelled  TasksListResponseDataItemStatus = "cancelled"
-)
-
-func NewTasksListResponseDataItemStatusFromString(s string) (TasksListResponseDataItemStatus, error) {
-	switch s {
-	case "pending":
-		return TasksListResponseDataItemStatusPending, nil
-	case "waiting":
-		return TasksListResponseDataItemStatusWaiting, nil
-	case "processing":
-		return TasksListResponseDataItemStatusProcessing, nil
-	case "ready":
-		return TasksListResponseDataItemStatusReady, nil
-	case "completed":
-		return TasksListResponseDataItemStatusCompleted, nil
-	case "failed":
-		return TasksListResponseDataItemStatusFailed, nil
-	case "error":
-		return TasksListResponseDataItemStatusError, nil
-	case "cancelled":
-		return TasksListResponseDataItemStatusCancelled, nil
-	}
-	var t TasksListResponseDataItemStatus
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TasksListResponseDataItemStatus) Ptr() *TasksListResponseDataItemStatus {
-	return &t
-}
-
-type TasksListResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksListResponseError) GetMessage() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Message
-}
-
-func (t *TasksListResponseError) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksListResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksListResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksListResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksListResponseError) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksListResponseLinks struct {
-	Self  *string `json:"self,omitempty" url:"self,omitempty"`
-	First *string `json:"first,omitempty" url:"first,omitempty"`
-	Next  *string `json:"next,omitempty" url:"next,omitempty"`
-	Prev  *string `json:"prev,omitempty" url:"prev,omitempty"`
-	Last  *string `json:"last,omitempty" url:"last,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksListResponseLinks) GetSelf() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Self
-}
-
-func (t *TasksListResponseLinks) GetFirst() *string {
-	if t == nil {
-		return nil
-	}
-	return t.First
-}
-
-func (t *TasksListResponseLinks) GetNext() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Next
-}
-
-func (t *TasksListResponseLinks) GetPrev() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Prev
-}
-
-func (t *TasksListResponseLinks) GetLast() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Last
-}
-
-func (t *TasksListResponseLinks) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksListResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksListResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksListResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksListResponseLinks) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksListResponseMeta struct {
-	RequestID *string                    `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                    `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                    `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                    `json:"version,omitempty" url:"version,omitempty"`
-	Type      *TasksListResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-	Limit     *int                       `json:"limit,omitempty" url:"limit,omitempty"`
-	Total     *int                       `json:"total,omitempty" url:"total,omitempty"`
-	Page      *int                       `json:"page,omitempty" url:"page,omitempty"`
-	Pages     *int                       `json:"pages,omitempty" url:"pages,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (t *TasksListResponseMeta) GetRequestID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.RequestID
-}
-
-func (t *TasksListResponseMeta) GetOrgID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.OrgID
-}
-
-func (t *TasksListResponseMeta) GetProjectID() *string {
-	if t == nil {
-		return nil
-	}
-	return t.ProjectID
-}
-
-func (t *TasksListResponseMeta) GetVersion() *string {
-	if t == nil {
-		return nil
-	}
-	return t.Version
-}
-
-func (t *TasksListResponseMeta) GetType() *TasksListResponseMetaType {
-	if t == nil {
-		return nil
-	}
-	return t.Type
-}
-
-func (t *TasksListResponseMeta) GetLimit() *int {
-	if t == nil {
-		return nil
-	}
-	return t.Limit
-}
-
-func (t *TasksListResponseMeta) GetTotal() *int {
-	if t == nil {
-		return nil
-	}
-	return t.Total
-}
-
-func (t *TasksListResponseMeta) GetPage() *int {
-	if t == nil {
-		return nil
-	}
-	return t.Page
-}
-
-func (t *TasksListResponseMeta) GetPages() *int {
-	if t == nil {
-		return nil
-	}
-	return t.Pages
-}
-
-func (t *TasksListResponseMeta) GetExtraProperties() map[string]interface{} {
-	return t.extraProperties
-}
-
-func (t *TasksListResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler TasksListResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*t = TasksListResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *t)
-	if err != nil {
-		return err
-	}
-	t.extraProperties = extraProperties
-	t.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (t *TasksListResponseMeta) String() string {
-	if len(t.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(t.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(t); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", t)
-}
-
-type TasksListResponseMetaType string
-
-const (
-	TasksListResponseMetaTypeObject TasksListResponseMetaType = "object"
-	TasksListResponseMetaTypeList   TasksListResponseMetaType = "list"
-)
-
-func NewTasksListResponseMetaTypeFromString(s string) (TasksListResponseMetaType, error) {
-	switch s {
-	case "object":
-		return TasksListResponseMetaTypeObject, nil
-	case "list":
-		return TasksListResponseMetaTypeList, nil
-	}
-	var t TasksListResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (t TasksListResponseMetaType) Ptr() *TasksListResponseMetaType {
+func (t TasksListResponseItemStatus) Ptr() *TasksListResponseItemStatus {
 	return &t
 }

@@ -4,6 +4,7 @@ package signatures
 
 import (
 	context "context"
+	fmt "fmt"
 	sdkgo "github.com/ittybit/sdk-go"
 	core "github.com/ittybit/sdk-go/core"
 	internal "github.com/ittybit/sdk-go/internal"
@@ -52,6 +53,7 @@ func (c *Client) Create(
 		c.header.Clone(),
 		options.ToHeader(),
 	)
+	headers.Add("Accept-Version", fmt.Sprintf("%v", "2025-08-20"))
 	headers.Set("Content-Type", "application/json")
 
 	var response *sdkgo.SignaturesCreateResponse

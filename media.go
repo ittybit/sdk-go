@@ -10,210 +10,177 @@ import (
 )
 
 type MediaCreateRequest struct {
-	Title    *string                `json:"title,omitempty" url:"-"`
-	Alt      *string                `json:"alt,omitempty" url:"-"`
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
+	// Specifies the API Version
+	Title         *string                `json:"title,omitempty" url:"-"`
+	Alt           *string                `json:"alt,omitempty" url:"-"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty" url:"-"`
+	acceptVersion string
 }
 
-type MediaListRequest struct {
-	Page  *int `json:"-" url:"page,omitempty"`
-	Limit *int `json:"-" url:"limit,omitempty"`
+func (m *MediaCreateRequest) AcceptVersion() string {
+	return m.acceptVersion
 }
 
-type MediaListResponse struct {
-	Meta  *MediaListResponseMeta       `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  []*MediaListResponseDataItem `json:"data,omitempty" url:"data,omitempty"`
-	Error *MediaListResponseError      `json:"error,omitempty" url:"error,omitempty"`
-	Links *MediaListResponseLinks      `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaListResponse) GetMeta() *MediaListResponseMeta {
-	if m == nil {
-		return nil
-	}
-	return m.Meta
-}
-
-func (m *MediaListResponse) GetData() []*MediaListResponseDataItem {
-	if m == nil {
-		return nil
-	}
-	return m.Data
-}
-
-func (m *MediaListResponse) GetError() *MediaListResponseError {
-	if m == nil {
-		return nil
-	}
-	return m.Error
-}
-
-func (m *MediaListResponse) GetLinks() *MediaListResponseLinks {
-	if m == nil {
-		return nil
-	}
-	return m.Links
-}
-
-func (m *MediaListResponse) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaListResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaListResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+func (m *MediaCreateRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler MediaCreateRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
 		return err
 	}
-	*m = MediaListResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
+	*m = MediaCreateRequest(body)
+	m.acceptVersion = "2025-08-20"
 	return nil
 }
 
-func (m *MediaListResponse) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
+func (m *MediaCreateRequest) MarshalJSON() ([]byte, error) {
+	type embed MediaCreateRequest
+	var marshaler = struct {
+		embed
+		AcceptVersion string `json:"Accept-Version"`
+	}{
+		embed:         embed(*m),
+		AcceptVersion: "2025-08-20",
 	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
+	return json.Marshal(marshaler)
 }
 
-type MediaListResponseDataItem struct {
-	ID         string                                `json:"id" url:"id"`
-	Object     string                                `json:"object" url:"object"`
-	Kind       *MediaListResponseDataItemKind        `json:"kind,omitempty" url:"kind,omitempty"`
-	Title      *string                               `json:"title,omitempty" url:"title,omitempty"`
-	Alt        *string                               `json:"alt,omitempty" url:"alt,omitempty"`
-	Width      *int                                  `json:"width,omitempty" url:"width,omitempty"`
-	Height     *int                                  `json:"height,omitempty" url:"height,omitempty"`
-	Duration   *float64                              `json:"duration,omitempty" url:"duration,omitempty"`
-	Files      []*MediaListResponseDataItemFilesItem `json:"files,omitempty" url:"files,omitempty"`
-	URLs       map[string]interface{}                `json:"urls,omitempty" url:"urls,omitempty"`
-	Background *string                               `json:"background,omitempty" url:"background,omitempty"`
-	Metadata   map[string]interface{}                `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Created    time.Time                             `json:"created" url:"created"`
-	Updated    time.Time                             `json:"updated" url:"updated"`
+type MediaListRequest struct {
+	// Specifies the API Version
+	Page          *int `json:"-" url:"page,omitempty"`
+	Limit         *int `json:"-" url:"limit,omitempty"`
+	acceptVersion string
+}
+
+func (m *MediaListRequest) AcceptVersion() string {
+	return m.acceptVersion
+}
+
+type MediaListResponse = []*MediaListResponseItem
+
+type MediaListResponseItem struct {
+	ID         string                            `json:"id" url:"id"`
+	Object     string                            `json:"object" url:"object"`
+	Kind       *MediaListResponseItemKind        `json:"kind,omitempty" url:"kind,omitempty"`
+	Title      *string                           `json:"title,omitempty" url:"title,omitempty"`
+	Alt        *string                           `json:"alt,omitempty" url:"alt,omitempty"`
+	Width      *int                              `json:"width,omitempty" url:"width,omitempty"`
+	Height     *int                              `json:"height,omitempty" url:"height,omitempty"`
+	Duration   *float64                          `json:"duration,omitempty" url:"duration,omitempty"`
+	Files      []*MediaListResponseItemFilesItem `json:"files,omitempty" url:"files,omitempty"`
+	URLs       map[string]interface{}            `json:"urls,omitempty" url:"urls,omitempty"`
+	Background *string                           `json:"background,omitempty" url:"background,omitempty"`
+	Metadata   map[string]interface{}            `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Created    time.Time                         `json:"created" url:"created"`
+	Updated    time.Time                         `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaListResponseDataItem) GetID() string {
+func (m *MediaListResponseItem) GetID() string {
 	if m == nil {
 		return ""
 	}
 	return m.ID
 }
 
-func (m *MediaListResponseDataItem) GetObject() string {
+func (m *MediaListResponseItem) GetObject() string {
 	if m == nil {
 		return ""
 	}
 	return m.Object
 }
 
-func (m *MediaListResponseDataItem) GetKind() *MediaListResponseDataItemKind {
+func (m *MediaListResponseItem) GetKind() *MediaListResponseItemKind {
 	if m == nil {
 		return nil
 	}
 	return m.Kind
 }
 
-func (m *MediaListResponseDataItem) GetTitle() *string {
+func (m *MediaListResponseItem) GetTitle() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Title
 }
 
-func (m *MediaListResponseDataItem) GetAlt() *string {
+func (m *MediaListResponseItem) GetAlt() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Alt
 }
 
-func (m *MediaListResponseDataItem) GetWidth() *int {
+func (m *MediaListResponseItem) GetWidth() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Width
 }
 
-func (m *MediaListResponseDataItem) GetHeight() *int {
+func (m *MediaListResponseItem) GetHeight() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Height
 }
 
-func (m *MediaListResponseDataItem) GetDuration() *float64 {
+func (m *MediaListResponseItem) GetDuration() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Duration
 }
 
-func (m *MediaListResponseDataItem) GetFiles() []*MediaListResponseDataItemFilesItem {
+func (m *MediaListResponseItem) GetFiles() []*MediaListResponseItemFilesItem {
 	if m == nil {
 		return nil
 	}
 	return m.Files
 }
 
-func (m *MediaListResponseDataItem) GetURLs() map[string]interface{} {
+func (m *MediaListResponseItem) GetURLs() map[string]interface{} {
 	if m == nil {
 		return nil
 	}
 	return m.URLs
 }
 
-func (m *MediaListResponseDataItem) GetBackground() *string {
+func (m *MediaListResponseItem) GetBackground() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Background
 }
 
-func (m *MediaListResponseDataItem) GetMetadata() map[string]interface{} {
+func (m *MediaListResponseItem) GetMetadata() map[string]interface{} {
 	if m == nil {
 		return nil
 	}
 	return m.Metadata
 }
 
-func (m *MediaListResponseDataItem) GetCreated() time.Time {
+func (m *MediaListResponseItem) GetCreated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Created
 }
 
-func (m *MediaListResponseDataItem) GetUpdated() time.Time {
+func (m *MediaListResponseItem) GetUpdated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Updated
 }
 
-func (m *MediaListResponseDataItem) GetExtraProperties() map[string]interface{} {
+func (m *MediaListResponseItem) GetExtraProperties() map[string]interface{} {
 	return m.extraProperties
 }
 
-func (m *MediaListResponseDataItem) UnmarshalJSON(data []byte) error {
-	type embed MediaListResponseDataItem
+func (m *MediaListResponseItem) UnmarshalJSON(data []byte) error {
+	type embed MediaListResponseItem
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -224,7 +191,7 @@ func (m *MediaListResponseDataItem) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaListResponseDataItem(unmarshaler.embed)
+	*m = MediaListResponseItem(unmarshaler.embed)
 	m.Created = unmarshaler.Created.Time()
 	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
@@ -236,8 +203,8 @@ func (m *MediaListResponseDataItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m *MediaListResponseDataItem) MarshalJSON() ([]byte, error) {
-	type embed MediaListResponseDataItem
+func (m *MediaListResponseItem) MarshalJSON() ([]byte, error) {
+	type embed MediaListResponseItem
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -250,7 +217,7 @@ func (m *MediaListResponseDataItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (m *MediaListResponseDataItem) String() string {
+func (m *MediaListResponseItem) String() string {
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -262,218 +229,218 @@ func (m *MediaListResponseDataItem) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaListResponseDataItemFilesItem struct {
-	ID           string                                         `json:"id" url:"id"`
-	Object       MediaListResponseDataItemFilesItemObject       `json:"object" url:"object"`
-	Kind         MediaListResponseDataItemFilesItemKind         `json:"kind" url:"kind"`
-	Type         string                                         `json:"type" url:"type"`
-	Codec        *string                                        `json:"codec,omitempty" url:"codec,omitempty"`
-	Container    *string                                        `json:"container,omitempty" url:"container,omitempty"`
-	Width        *int                                           `json:"width,omitempty" url:"width,omitempty"`
-	Height       *int                                           `json:"height,omitempty" url:"height,omitempty"`
-	Orientation  *MediaListResponseDataItemFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
-	Rotation     *float64                                       `json:"rotation,omitempty" url:"rotation,omitempty"`
-	Transparency *bool                                          `json:"transparency,omitempty" url:"transparency,omitempty"`
-	Frames       *int                                           `json:"frames,omitempty" url:"frames,omitempty"`
-	Duration     *float64                                       `json:"duration,omitempty" url:"duration,omitempty"`
-	Fps          *float64                                       `json:"fps,omitempty" url:"fps,omitempty"`
-	Filesize     int                                            `json:"filesize" url:"filesize"`
-	Bitrate      *int                                           `json:"bitrate,omitempty" url:"bitrate,omitempty"`
-	Ref          *string                                        `json:"ref,omitempty" url:"ref,omitempty"`
-	Folder       *string                                        `json:"folder,omitempty" url:"folder,omitempty"`
-	Filename     *string                                        `json:"filename,omitempty" url:"filename,omitempty"`
-	URL          string                                         `json:"url" url:"url"`
-	Metadata     map[string]interface{}                         `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Original     *bool                                          `json:"original,omitempty" url:"original,omitempty"`
-	Created      time.Time                                      `json:"created" url:"created"`
-	Updated      time.Time                                      `json:"updated" url:"updated"`
-	Status       MediaListResponseDataItemFilesItemStatus       `json:"status" url:"status"`
+type MediaListResponseItemFilesItem struct {
+	ID           string                                     `json:"id" url:"id"`
+	Object       MediaListResponseItemFilesItemObject       `json:"object" url:"object"`
+	Kind         MediaListResponseItemFilesItemKind         `json:"kind" url:"kind"`
+	Type         string                                     `json:"type" url:"type"`
+	Codec        *string                                    `json:"codec,omitempty" url:"codec,omitempty"`
+	Container    *string                                    `json:"container,omitempty" url:"container,omitempty"`
+	Width        *int                                       `json:"width,omitempty" url:"width,omitempty"`
+	Height       *int                                       `json:"height,omitempty" url:"height,omitempty"`
+	Orientation  *MediaListResponseItemFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
+	Rotation     *float64                                   `json:"rotation,omitempty" url:"rotation,omitempty"`
+	Transparency *bool                                      `json:"transparency,omitempty" url:"transparency,omitempty"`
+	Frames       *int                                       `json:"frames,omitempty" url:"frames,omitempty"`
+	Duration     *float64                                   `json:"duration,omitempty" url:"duration,omitempty"`
+	Fps          *float64                                   `json:"fps,omitempty" url:"fps,omitempty"`
+	Filesize     int                                        `json:"filesize" url:"filesize"`
+	Bitrate      *int                                       `json:"bitrate,omitempty" url:"bitrate,omitempty"`
+	Ref          *string                                    `json:"ref,omitempty" url:"ref,omitempty"`
+	Folder       *string                                    `json:"folder,omitempty" url:"folder,omitempty"`
+	Filename     *string                                    `json:"filename,omitempty" url:"filename,omitempty"`
+	URL          string                                     `json:"url" url:"url"`
+	Metadata     map[string]interface{}                     `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Original     *bool                                      `json:"original,omitempty" url:"original,omitempty"`
+	Created      time.Time                                  `json:"created" url:"created"`
+	Updated      time.Time                                  `json:"updated" url:"updated"`
+	Status       MediaListResponseItemFilesItemStatus       `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetID() string {
+func (m *MediaListResponseItemFilesItem) GetID() string {
 	if m == nil {
 		return ""
 	}
 	return m.ID
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetObject() MediaListResponseDataItemFilesItemObject {
+func (m *MediaListResponseItemFilesItem) GetObject() MediaListResponseItemFilesItemObject {
 	if m == nil {
 		return ""
 	}
 	return m.Object
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetKind() MediaListResponseDataItemFilesItemKind {
+func (m *MediaListResponseItemFilesItem) GetKind() MediaListResponseItemFilesItemKind {
 	if m == nil {
 		return ""
 	}
 	return m.Kind
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetType() string {
+func (m *MediaListResponseItemFilesItem) GetType() string {
 	if m == nil {
 		return ""
 	}
 	return m.Type
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetCodec() *string {
+func (m *MediaListResponseItemFilesItem) GetCodec() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Codec
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetContainer() *string {
+func (m *MediaListResponseItemFilesItem) GetContainer() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Container
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetWidth() *int {
+func (m *MediaListResponseItemFilesItem) GetWidth() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Width
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetHeight() *int {
+func (m *MediaListResponseItemFilesItem) GetHeight() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Height
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetOrientation() *MediaListResponseDataItemFilesItemOrientation {
+func (m *MediaListResponseItemFilesItem) GetOrientation() *MediaListResponseItemFilesItemOrientation {
 	if m == nil {
 		return nil
 	}
 	return m.Orientation
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetRotation() *float64 {
+func (m *MediaListResponseItemFilesItem) GetRotation() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Rotation
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetTransparency() *bool {
+func (m *MediaListResponseItemFilesItem) GetTransparency() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Transparency
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetFrames() *int {
+func (m *MediaListResponseItemFilesItem) GetFrames() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Frames
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetDuration() *float64 {
+func (m *MediaListResponseItemFilesItem) GetDuration() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Duration
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetFps() *float64 {
+func (m *MediaListResponseItemFilesItem) GetFps() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Fps
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetFilesize() int {
+func (m *MediaListResponseItemFilesItem) GetFilesize() int {
 	if m == nil {
 		return 0
 	}
 	return m.Filesize
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetBitrate() *int {
+func (m *MediaListResponseItemFilesItem) GetBitrate() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Bitrate
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetRef() *string {
+func (m *MediaListResponseItemFilesItem) GetRef() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Ref
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetFolder() *string {
+func (m *MediaListResponseItemFilesItem) GetFolder() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Folder
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetFilename() *string {
+func (m *MediaListResponseItemFilesItem) GetFilename() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Filename
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetURL() string {
+func (m *MediaListResponseItemFilesItem) GetURL() string {
 	if m == nil {
 		return ""
 	}
 	return m.URL
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetMetadata() map[string]interface{} {
+func (m *MediaListResponseItemFilesItem) GetMetadata() map[string]interface{} {
 	if m == nil {
 		return nil
 	}
 	return m.Metadata
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetOriginal() *bool {
+func (m *MediaListResponseItemFilesItem) GetOriginal() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Original
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetCreated() time.Time {
+func (m *MediaListResponseItemFilesItem) GetCreated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Created
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetUpdated() time.Time {
+func (m *MediaListResponseItemFilesItem) GetUpdated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Updated
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetStatus() MediaListResponseDataItemFilesItemStatus {
+func (m *MediaListResponseItemFilesItem) GetStatus() MediaListResponseItemFilesItemStatus {
 	if m == nil {
 		return ""
 	}
 	return m.Status
 }
 
-func (m *MediaListResponseDataItemFilesItem) GetExtraProperties() map[string]interface{} {
+func (m *MediaListResponseItemFilesItem) GetExtraProperties() map[string]interface{} {
 	return m.extraProperties
 }
 
-func (m *MediaListResponseDataItemFilesItem) UnmarshalJSON(data []byte) error {
-	type embed MediaListResponseDataItemFilesItem
+func (m *MediaListResponseItemFilesItem) UnmarshalJSON(data []byte) error {
+	type embed MediaListResponseItemFilesItem
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -484,7 +451,7 @@ func (m *MediaListResponseDataItemFilesItem) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaListResponseDataItemFilesItem(unmarshaler.embed)
+	*m = MediaListResponseItemFilesItem(unmarshaler.embed)
 	m.Created = unmarshaler.Created.Time()
 	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
@@ -496,8 +463,8 @@ func (m *MediaListResponseDataItemFilesItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m *MediaListResponseDataItemFilesItem) MarshalJSON() ([]byte, error) {
-	type embed MediaListResponseDataItemFilesItem
+func (m *MediaListResponseItemFilesItem) MarshalJSON() ([]byte, error) {
+	type embed MediaListResponseItemFilesItem
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -510,7 +477,7 @@ func (m *MediaListResponseDataItemFilesItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (m *MediaListResponseDataItemFilesItem) String() string {
+func (m *MediaListResponseItemFilesItem) String() string {
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -522,426 +489,250 @@ func (m *MediaListResponseDataItemFilesItem) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaListResponseDataItemFilesItemKind string
+type MediaListResponseItemFilesItemKind string
 
 const (
-	MediaListResponseDataItemFilesItemKindVideo MediaListResponseDataItemFilesItemKind = "video"
-	MediaListResponseDataItemFilesItemKindImage MediaListResponseDataItemFilesItemKind = "image"
-	MediaListResponseDataItemFilesItemKindAudio MediaListResponseDataItemFilesItemKind = "audio"
+	MediaListResponseItemFilesItemKindVideo MediaListResponseItemFilesItemKind = "video"
+	MediaListResponseItemFilesItemKindImage MediaListResponseItemFilesItemKind = "image"
+	MediaListResponseItemFilesItemKindAudio MediaListResponseItemFilesItemKind = "audio"
 )
 
-func NewMediaListResponseDataItemFilesItemKindFromString(s string) (MediaListResponseDataItemFilesItemKind, error) {
+func NewMediaListResponseItemFilesItemKindFromString(s string) (MediaListResponseItemFilesItemKind, error) {
 	switch s {
 	case "video":
-		return MediaListResponseDataItemFilesItemKindVideo, nil
+		return MediaListResponseItemFilesItemKindVideo, nil
 	case "image":
-		return MediaListResponseDataItemFilesItemKindImage, nil
+		return MediaListResponseItemFilesItemKindImage, nil
 	case "audio":
-		return MediaListResponseDataItemFilesItemKindAudio, nil
+		return MediaListResponseItemFilesItemKindAudio, nil
 	}
-	var t MediaListResponseDataItemFilesItemKind
+	var t MediaListResponseItemFilesItemKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaListResponseDataItemFilesItemKind) Ptr() *MediaListResponseDataItemFilesItemKind {
+func (m MediaListResponseItemFilesItemKind) Ptr() *MediaListResponseItemFilesItemKind {
 	return &m
 }
 
-type MediaListResponseDataItemFilesItemObject string
+type MediaListResponseItemFilesItemObject string
 
 const (
-	MediaListResponseDataItemFilesItemObjectSource       MediaListResponseDataItemFilesItemObject = "source"
-	MediaListResponseDataItemFilesItemObjectTrack        MediaListResponseDataItemFilesItemObject = "track"
-	MediaListResponseDataItemFilesItemObjectIntelligence MediaListResponseDataItemFilesItemObject = "intelligence"
+	MediaListResponseItemFilesItemObjectSource       MediaListResponseItemFilesItemObject = "source"
+	MediaListResponseItemFilesItemObjectTrack        MediaListResponseItemFilesItemObject = "track"
+	MediaListResponseItemFilesItemObjectIntelligence MediaListResponseItemFilesItemObject = "intelligence"
 )
 
-func NewMediaListResponseDataItemFilesItemObjectFromString(s string) (MediaListResponseDataItemFilesItemObject, error) {
+func NewMediaListResponseItemFilesItemObjectFromString(s string) (MediaListResponseItemFilesItemObject, error) {
 	switch s {
 	case "source":
-		return MediaListResponseDataItemFilesItemObjectSource, nil
+		return MediaListResponseItemFilesItemObjectSource, nil
 	case "track":
-		return MediaListResponseDataItemFilesItemObjectTrack, nil
+		return MediaListResponseItemFilesItemObjectTrack, nil
 	case "intelligence":
-		return MediaListResponseDataItemFilesItemObjectIntelligence, nil
+		return MediaListResponseItemFilesItemObjectIntelligence, nil
 	}
-	var t MediaListResponseDataItemFilesItemObject
+	var t MediaListResponseItemFilesItemObject
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaListResponseDataItemFilesItemObject) Ptr() *MediaListResponseDataItemFilesItemObject {
+func (m MediaListResponseItemFilesItemObject) Ptr() *MediaListResponseItemFilesItemObject {
 	return &m
 }
 
-type MediaListResponseDataItemFilesItemOrientation string
+type MediaListResponseItemFilesItemOrientation string
 
 const (
-	MediaListResponseDataItemFilesItemOrientationLandscape MediaListResponseDataItemFilesItemOrientation = "landscape"
-	MediaListResponseDataItemFilesItemOrientationPortrait  MediaListResponseDataItemFilesItemOrientation = "portrait"
-	MediaListResponseDataItemFilesItemOrientationSquare    MediaListResponseDataItemFilesItemOrientation = "square"
+	MediaListResponseItemFilesItemOrientationLandscape MediaListResponseItemFilesItemOrientation = "landscape"
+	MediaListResponseItemFilesItemOrientationPortrait  MediaListResponseItemFilesItemOrientation = "portrait"
+	MediaListResponseItemFilesItemOrientationSquare    MediaListResponseItemFilesItemOrientation = "square"
 )
 
-func NewMediaListResponseDataItemFilesItemOrientationFromString(s string) (MediaListResponseDataItemFilesItemOrientation, error) {
+func NewMediaListResponseItemFilesItemOrientationFromString(s string) (MediaListResponseItemFilesItemOrientation, error) {
 	switch s {
 	case "landscape":
-		return MediaListResponseDataItemFilesItemOrientationLandscape, nil
+		return MediaListResponseItemFilesItemOrientationLandscape, nil
 	case "portrait":
-		return MediaListResponseDataItemFilesItemOrientationPortrait, nil
+		return MediaListResponseItemFilesItemOrientationPortrait, nil
 	case "square":
-		return MediaListResponseDataItemFilesItemOrientationSquare, nil
+		return MediaListResponseItemFilesItemOrientationSquare, nil
 	}
-	var t MediaListResponseDataItemFilesItemOrientation
+	var t MediaListResponseItemFilesItemOrientation
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaListResponseDataItemFilesItemOrientation) Ptr() *MediaListResponseDataItemFilesItemOrientation {
+func (m MediaListResponseItemFilesItemOrientation) Ptr() *MediaListResponseItemFilesItemOrientation {
 	return &m
 }
 
-type MediaListResponseDataItemFilesItemStatus string
+type MediaListResponseItemFilesItemStatus string
 
 const (
-	MediaListResponseDataItemFilesItemStatusWaiting    MediaListResponseDataItemFilesItemStatus = "waiting"
-	MediaListResponseDataItemFilesItemStatusProcessing MediaListResponseDataItemFilesItemStatus = "processing"
-	MediaListResponseDataItemFilesItemStatusReady      MediaListResponseDataItemFilesItemStatus = "ready"
-	MediaListResponseDataItemFilesItemStatusFailed     MediaListResponseDataItemFilesItemStatus = "failed"
+	MediaListResponseItemFilesItemStatusWaiting    MediaListResponseItemFilesItemStatus = "waiting"
+	MediaListResponseItemFilesItemStatusProcessing MediaListResponseItemFilesItemStatus = "processing"
+	MediaListResponseItemFilesItemStatusReady      MediaListResponseItemFilesItemStatus = "ready"
+	MediaListResponseItemFilesItemStatusFailed     MediaListResponseItemFilesItemStatus = "failed"
 )
 
-func NewMediaListResponseDataItemFilesItemStatusFromString(s string) (MediaListResponseDataItemFilesItemStatus, error) {
+func NewMediaListResponseItemFilesItemStatusFromString(s string) (MediaListResponseItemFilesItemStatus, error) {
 	switch s {
 	case "waiting":
-		return MediaListResponseDataItemFilesItemStatusWaiting, nil
+		return MediaListResponseItemFilesItemStatusWaiting, nil
 	case "processing":
-		return MediaListResponseDataItemFilesItemStatusProcessing, nil
+		return MediaListResponseItemFilesItemStatusProcessing, nil
 	case "ready":
-		return MediaListResponseDataItemFilesItemStatusReady, nil
+		return MediaListResponseItemFilesItemStatusReady, nil
 	case "failed":
-		return MediaListResponseDataItemFilesItemStatusFailed, nil
+		return MediaListResponseItemFilesItemStatusFailed, nil
 	}
-	var t MediaListResponseDataItemFilesItemStatus
+	var t MediaListResponseItemFilesItemStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaListResponseDataItemFilesItemStatus) Ptr() *MediaListResponseDataItemFilesItemStatus {
+func (m MediaListResponseItemFilesItemStatus) Ptr() *MediaListResponseItemFilesItemStatus {
 	return &m
 }
 
-type MediaListResponseDataItemKind string
+type MediaListResponseItemKind string
 
 const (
-	MediaListResponseDataItemKindVideo MediaListResponseDataItemKind = "video"
-	MediaListResponseDataItemKindImage MediaListResponseDataItemKind = "image"
-	MediaListResponseDataItemKindAudio MediaListResponseDataItemKind = "audio"
+	MediaListResponseItemKindVideo MediaListResponseItemKind = "video"
+	MediaListResponseItemKindImage MediaListResponseItemKind = "image"
+	MediaListResponseItemKindAudio MediaListResponseItemKind = "audio"
 )
 
-func NewMediaListResponseDataItemKindFromString(s string) (MediaListResponseDataItemKind, error) {
+func NewMediaListResponseItemKindFromString(s string) (MediaListResponseItemKind, error) {
 	switch s {
 	case "video":
-		return MediaListResponseDataItemKindVideo, nil
+		return MediaListResponseItemKindVideo, nil
 	case "image":
-		return MediaListResponseDataItemKindImage, nil
+		return MediaListResponseItemKindImage, nil
 	case "audio":
-		return MediaListResponseDataItemKindAudio, nil
+		return MediaListResponseItemKindAudio, nil
 	}
-	var t MediaListResponseDataItemKind
+	var t MediaListResponseItemKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaListResponseDataItemKind) Ptr() *MediaListResponseDataItemKind {
-	return &m
-}
-
-type MediaListResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaListResponseError) GetMessage() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Message
-}
-
-func (m *MediaListResponseError) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaListResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaListResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaListResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaListResponseError) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaListResponseLinks struct {
-	Self  *string `json:"self,omitempty" url:"self,omitempty"`
-	First *string `json:"first,omitempty" url:"first,omitempty"`
-	Next  *string `json:"next,omitempty" url:"next,omitempty"`
-	Prev  *string `json:"prev,omitempty" url:"prev,omitempty"`
-	Last  *string `json:"last,omitempty" url:"last,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaListResponseLinks) GetSelf() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Self
-}
-
-func (m *MediaListResponseLinks) GetFirst() *string {
-	if m == nil {
-		return nil
-	}
-	return m.First
-}
-
-func (m *MediaListResponseLinks) GetNext() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Next
-}
-
-func (m *MediaListResponseLinks) GetPrev() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Prev
-}
-
-func (m *MediaListResponseLinks) GetLast() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Last
-}
-
-func (m *MediaListResponseLinks) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaListResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaListResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaListResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaListResponseLinks) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaListResponseMeta struct {
-	RequestID *string                    `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                    `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                    `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                    `json:"version,omitempty" url:"version,omitempty"`
-	Type      *MediaListResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-	Limit     *int                       `json:"limit,omitempty" url:"limit,omitempty"`
-	Total     *int                       `json:"total,omitempty" url:"total,omitempty"`
-	Page      *int                       `json:"page,omitempty" url:"page,omitempty"`
-	Pages     *int                       `json:"pages,omitempty" url:"pages,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaListResponseMeta) GetRequestID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.RequestID
-}
-
-func (m *MediaListResponseMeta) GetOrgID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.OrgID
-}
-
-func (m *MediaListResponseMeta) GetProjectID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.ProjectID
-}
-
-func (m *MediaListResponseMeta) GetVersion() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Version
-}
-
-func (m *MediaListResponseMeta) GetType() *MediaListResponseMetaType {
-	if m == nil {
-		return nil
-	}
-	return m.Type
-}
-
-func (m *MediaListResponseMeta) GetLimit() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Limit
-}
-
-func (m *MediaListResponseMeta) GetTotal() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Total
-}
-
-func (m *MediaListResponseMeta) GetPage() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Page
-}
-
-func (m *MediaListResponseMeta) GetPages() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Pages
-}
-
-func (m *MediaListResponseMeta) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaListResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaListResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaListResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaListResponseMeta) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaListResponseMetaType string
-
-const (
-	MediaListResponseMetaTypeObject MediaListResponseMetaType = "object"
-	MediaListResponseMetaTypeList   MediaListResponseMetaType = "list"
-)
-
-func NewMediaListResponseMetaTypeFromString(s string) (MediaListResponseMetaType, error) {
-	switch s {
-	case "object":
-		return MediaListResponseMetaTypeObject, nil
-	case "list":
-		return MediaListResponseMetaTypeList, nil
-	}
-	var t MediaListResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (m MediaListResponseMetaType) Ptr() *MediaListResponseMetaType {
+func (m MediaListResponseItemKind) Ptr() *MediaListResponseItemKind {
 	return &m
 }
 
 type MediaCreateResponse struct {
-	Meta  *MediaCreateResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *MediaCreateResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *MediaCreateResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *MediaCreateResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+	ID         string                          `json:"id" url:"id"`
+	Object     string                          `json:"object" url:"object"`
+	Kind       *MediaCreateResponseKind        `json:"kind,omitempty" url:"kind,omitempty"`
+	Title      *string                         `json:"title,omitempty" url:"title,omitempty"`
+	Alt        *string                         `json:"alt,omitempty" url:"alt,omitempty"`
+	Width      *int                            `json:"width,omitempty" url:"width,omitempty"`
+	Height     *int                            `json:"height,omitempty" url:"height,omitempty"`
+	Duration   *float64                        `json:"duration,omitempty" url:"duration,omitempty"`
+	Files      []*MediaCreateResponseFilesItem `json:"files,omitempty" url:"files,omitempty"`
+	URLs       map[string]interface{}          `json:"urls,omitempty" url:"urls,omitempty"`
+	Background *string                         `json:"background,omitempty" url:"background,omitempty"`
+	Metadata   map[string]interface{}          `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Created    time.Time                       `json:"created" url:"created"`
+	Updated    time.Time                       `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaCreateResponse) GetMeta() *MediaCreateResponseMeta {
+func (m *MediaCreateResponse) GetID() string {
 	if m == nil {
-		return nil
+		return ""
 	}
-	return m.Meta
+	return m.ID
 }
 
-func (m *MediaCreateResponse) GetData() *MediaCreateResponseData {
+func (m *MediaCreateResponse) GetObject() string {
 	if m == nil {
-		return nil
+		return ""
 	}
-	return m.Data
+	return m.Object
 }
 
-func (m *MediaCreateResponse) GetError() *MediaCreateResponseError {
+func (m *MediaCreateResponse) GetKind() *MediaCreateResponseKind {
 	if m == nil {
 		return nil
 	}
-	return m.Error
+	return m.Kind
 }
 
-func (m *MediaCreateResponse) GetLinks() *MediaCreateResponseLinks {
+func (m *MediaCreateResponse) GetTitle() *string {
 	if m == nil {
 		return nil
 	}
-	return m.Links
+	return m.Title
+}
+
+func (m *MediaCreateResponse) GetAlt() *string {
+	if m == nil {
+		return nil
+	}
+	return m.Alt
+}
+
+func (m *MediaCreateResponse) GetWidth() *int {
+	if m == nil {
+		return nil
+	}
+	return m.Width
+}
+
+func (m *MediaCreateResponse) GetHeight() *int {
+	if m == nil {
+		return nil
+	}
+	return m.Height
+}
+
+func (m *MediaCreateResponse) GetDuration() *float64 {
+	if m == nil {
+		return nil
+	}
+	return m.Duration
+}
+
+func (m *MediaCreateResponse) GetFiles() []*MediaCreateResponseFilesItem {
+	if m == nil {
+		return nil
+	}
+	return m.Files
+}
+
+func (m *MediaCreateResponse) GetURLs() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.URLs
+}
+
+func (m *MediaCreateResponse) GetBackground() *string {
+	if m == nil {
+		return nil
+	}
+	return m.Background
+}
+
+func (m *MediaCreateResponse) GetMetadata() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.Metadata
+}
+
+func (m *MediaCreateResponse) GetCreated() time.Time {
+	if m == nil {
+		return time.Time{}
+	}
+	return m.Created
+}
+
+func (m *MediaCreateResponse) GetUpdated() time.Time {
+	if m == nil {
+		return time.Time{}
+	}
+	return m.Updated
 }
 
 func (m *MediaCreateResponse) GetExtraProperties() map[string]interface{} {
@@ -949,12 +740,20 @@ func (m *MediaCreateResponse) GetExtraProperties() map[string]interface{} {
 }
 
 func (m *MediaCreateResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaCreateResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed MediaCreateResponse
+	var unmarshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed: embed(*m),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaCreateResponse(value)
+	*m = MediaCreateResponse(unmarshaler.embed)
+	m.Created = unmarshaler.Created.Time()
+	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
 	if err != nil {
 		return err
@@ -962,6 +761,20 @@ func (m *MediaCreateResponse) UnmarshalJSON(data []byte) error {
 	m.extraProperties = extraProperties
 	m.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (m *MediaCreateResponse) MarshalJSON() ([]byte, error) {
+	type embed MediaCreateResponse
+	var marshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed:   embed(*m),
+		Created: internal.NewDateTime(m.Created),
+		Updated: internal.NewDateTime(m.Updated),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (m *MediaCreateResponse) String() string {
@@ -976,390 +789,218 @@ func (m *MediaCreateResponse) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaCreateResponseData struct {
-	ID         string                              `json:"id" url:"id"`
-	Object     string                              `json:"object" url:"object"`
-	Kind       *MediaCreateResponseDataKind        `json:"kind,omitempty" url:"kind,omitempty"`
-	Title      *string                             `json:"title,omitempty" url:"title,omitempty"`
-	Alt        *string                             `json:"alt,omitempty" url:"alt,omitempty"`
-	Width      *int                                `json:"width,omitempty" url:"width,omitempty"`
-	Height     *int                                `json:"height,omitempty" url:"height,omitempty"`
-	Duration   *float64                            `json:"duration,omitempty" url:"duration,omitempty"`
-	Files      []*MediaCreateResponseDataFilesItem `json:"files,omitempty" url:"files,omitempty"`
-	URLs       map[string]interface{}              `json:"urls,omitempty" url:"urls,omitempty"`
-	Background *string                             `json:"background,omitempty" url:"background,omitempty"`
-	Metadata   map[string]interface{}              `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Created    time.Time                           `json:"created" url:"created"`
-	Updated    time.Time                           `json:"updated" url:"updated"`
+type MediaCreateResponseFilesItem struct {
+	ID           string                                   `json:"id" url:"id"`
+	Object       MediaCreateResponseFilesItemObject       `json:"object" url:"object"`
+	Kind         MediaCreateResponseFilesItemKind         `json:"kind" url:"kind"`
+	Type         string                                   `json:"type" url:"type"`
+	Codec        *string                                  `json:"codec,omitempty" url:"codec,omitempty"`
+	Container    *string                                  `json:"container,omitempty" url:"container,omitempty"`
+	Width        *int                                     `json:"width,omitempty" url:"width,omitempty"`
+	Height       *int                                     `json:"height,omitempty" url:"height,omitempty"`
+	Orientation  *MediaCreateResponseFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
+	Rotation     *float64                                 `json:"rotation,omitempty" url:"rotation,omitempty"`
+	Transparency *bool                                    `json:"transparency,omitempty" url:"transparency,omitempty"`
+	Frames       *int                                     `json:"frames,omitempty" url:"frames,omitempty"`
+	Duration     *float64                                 `json:"duration,omitempty" url:"duration,omitempty"`
+	Fps          *float64                                 `json:"fps,omitempty" url:"fps,omitempty"`
+	Filesize     int                                      `json:"filesize" url:"filesize"`
+	Bitrate      *int                                     `json:"bitrate,omitempty" url:"bitrate,omitempty"`
+	Ref          *string                                  `json:"ref,omitempty" url:"ref,omitempty"`
+	Folder       *string                                  `json:"folder,omitempty" url:"folder,omitempty"`
+	Filename     *string                                  `json:"filename,omitempty" url:"filename,omitempty"`
+	URL          string                                   `json:"url" url:"url"`
+	Metadata     map[string]interface{}                   `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Original     *bool                                    `json:"original,omitempty" url:"original,omitempty"`
+	Created      time.Time                                `json:"created" url:"created"`
+	Updated      time.Time                                `json:"updated" url:"updated"`
+	Status       MediaCreateResponseFilesItemStatus       `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaCreateResponseData) GetID() string {
+func (m *MediaCreateResponseFilesItem) GetID() string {
 	if m == nil {
 		return ""
 	}
 	return m.ID
 }
 
-func (m *MediaCreateResponseData) GetObject() string {
+func (m *MediaCreateResponseFilesItem) GetObject() MediaCreateResponseFilesItemObject {
 	if m == nil {
 		return ""
 	}
 	return m.Object
 }
 
-func (m *MediaCreateResponseData) GetKind() *MediaCreateResponseDataKind {
-	if m == nil {
-		return nil
-	}
-	return m.Kind
-}
-
-func (m *MediaCreateResponseData) GetTitle() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Title
-}
-
-func (m *MediaCreateResponseData) GetAlt() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Alt
-}
-
-func (m *MediaCreateResponseData) GetWidth() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Width
-}
-
-func (m *MediaCreateResponseData) GetHeight() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Height
-}
-
-func (m *MediaCreateResponseData) GetDuration() *float64 {
-	if m == nil {
-		return nil
-	}
-	return m.Duration
-}
-
-func (m *MediaCreateResponseData) GetFiles() []*MediaCreateResponseDataFilesItem {
-	if m == nil {
-		return nil
-	}
-	return m.Files
-}
-
-func (m *MediaCreateResponseData) GetURLs() map[string]interface{} {
-	if m == nil {
-		return nil
-	}
-	return m.URLs
-}
-
-func (m *MediaCreateResponseData) GetBackground() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Background
-}
-
-func (m *MediaCreateResponseData) GetMetadata() map[string]interface{} {
-	if m == nil {
-		return nil
-	}
-	return m.Metadata
-}
-
-func (m *MediaCreateResponseData) GetCreated() time.Time {
-	if m == nil {
-		return time.Time{}
-	}
-	return m.Created
-}
-
-func (m *MediaCreateResponseData) GetUpdated() time.Time {
-	if m == nil {
-		return time.Time{}
-	}
-	return m.Updated
-}
-
-func (m *MediaCreateResponseData) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaCreateResponseData) UnmarshalJSON(data []byte) error {
-	type embed MediaCreateResponseData
-	var unmarshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed: embed(*m),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*m = MediaCreateResponseData(unmarshaler.embed)
-	m.Created = unmarshaler.Created.Time()
-	m.Updated = unmarshaler.Updated.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaCreateResponseData) MarshalJSON() ([]byte, error) {
-	type embed MediaCreateResponseData
-	var marshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed:   embed(*m),
-		Created: internal.NewDateTime(m.Created),
-		Updated: internal.NewDateTime(m.Updated),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (m *MediaCreateResponseData) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaCreateResponseDataFilesItem struct {
-	ID           string                                       `json:"id" url:"id"`
-	Object       MediaCreateResponseDataFilesItemObject       `json:"object" url:"object"`
-	Kind         MediaCreateResponseDataFilesItemKind         `json:"kind" url:"kind"`
-	Type         string                                       `json:"type" url:"type"`
-	Codec        *string                                      `json:"codec,omitempty" url:"codec,omitempty"`
-	Container    *string                                      `json:"container,omitempty" url:"container,omitempty"`
-	Width        *int                                         `json:"width,omitempty" url:"width,omitempty"`
-	Height       *int                                         `json:"height,omitempty" url:"height,omitempty"`
-	Orientation  *MediaCreateResponseDataFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
-	Rotation     *float64                                     `json:"rotation,omitempty" url:"rotation,omitempty"`
-	Transparency *bool                                        `json:"transparency,omitempty" url:"transparency,omitempty"`
-	Frames       *int                                         `json:"frames,omitempty" url:"frames,omitempty"`
-	Duration     *float64                                     `json:"duration,omitempty" url:"duration,omitempty"`
-	Fps          *float64                                     `json:"fps,omitempty" url:"fps,omitempty"`
-	Filesize     int                                          `json:"filesize" url:"filesize"`
-	Bitrate      *int                                         `json:"bitrate,omitempty" url:"bitrate,omitempty"`
-	Ref          *string                                      `json:"ref,omitempty" url:"ref,omitempty"`
-	Folder       *string                                      `json:"folder,omitempty" url:"folder,omitempty"`
-	Filename     *string                                      `json:"filename,omitempty" url:"filename,omitempty"`
-	URL          string                                       `json:"url" url:"url"`
-	Metadata     map[string]interface{}                       `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Original     *bool                                        `json:"original,omitempty" url:"original,omitempty"`
-	Created      time.Time                                    `json:"created" url:"created"`
-	Updated      time.Time                                    `json:"updated" url:"updated"`
-	Status       MediaCreateResponseDataFilesItemStatus       `json:"status" url:"status"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaCreateResponseDataFilesItem) GetID() string {
-	if m == nil {
-		return ""
-	}
-	return m.ID
-}
-
-func (m *MediaCreateResponseDataFilesItem) GetObject() MediaCreateResponseDataFilesItemObject {
-	if m == nil {
-		return ""
-	}
-	return m.Object
-}
-
-func (m *MediaCreateResponseDataFilesItem) GetKind() MediaCreateResponseDataFilesItemKind {
+func (m *MediaCreateResponseFilesItem) GetKind() MediaCreateResponseFilesItemKind {
 	if m == nil {
 		return ""
 	}
 	return m.Kind
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetType() string {
+func (m *MediaCreateResponseFilesItem) GetType() string {
 	if m == nil {
 		return ""
 	}
 	return m.Type
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetCodec() *string {
+func (m *MediaCreateResponseFilesItem) GetCodec() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Codec
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetContainer() *string {
+func (m *MediaCreateResponseFilesItem) GetContainer() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Container
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetWidth() *int {
+func (m *MediaCreateResponseFilesItem) GetWidth() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Width
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetHeight() *int {
+func (m *MediaCreateResponseFilesItem) GetHeight() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Height
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetOrientation() *MediaCreateResponseDataFilesItemOrientation {
+func (m *MediaCreateResponseFilesItem) GetOrientation() *MediaCreateResponseFilesItemOrientation {
 	if m == nil {
 		return nil
 	}
 	return m.Orientation
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetRotation() *float64 {
+func (m *MediaCreateResponseFilesItem) GetRotation() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Rotation
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetTransparency() *bool {
+func (m *MediaCreateResponseFilesItem) GetTransparency() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Transparency
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetFrames() *int {
+func (m *MediaCreateResponseFilesItem) GetFrames() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Frames
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetDuration() *float64 {
+func (m *MediaCreateResponseFilesItem) GetDuration() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Duration
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetFps() *float64 {
+func (m *MediaCreateResponseFilesItem) GetFps() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Fps
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetFilesize() int {
+func (m *MediaCreateResponseFilesItem) GetFilesize() int {
 	if m == nil {
 		return 0
 	}
 	return m.Filesize
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetBitrate() *int {
+func (m *MediaCreateResponseFilesItem) GetBitrate() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Bitrate
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetRef() *string {
+func (m *MediaCreateResponseFilesItem) GetRef() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Ref
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetFolder() *string {
+func (m *MediaCreateResponseFilesItem) GetFolder() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Folder
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetFilename() *string {
+func (m *MediaCreateResponseFilesItem) GetFilename() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Filename
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetURL() string {
+func (m *MediaCreateResponseFilesItem) GetURL() string {
 	if m == nil {
 		return ""
 	}
 	return m.URL
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetMetadata() map[string]interface{} {
+func (m *MediaCreateResponseFilesItem) GetMetadata() map[string]interface{} {
 	if m == nil {
 		return nil
 	}
 	return m.Metadata
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetOriginal() *bool {
+func (m *MediaCreateResponseFilesItem) GetOriginal() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Original
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetCreated() time.Time {
+func (m *MediaCreateResponseFilesItem) GetCreated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Created
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetUpdated() time.Time {
+func (m *MediaCreateResponseFilesItem) GetUpdated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Updated
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetStatus() MediaCreateResponseDataFilesItemStatus {
+func (m *MediaCreateResponseFilesItem) GetStatus() MediaCreateResponseFilesItemStatus {
 	if m == nil {
 		return ""
 	}
 	return m.Status
 }
 
-func (m *MediaCreateResponseDataFilesItem) GetExtraProperties() map[string]interface{} {
+func (m *MediaCreateResponseFilesItem) GetExtraProperties() map[string]interface{} {
 	return m.extraProperties
 }
 
-func (m *MediaCreateResponseDataFilesItem) UnmarshalJSON(data []byte) error {
-	type embed MediaCreateResponseDataFilesItem
+func (m *MediaCreateResponseFilesItem) UnmarshalJSON(data []byte) error {
+	type embed MediaCreateResponseFilesItem
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -1370,7 +1011,7 @@ func (m *MediaCreateResponseDataFilesItem) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaCreateResponseDataFilesItem(unmarshaler.embed)
+	*m = MediaCreateResponseFilesItem(unmarshaler.embed)
 	m.Created = unmarshaler.Created.Time()
 	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
@@ -1382,8 +1023,8 @@ func (m *MediaCreateResponseDataFilesItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m *MediaCreateResponseDataFilesItem) MarshalJSON() ([]byte, error) {
-	type embed MediaCreateResponseDataFilesItem
+func (m *MediaCreateResponseFilesItem) MarshalJSON() ([]byte, error) {
+	type embed MediaCreateResponseFilesItem
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -1396,7 +1037,7 @@ func (m *MediaCreateResponseDataFilesItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (m *MediaCreateResponseDataFilesItem) String() string {
+func (m *MediaCreateResponseFilesItem) String() string {
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -1408,370 +1049,146 @@ func (m *MediaCreateResponseDataFilesItem) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaCreateResponseDataFilesItemKind string
+type MediaCreateResponseFilesItemKind string
 
 const (
-	MediaCreateResponseDataFilesItemKindVideo MediaCreateResponseDataFilesItemKind = "video"
-	MediaCreateResponseDataFilesItemKindImage MediaCreateResponseDataFilesItemKind = "image"
-	MediaCreateResponseDataFilesItemKindAudio MediaCreateResponseDataFilesItemKind = "audio"
+	MediaCreateResponseFilesItemKindVideo MediaCreateResponseFilesItemKind = "video"
+	MediaCreateResponseFilesItemKindImage MediaCreateResponseFilesItemKind = "image"
+	MediaCreateResponseFilesItemKindAudio MediaCreateResponseFilesItemKind = "audio"
 )
 
-func NewMediaCreateResponseDataFilesItemKindFromString(s string) (MediaCreateResponseDataFilesItemKind, error) {
+func NewMediaCreateResponseFilesItemKindFromString(s string) (MediaCreateResponseFilesItemKind, error) {
 	switch s {
 	case "video":
-		return MediaCreateResponseDataFilesItemKindVideo, nil
+		return MediaCreateResponseFilesItemKindVideo, nil
 	case "image":
-		return MediaCreateResponseDataFilesItemKindImage, nil
+		return MediaCreateResponseFilesItemKindImage, nil
 	case "audio":
-		return MediaCreateResponseDataFilesItemKindAudio, nil
+		return MediaCreateResponseFilesItemKindAudio, nil
 	}
-	var t MediaCreateResponseDataFilesItemKind
+	var t MediaCreateResponseFilesItemKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaCreateResponseDataFilesItemKind) Ptr() *MediaCreateResponseDataFilesItemKind {
+func (m MediaCreateResponseFilesItemKind) Ptr() *MediaCreateResponseFilesItemKind {
 	return &m
 }
 
-type MediaCreateResponseDataFilesItemObject string
+type MediaCreateResponseFilesItemObject string
 
 const (
-	MediaCreateResponseDataFilesItemObjectSource       MediaCreateResponseDataFilesItemObject = "source"
-	MediaCreateResponseDataFilesItemObjectTrack        MediaCreateResponseDataFilesItemObject = "track"
-	MediaCreateResponseDataFilesItemObjectIntelligence MediaCreateResponseDataFilesItemObject = "intelligence"
+	MediaCreateResponseFilesItemObjectSource       MediaCreateResponseFilesItemObject = "source"
+	MediaCreateResponseFilesItemObjectTrack        MediaCreateResponseFilesItemObject = "track"
+	MediaCreateResponseFilesItemObjectIntelligence MediaCreateResponseFilesItemObject = "intelligence"
 )
 
-func NewMediaCreateResponseDataFilesItemObjectFromString(s string) (MediaCreateResponseDataFilesItemObject, error) {
+func NewMediaCreateResponseFilesItemObjectFromString(s string) (MediaCreateResponseFilesItemObject, error) {
 	switch s {
 	case "source":
-		return MediaCreateResponseDataFilesItemObjectSource, nil
+		return MediaCreateResponseFilesItemObjectSource, nil
 	case "track":
-		return MediaCreateResponseDataFilesItemObjectTrack, nil
+		return MediaCreateResponseFilesItemObjectTrack, nil
 	case "intelligence":
-		return MediaCreateResponseDataFilesItemObjectIntelligence, nil
+		return MediaCreateResponseFilesItemObjectIntelligence, nil
 	}
-	var t MediaCreateResponseDataFilesItemObject
+	var t MediaCreateResponseFilesItemObject
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaCreateResponseDataFilesItemObject) Ptr() *MediaCreateResponseDataFilesItemObject {
+func (m MediaCreateResponseFilesItemObject) Ptr() *MediaCreateResponseFilesItemObject {
 	return &m
 }
 
-type MediaCreateResponseDataFilesItemOrientation string
+type MediaCreateResponseFilesItemOrientation string
 
 const (
-	MediaCreateResponseDataFilesItemOrientationLandscape MediaCreateResponseDataFilesItemOrientation = "landscape"
-	MediaCreateResponseDataFilesItemOrientationPortrait  MediaCreateResponseDataFilesItemOrientation = "portrait"
-	MediaCreateResponseDataFilesItemOrientationSquare    MediaCreateResponseDataFilesItemOrientation = "square"
+	MediaCreateResponseFilesItemOrientationLandscape MediaCreateResponseFilesItemOrientation = "landscape"
+	MediaCreateResponseFilesItemOrientationPortrait  MediaCreateResponseFilesItemOrientation = "portrait"
+	MediaCreateResponseFilesItemOrientationSquare    MediaCreateResponseFilesItemOrientation = "square"
 )
 
-func NewMediaCreateResponseDataFilesItemOrientationFromString(s string) (MediaCreateResponseDataFilesItemOrientation, error) {
+func NewMediaCreateResponseFilesItemOrientationFromString(s string) (MediaCreateResponseFilesItemOrientation, error) {
 	switch s {
 	case "landscape":
-		return MediaCreateResponseDataFilesItemOrientationLandscape, nil
+		return MediaCreateResponseFilesItemOrientationLandscape, nil
 	case "portrait":
-		return MediaCreateResponseDataFilesItemOrientationPortrait, nil
+		return MediaCreateResponseFilesItemOrientationPortrait, nil
 	case "square":
-		return MediaCreateResponseDataFilesItemOrientationSquare, nil
+		return MediaCreateResponseFilesItemOrientationSquare, nil
 	}
-	var t MediaCreateResponseDataFilesItemOrientation
+	var t MediaCreateResponseFilesItemOrientation
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaCreateResponseDataFilesItemOrientation) Ptr() *MediaCreateResponseDataFilesItemOrientation {
+func (m MediaCreateResponseFilesItemOrientation) Ptr() *MediaCreateResponseFilesItemOrientation {
 	return &m
 }
 
-type MediaCreateResponseDataFilesItemStatus string
+type MediaCreateResponseFilesItemStatus string
 
 const (
-	MediaCreateResponseDataFilesItemStatusWaiting    MediaCreateResponseDataFilesItemStatus = "waiting"
-	MediaCreateResponseDataFilesItemStatusProcessing MediaCreateResponseDataFilesItemStatus = "processing"
-	MediaCreateResponseDataFilesItemStatusReady      MediaCreateResponseDataFilesItemStatus = "ready"
-	MediaCreateResponseDataFilesItemStatusFailed     MediaCreateResponseDataFilesItemStatus = "failed"
+	MediaCreateResponseFilesItemStatusWaiting    MediaCreateResponseFilesItemStatus = "waiting"
+	MediaCreateResponseFilesItemStatusProcessing MediaCreateResponseFilesItemStatus = "processing"
+	MediaCreateResponseFilesItemStatusReady      MediaCreateResponseFilesItemStatus = "ready"
+	MediaCreateResponseFilesItemStatusFailed     MediaCreateResponseFilesItemStatus = "failed"
 )
 
-func NewMediaCreateResponseDataFilesItemStatusFromString(s string) (MediaCreateResponseDataFilesItemStatus, error) {
+func NewMediaCreateResponseFilesItemStatusFromString(s string) (MediaCreateResponseFilesItemStatus, error) {
 	switch s {
 	case "waiting":
-		return MediaCreateResponseDataFilesItemStatusWaiting, nil
+		return MediaCreateResponseFilesItemStatusWaiting, nil
 	case "processing":
-		return MediaCreateResponseDataFilesItemStatusProcessing, nil
+		return MediaCreateResponseFilesItemStatusProcessing, nil
 	case "ready":
-		return MediaCreateResponseDataFilesItemStatusReady, nil
+		return MediaCreateResponseFilesItemStatusReady, nil
 	case "failed":
-		return MediaCreateResponseDataFilesItemStatusFailed, nil
+		return MediaCreateResponseFilesItemStatusFailed, nil
 	}
-	var t MediaCreateResponseDataFilesItemStatus
+	var t MediaCreateResponseFilesItemStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaCreateResponseDataFilesItemStatus) Ptr() *MediaCreateResponseDataFilesItemStatus {
+func (m MediaCreateResponseFilesItemStatus) Ptr() *MediaCreateResponseFilesItemStatus {
 	return &m
 }
 
-type MediaCreateResponseDataKind string
+type MediaCreateResponseKind string
 
 const (
-	MediaCreateResponseDataKindVideo MediaCreateResponseDataKind = "video"
-	MediaCreateResponseDataKindImage MediaCreateResponseDataKind = "image"
-	MediaCreateResponseDataKindAudio MediaCreateResponseDataKind = "audio"
+	MediaCreateResponseKindVideo MediaCreateResponseKind = "video"
+	MediaCreateResponseKindImage MediaCreateResponseKind = "image"
+	MediaCreateResponseKindAudio MediaCreateResponseKind = "audio"
 )
 
-func NewMediaCreateResponseDataKindFromString(s string) (MediaCreateResponseDataKind, error) {
+func NewMediaCreateResponseKindFromString(s string) (MediaCreateResponseKind, error) {
 	switch s {
 	case "video":
-		return MediaCreateResponseDataKindVideo, nil
+		return MediaCreateResponseKindVideo, nil
 	case "image":
-		return MediaCreateResponseDataKindImage, nil
+		return MediaCreateResponseKindImage, nil
 	case "audio":
-		return MediaCreateResponseDataKindAudio, nil
+		return MediaCreateResponseKindAudio, nil
 	}
-	var t MediaCreateResponseDataKind
+	var t MediaCreateResponseKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaCreateResponseDataKind) Ptr() *MediaCreateResponseDataKind {
+func (m MediaCreateResponseKind) Ptr() *MediaCreateResponseKind {
 	return &m
 }
 
-type MediaCreateResponseError struct {
+type MediaDeleteResponse struct {
 	Message *string `json:"message,omitempty" url:"message,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaCreateResponseError) GetMessage() *string {
+func (m *MediaDeleteResponse) GetMessage() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Message
-}
-
-func (m *MediaCreateResponseError) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaCreateResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaCreateResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaCreateResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaCreateResponseError) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaCreateResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaCreateResponseLinks) GetSelf() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Self
-}
-
-func (m *MediaCreateResponseLinks) GetParent() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Parent
-}
-
-func (m *MediaCreateResponseLinks) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaCreateResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaCreateResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaCreateResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaCreateResponseLinks) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaCreateResponseMeta struct {
-	RequestID *string                      `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                      `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                      `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                      `json:"version,omitempty" url:"version,omitempty"`
-	Type      *MediaCreateResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaCreateResponseMeta) GetRequestID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.RequestID
-}
-
-func (m *MediaCreateResponseMeta) GetOrgID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.OrgID
-}
-
-func (m *MediaCreateResponseMeta) GetProjectID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.ProjectID
-}
-
-func (m *MediaCreateResponseMeta) GetVersion() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Version
-}
-
-func (m *MediaCreateResponseMeta) GetType() *MediaCreateResponseMetaType {
-	if m == nil {
-		return nil
-	}
-	return m.Type
-}
-
-func (m *MediaCreateResponseMeta) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaCreateResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaCreateResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaCreateResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaCreateResponseMeta) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaCreateResponseMetaType string
-
-const (
-	MediaCreateResponseMetaTypeObject MediaCreateResponseMetaType = "object"
-	MediaCreateResponseMetaTypeList   MediaCreateResponseMetaType = "list"
-)
-
-func NewMediaCreateResponseMetaTypeFromString(s string) (MediaCreateResponseMetaType, error) {
-	switch s {
-	case "object":
-		return MediaCreateResponseMetaTypeObject, nil
-	case "list":
-		return MediaCreateResponseMetaTypeList, nil
-	}
-	var t MediaCreateResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (m MediaCreateResponseMetaType) Ptr() *MediaCreateResponseMetaType {
-	return &m
-}
-
-type MediaDeleteResponse struct {
-	Meta  *MediaDeleteResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *MediaDeleteResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *MediaDeleteResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *MediaDeleteResponseLinks `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaDeleteResponse) GetMeta() *MediaDeleteResponseMeta {
-	if m == nil {
-		return nil
-	}
-	return m.Meta
-}
-
-func (m *MediaDeleteResponse) GetData() *MediaDeleteResponseData {
-	if m == nil {
-		return nil
-	}
-	return m.Data
-}
-
-func (m *MediaDeleteResponse) GetError() *MediaDeleteResponseError {
-	if m == nil {
-		return nil
-	}
-	return m.Error
-}
-
-func (m *MediaDeleteResponse) GetLinks() *MediaDeleteResponseLinks {
-	if m == nil {
-		return nil
-	}
-	return m.Links
 }
 
 func (m *MediaDeleteResponse) GetExtraProperties() map[string]interface{} {
@@ -1806,288 +1223,122 @@ func (m *MediaDeleteResponse) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaDeleteResponseData struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaDeleteResponseData) GetMessage() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Message
-}
-
-func (m *MediaDeleteResponseData) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaDeleteResponseData) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaDeleteResponseData
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaDeleteResponseData(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaDeleteResponseData) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaDeleteResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaDeleteResponseError) GetMessage() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Message
-}
-
-func (m *MediaDeleteResponseError) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaDeleteResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaDeleteResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaDeleteResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaDeleteResponseError) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaDeleteResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaDeleteResponseLinks) GetSelf() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Self
-}
-
-func (m *MediaDeleteResponseLinks) GetParent() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Parent
-}
-
-func (m *MediaDeleteResponseLinks) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaDeleteResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaDeleteResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaDeleteResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaDeleteResponseLinks) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaDeleteResponseMeta struct {
-	RequestID *string                      `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                      `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                      `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                      `json:"version,omitempty" url:"version,omitempty"`
-	Type      *MediaDeleteResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaDeleteResponseMeta) GetRequestID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.RequestID
-}
-
-func (m *MediaDeleteResponseMeta) GetOrgID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.OrgID
-}
-
-func (m *MediaDeleteResponseMeta) GetProjectID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.ProjectID
-}
-
-func (m *MediaDeleteResponseMeta) GetVersion() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Version
-}
-
-func (m *MediaDeleteResponseMeta) GetType() *MediaDeleteResponseMetaType {
-	if m == nil {
-		return nil
-	}
-	return m.Type
-}
-
-func (m *MediaDeleteResponseMeta) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaDeleteResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaDeleteResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaDeleteResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaDeleteResponseMeta) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaDeleteResponseMetaType string
-
-const (
-	MediaDeleteResponseMetaTypeObject MediaDeleteResponseMetaType = "object"
-	MediaDeleteResponseMetaTypeList   MediaDeleteResponseMetaType = "list"
-)
-
-func NewMediaDeleteResponseMetaTypeFromString(s string) (MediaDeleteResponseMetaType, error) {
-	switch s {
-	case "object":
-		return MediaDeleteResponseMetaTypeObject, nil
-	case "list":
-		return MediaDeleteResponseMetaTypeList, nil
-	}
-	var t MediaDeleteResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (m MediaDeleteResponseMetaType) Ptr() *MediaDeleteResponseMetaType {
-	return &m
-}
-
 type MediaGetResponse struct {
-	Meta  *MediaGetResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *MediaGetResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *MediaGetResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *MediaGetResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+	ID         string                       `json:"id" url:"id"`
+	Object     string                       `json:"object" url:"object"`
+	Kind       *MediaGetResponseKind        `json:"kind,omitempty" url:"kind,omitempty"`
+	Title      *string                      `json:"title,omitempty" url:"title,omitempty"`
+	Alt        *string                      `json:"alt,omitempty" url:"alt,omitempty"`
+	Width      *int                         `json:"width,omitempty" url:"width,omitempty"`
+	Height     *int                         `json:"height,omitempty" url:"height,omitempty"`
+	Duration   *float64                     `json:"duration,omitempty" url:"duration,omitempty"`
+	Files      []*MediaGetResponseFilesItem `json:"files,omitempty" url:"files,omitempty"`
+	URLs       map[string]interface{}       `json:"urls,omitempty" url:"urls,omitempty"`
+	Background *string                      `json:"background,omitempty" url:"background,omitempty"`
+	Metadata   map[string]interface{}       `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Created    time.Time                    `json:"created" url:"created"`
+	Updated    time.Time                    `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaGetResponse) GetMeta() *MediaGetResponseMeta {
+func (m *MediaGetResponse) GetID() string {
 	if m == nil {
-		return nil
+		return ""
 	}
-	return m.Meta
+	return m.ID
 }
 
-func (m *MediaGetResponse) GetData() *MediaGetResponseData {
+func (m *MediaGetResponse) GetObject() string {
 	if m == nil {
-		return nil
+		return ""
 	}
-	return m.Data
+	return m.Object
 }
 
-func (m *MediaGetResponse) GetError() *MediaGetResponseError {
+func (m *MediaGetResponse) GetKind() *MediaGetResponseKind {
 	if m == nil {
 		return nil
 	}
-	return m.Error
+	return m.Kind
 }
 
-func (m *MediaGetResponse) GetLinks() *MediaGetResponseLinks {
+func (m *MediaGetResponse) GetTitle() *string {
 	if m == nil {
 		return nil
 	}
-	return m.Links
+	return m.Title
+}
+
+func (m *MediaGetResponse) GetAlt() *string {
+	if m == nil {
+		return nil
+	}
+	return m.Alt
+}
+
+func (m *MediaGetResponse) GetWidth() *int {
+	if m == nil {
+		return nil
+	}
+	return m.Width
+}
+
+func (m *MediaGetResponse) GetHeight() *int {
+	if m == nil {
+		return nil
+	}
+	return m.Height
+}
+
+func (m *MediaGetResponse) GetDuration() *float64 {
+	if m == nil {
+		return nil
+	}
+	return m.Duration
+}
+
+func (m *MediaGetResponse) GetFiles() []*MediaGetResponseFilesItem {
+	if m == nil {
+		return nil
+	}
+	return m.Files
+}
+
+func (m *MediaGetResponse) GetURLs() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.URLs
+}
+
+func (m *MediaGetResponse) GetBackground() *string {
+	if m == nil {
+		return nil
+	}
+	return m.Background
+}
+
+func (m *MediaGetResponse) GetMetadata() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.Metadata
+}
+
+func (m *MediaGetResponse) GetCreated() time.Time {
+	if m == nil {
+		return time.Time{}
+	}
+	return m.Created
+}
+
+func (m *MediaGetResponse) GetUpdated() time.Time {
+	if m == nil {
+		return time.Time{}
+	}
+	return m.Updated
 }
 
 func (m *MediaGetResponse) GetExtraProperties() map[string]interface{} {
@@ -2095,12 +1346,20 @@ func (m *MediaGetResponse) GetExtraProperties() map[string]interface{} {
 }
 
 func (m *MediaGetResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaGetResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed MediaGetResponse
+	var unmarshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed: embed(*m),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaGetResponse(value)
+	*m = MediaGetResponse(unmarshaler.embed)
+	m.Created = unmarshaler.Created.Time()
+	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
 	if err != nil {
 		return err
@@ -2108,6 +1367,20 @@ func (m *MediaGetResponse) UnmarshalJSON(data []byte) error {
 	m.extraProperties = extraProperties
 	m.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (m *MediaGetResponse) MarshalJSON() ([]byte, error) {
+	type embed MediaGetResponse
+	var marshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed:   embed(*m),
+		Created: internal.NewDateTime(m.Created),
+		Updated: internal.NewDateTime(m.Updated),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (m *MediaGetResponse) String() string {
@@ -2122,390 +1395,218 @@ func (m *MediaGetResponse) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaGetResponseData struct {
-	ID         string                           `json:"id" url:"id"`
-	Object     string                           `json:"object" url:"object"`
-	Kind       *MediaGetResponseDataKind        `json:"kind,omitempty" url:"kind,omitempty"`
-	Title      *string                          `json:"title,omitempty" url:"title,omitempty"`
-	Alt        *string                          `json:"alt,omitempty" url:"alt,omitempty"`
-	Width      *int                             `json:"width,omitempty" url:"width,omitempty"`
-	Height     *int                             `json:"height,omitempty" url:"height,omitempty"`
-	Duration   *float64                         `json:"duration,omitempty" url:"duration,omitempty"`
-	Files      []*MediaGetResponseDataFilesItem `json:"files,omitempty" url:"files,omitempty"`
-	URLs       map[string]interface{}           `json:"urls,omitempty" url:"urls,omitempty"`
-	Background *string                          `json:"background,omitempty" url:"background,omitempty"`
-	Metadata   map[string]interface{}           `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Created    time.Time                        `json:"created" url:"created"`
-	Updated    time.Time                        `json:"updated" url:"updated"`
+type MediaGetResponseFilesItem struct {
+	ID           string                                `json:"id" url:"id"`
+	Object       MediaGetResponseFilesItemObject       `json:"object" url:"object"`
+	Kind         MediaGetResponseFilesItemKind         `json:"kind" url:"kind"`
+	Type         string                                `json:"type" url:"type"`
+	Codec        *string                               `json:"codec,omitempty" url:"codec,omitempty"`
+	Container    *string                               `json:"container,omitempty" url:"container,omitempty"`
+	Width        *int                                  `json:"width,omitempty" url:"width,omitempty"`
+	Height       *int                                  `json:"height,omitempty" url:"height,omitempty"`
+	Orientation  *MediaGetResponseFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
+	Rotation     *float64                              `json:"rotation,omitempty" url:"rotation,omitempty"`
+	Transparency *bool                                 `json:"transparency,omitempty" url:"transparency,omitempty"`
+	Frames       *int                                  `json:"frames,omitempty" url:"frames,omitempty"`
+	Duration     *float64                              `json:"duration,omitempty" url:"duration,omitempty"`
+	Fps          *float64                              `json:"fps,omitempty" url:"fps,omitempty"`
+	Filesize     int                                   `json:"filesize" url:"filesize"`
+	Bitrate      *int                                  `json:"bitrate,omitempty" url:"bitrate,omitempty"`
+	Ref          *string                               `json:"ref,omitempty" url:"ref,omitempty"`
+	Folder       *string                               `json:"folder,omitempty" url:"folder,omitempty"`
+	Filename     *string                               `json:"filename,omitempty" url:"filename,omitempty"`
+	URL          string                                `json:"url" url:"url"`
+	Metadata     map[string]interface{}                `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Original     *bool                                 `json:"original,omitempty" url:"original,omitempty"`
+	Created      time.Time                             `json:"created" url:"created"`
+	Updated      time.Time                             `json:"updated" url:"updated"`
+	Status       MediaGetResponseFilesItemStatus       `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaGetResponseData) GetID() string {
+func (m *MediaGetResponseFilesItem) GetID() string {
 	if m == nil {
 		return ""
 	}
 	return m.ID
 }
 
-func (m *MediaGetResponseData) GetObject() string {
+func (m *MediaGetResponseFilesItem) GetObject() MediaGetResponseFilesItemObject {
 	if m == nil {
 		return ""
 	}
 	return m.Object
 }
 
-func (m *MediaGetResponseData) GetKind() *MediaGetResponseDataKind {
-	if m == nil {
-		return nil
-	}
-	return m.Kind
-}
-
-func (m *MediaGetResponseData) GetTitle() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Title
-}
-
-func (m *MediaGetResponseData) GetAlt() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Alt
-}
-
-func (m *MediaGetResponseData) GetWidth() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Width
-}
-
-func (m *MediaGetResponseData) GetHeight() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Height
-}
-
-func (m *MediaGetResponseData) GetDuration() *float64 {
-	if m == nil {
-		return nil
-	}
-	return m.Duration
-}
-
-func (m *MediaGetResponseData) GetFiles() []*MediaGetResponseDataFilesItem {
-	if m == nil {
-		return nil
-	}
-	return m.Files
-}
-
-func (m *MediaGetResponseData) GetURLs() map[string]interface{} {
-	if m == nil {
-		return nil
-	}
-	return m.URLs
-}
-
-func (m *MediaGetResponseData) GetBackground() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Background
-}
-
-func (m *MediaGetResponseData) GetMetadata() map[string]interface{} {
-	if m == nil {
-		return nil
-	}
-	return m.Metadata
-}
-
-func (m *MediaGetResponseData) GetCreated() time.Time {
-	if m == nil {
-		return time.Time{}
-	}
-	return m.Created
-}
-
-func (m *MediaGetResponseData) GetUpdated() time.Time {
-	if m == nil {
-		return time.Time{}
-	}
-	return m.Updated
-}
-
-func (m *MediaGetResponseData) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaGetResponseData) UnmarshalJSON(data []byte) error {
-	type embed MediaGetResponseData
-	var unmarshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed: embed(*m),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*m = MediaGetResponseData(unmarshaler.embed)
-	m.Created = unmarshaler.Created.Time()
-	m.Updated = unmarshaler.Updated.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaGetResponseData) MarshalJSON() ([]byte, error) {
-	type embed MediaGetResponseData
-	var marshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed:   embed(*m),
-		Created: internal.NewDateTime(m.Created),
-		Updated: internal.NewDateTime(m.Updated),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (m *MediaGetResponseData) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaGetResponseDataFilesItem struct {
-	ID           string                                    `json:"id" url:"id"`
-	Object       MediaGetResponseDataFilesItemObject       `json:"object" url:"object"`
-	Kind         MediaGetResponseDataFilesItemKind         `json:"kind" url:"kind"`
-	Type         string                                    `json:"type" url:"type"`
-	Codec        *string                                   `json:"codec,omitempty" url:"codec,omitempty"`
-	Container    *string                                   `json:"container,omitempty" url:"container,omitempty"`
-	Width        *int                                      `json:"width,omitempty" url:"width,omitempty"`
-	Height       *int                                      `json:"height,omitempty" url:"height,omitempty"`
-	Orientation  *MediaGetResponseDataFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
-	Rotation     *float64                                  `json:"rotation,omitempty" url:"rotation,omitempty"`
-	Transparency *bool                                     `json:"transparency,omitempty" url:"transparency,omitempty"`
-	Frames       *int                                      `json:"frames,omitempty" url:"frames,omitempty"`
-	Duration     *float64                                  `json:"duration,omitempty" url:"duration,omitempty"`
-	Fps          *float64                                  `json:"fps,omitempty" url:"fps,omitempty"`
-	Filesize     int                                       `json:"filesize" url:"filesize"`
-	Bitrate      *int                                      `json:"bitrate,omitempty" url:"bitrate,omitempty"`
-	Ref          *string                                   `json:"ref,omitempty" url:"ref,omitempty"`
-	Folder       *string                                   `json:"folder,omitempty" url:"folder,omitempty"`
-	Filename     *string                                   `json:"filename,omitempty" url:"filename,omitempty"`
-	URL          string                                    `json:"url" url:"url"`
-	Metadata     map[string]interface{}                    `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Original     *bool                                     `json:"original,omitempty" url:"original,omitempty"`
-	Created      time.Time                                 `json:"created" url:"created"`
-	Updated      time.Time                                 `json:"updated" url:"updated"`
-	Status       MediaGetResponseDataFilesItemStatus       `json:"status" url:"status"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaGetResponseDataFilesItem) GetID() string {
-	if m == nil {
-		return ""
-	}
-	return m.ID
-}
-
-func (m *MediaGetResponseDataFilesItem) GetObject() MediaGetResponseDataFilesItemObject {
-	if m == nil {
-		return ""
-	}
-	return m.Object
-}
-
-func (m *MediaGetResponseDataFilesItem) GetKind() MediaGetResponseDataFilesItemKind {
+func (m *MediaGetResponseFilesItem) GetKind() MediaGetResponseFilesItemKind {
 	if m == nil {
 		return ""
 	}
 	return m.Kind
 }
 
-func (m *MediaGetResponseDataFilesItem) GetType() string {
+func (m *MediaGetResponseFilesItem) GetType() string {
 	if m == nil {
 		return ""
 	}
 	return m.Type
 }
 
-func (m *MediaGetResponseDataFilesItem) GetCodec() *string {
+func (m *MediaGetResponseFilesItem) GetCodec() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Codec
 }
 
-func (m *MediaGetResponseDataFilesItem) GetContainer() *string {
+func (m *MediaGetResponseFilesItem) GetContainer() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Container
 }
 
-func (m *MediaGetResponseDataFilesItem) GetWidth() *int {
+func (m *MediaGetResponseFilesItem) GetWidth() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Width
 }
 
-func (m *MediaGetResponseDataFilesItem) GetHeight() *int {
+func (m *MediaGetResponseFilesItem) GetHeight() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Height
 }
 
-func (m *MediaGetResponseDataFilesItem) GetOrientation() *MediaGetResponseDataFilesItemOrientation {
+func (m *MediaGetResponseFilesItem) GetOrientation() *MediaGetResponseFilesItemOrientation {
 	if m == nil {
 		return nil
 	}
 	return m.Orientation
 }
 
-func (m *MediaGetResponseDataFilesItem) GetRotation() *float64 {
+func (m *MediaGetResponseFilesItem) GetRotation() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Rotation
 }
 
-func (m *MediaGetResponseDataFilesItem) GetTransparency() *bool {
+func (m *MediaGetResponseFilesItem) GetTransparency() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Transparency
 }
 
-func (m *MediaGetResponseDataFilesItem) GetFrames() *int {
+func (m *MediaGetResponseFilesItem) GetFrames() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Frames
 }
 
-func (m *MediaGetResponseDataFilesItem) GetDuration() *float64 {
+func (m *MediaGetResponseFilesItem) GetDuration() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Duration
 }
 
-func (m *MediaGetResponseDataFilesItem) GetFps() *float64 {
+func (m *MediaGetResponseFilesItem) GetFps() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Fps
 }
 
-func (m *MediaGetResponseDataFilesItem) GetFilesize() int {
+func (m *MediaGetResponseFilesItem) GetFilesize() int {
 	if m == nil {
 		return 0
 	}
 	return m.Filesize
 }
 
-func (m *MediaGetResponseDataFilesItem) GetBitrate() *int {
+func (m *MediaGetResponseFilesItem) GetBitrate() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Bitrate
 }
 
-func (m *MediaGetResponseDataFilesItem) GetRef() *string {
+func (m *MediaGetResponseFilesItem) GetRef() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Ref
 }
 
-func (m *MediaGetResponseDataFilesItem) GetFolder() *string {
+func (m *MediaGetResponseFilesItem) GetFolder() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Folder
 }
 
-func (m *MediaGetResponseDataFilesItem) GetFilename() *string {
+func (m *MediaGetResponseFilesItem) GetFilename() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Filename
 }
 
-func (m *MediaGetResponseDataFilesItem) GetURL() string {
+func (m *MediaGetResponseFilesItem) GetURL() string {
 	if m == nil {
 		return ""
 	}
 	return m.URL
 }
 
-func (m *MediaGetResponseDataFilesItem) GetMetadata() map[string]interface{} {
+func (m *MediaGetResponseFilesItem) GetMetadata() map[string]interface{} {
 	if m == nil {
 		return nil
 	}
 	return m.Metadata
 }
 
-func (m *MediaGetResponseDataFilesItem) GetOriginal() *bool {
+func (m *MediaGetResponseFilesItem) GetOriginal() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Original
 }
 
-func (m *MediaGetResponseDataFilesItem) GetCreated() time.Time {
+func (m *MediaGetResponseFilesItem) GetCreated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Created
 }
 
-func (m *MediaGetResponseDataFilesItem) GetUpdated() time.Time {
+func (m *MediaGetResponseFilesItem) GetUpdated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Updated
 }
 
-func (m *MediaGetResponseDataFilesItem) GetStatus() MediaGetResponseDataFilesItemStatus {
+func (m *MediaGetResponseFilesItem) GetStatus() MediaGetResponseFilesItemStatus {
 	if m == nil {
 		return ""
 	}
 	return m.Status
 }
 
-func (m *MediaGetResponseDataFilesItem) GetExtraProperties() map[string]interface{} {
+func (m *MediaGetResponseFilesItem) GetExtraProperties() map[string]interface{} {
 	return m.extraProperties
 }
 
-func (m *MediaGetResponseDataFilesItem) UnmarshalJSON(data []byte) error {
-	type embed MediaGetResponseDataFilesItem
+func (m *MediaGetResponseFilesItem) UnmarshalJSON(data []byte) error {
+	type embed MediaGetResponseFilesItem
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -2516,7 +1617,7 @@ func (m *MediaGetResponseDataFilesItem) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaGetResponseDataFilesItem(unmarshaler.embed)
+	*m = MediaGetResponseFilesItem(unmarshaler.embed)
 	m.Created = unmarshaler.Created.Time()
 	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
@@ -2528,8 +1629,8 @@ func (m *MediaGetResponseDataFilesItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m *MediaGetResponseDataFilesItem) MarshalJSON() ([]byte, error) {
-	type embed MediaGetResponseDataFilesItem
+func (m *MediaGetResponseFilesItem) MarshalJSON() ([]byte, error) {
+	type embed MediaGetResponseFilesItem
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -2542,7 +1643,7 @@ func (m *MediaGetResponseDataFilesItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (m *MediaGetResponseDataFilesItem) String() string {
+func (m *MediaGetResponseFilesItem) String() string {
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -2554,370 +1655,250 @@ func (m *MediaGetResponseDataFilesItem) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaGetResponseDataFilesItemKind string
+type MediaGetResponseFilesItemKind string
 
 const (
-	MediaGetResponseDataFilesItemKindVideo MediaGetResponseDataFilesItemKind = "video"
-	MediaGetResponseDataFilesItemKindImage MediaGetResponseDataFilesItemKind = "image"
-	MediaGetResponseDataFilesItemKindAudio MediaGetResponseDataFilesItemKind = "audio"
+	MediaGetResponseFilesItemKindVideo MediaGetResponseFilesItemKind = "video"
+	MediaGetResponseFilesItemKindImage MediaGetResponseFilesItemKind = "image"
+	MediaGetResponseFilesItemKindAudio MediaGetResponseFilesItemKind = "audio"
 )
 
-func NewMediaGetResponseDataFilesItemKindFromString(s string) (MediaGetResponseDataFilesItemKind, error) {
+func NewMediaGetResponseFilesItemKindFromString(s string) (MediaGetResponseFilesItemKind, error) {
 	switch s {
 	case "video":
-		return MediaGetResponseDataFilesItemKindVideo, nil
+		return MediaGetResponseFilesItemKindVideo, nil
 	case "image":
-		return MediaGetResponseDataFilesItemKindImage, nil
+		return MediaGetResponseFilesItemKindImage, nil
 	case "audio":
-		return MediaGetResponseDataFilesItemKindAudio, nil
+		return MediaGetResponseFilesItemKindAudio, nil
 	}
-	var t MediaGetResponseDataFilesItemKind
+	var t MediaGetResponseFilesItemKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaGetResponseDataFilesItemKind) Ptr() *MediaGetResponseDataFilesItemKind {
+func (m MediaGetResponseFilesItemKind) Ptr() *MediaGetResponseFilesItemKind {
 	return &m
 }
 
-type MediaGetResponseDataFilesItemObject string
+type MediaGetResponseFilesItemObject string
 
 const (
-	MediaGetResponseDataFilesItemObjectSource       MediaGetResponseDataFilesItemObject = "source"
-	MediaGetResponseDataFilesItemObjectTrack        MediaGetResponseDataFilesItemObject = "track"
-	MediaGetResponseDataFilesItemObjectIntelligence MediaGetResponseDataFilesItemObject = "intelligence"
+	MediaGetResponseFilesItemObjectSource       MediaGetResponseFilesItemObject = "source"
+	MediaGetResponseFilesItemObjectTrack        MediaGetResponseFilesItemObject = "track"
+	MediaGetResponseFilesItemObjectIntelligence MediaGetResponseFilesItemObject = "intelligence"
 )
 
-func NewMediaGetResponseDataFilesItemObjectFromString(s string) (MediaGetResponseDataFilesItemObject, error) {
+func NewMediaGetResponseFilesItemObjectFromString(s string) (MediaGetResponseFilesItemObject, error) {
 	switch s {
 	case "source":
-		return MediaGetResponseDataFilesItemObjectSource, nil
+		return MediaGetResponseFilesItemObjectSource, nil
 	case "track":
-		return MediaGetResponseDataFilesItemObjectTrack, nil
+		return MediaGetResponseFilesItemObjectTrack, nil
 	case "intelligence":
-		return MediaGetResponseDataFilesItemObjectIntelligence, nil
+		return MediaGetResponseFilesItemObjectIntelligence, nil
 	}
-	var t MediaGetResponseDataFilesItemObject
+	var t MediaGetResponseFilesItemObject
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaGetResponseDataFilesItemObject) Ptr() *MediaGetResponseDataFilesItemObject {
+func (m MediaGetResponseFilesItemObject) Ptr() *MediaGetResponseFilesItemObject {
 	return &m
 }
 
-type MediaGetResponseDataFilesItemOrientation string
+type MediaGetResponseFilesItemOrientation string
 
 const (
-	MediaGetResponseDataFilesItemOrientationLandscape MediaGetResponseDataFilesItemOrientation = "landscape"
-	MediaGetResponseDataFilesItemOrientationPortrait  MediaGetResponseDataFilesItemOrientation = "portrait"
-	MediaGetResponseDataFilesItemOrientationSquare    MediaGetResponseDataFilesItemOrientation = "square"
+	MediaGetResponseFilesItemOrientationLandscape MediaGetResponseFilesItemOrientation = "landscape"
+	MediaGetResponseFilesItemOrientationPortrait  MediaGetResponseFilesItemOrientation = "portrait"
+	MediaGetResponseFilesItemOrientationSquare    MediaGetResponseFilesItemOrientation = "square"
 )
 
-func NewMediaGetResponseDataFilesItemOrientationFromString(s string) (MediaGetResponseDataFilesItemOrientation, error) {
+func NewMediaGetResponseFilesItemOrientationFromString(s string) (MediaGetResponseFilesItemOrientation, error) {
 	switch s {
 	case "landscape":
-		return MediaGetResponseDataFilesItemOrientationLandscape, nil
+		return MediaGetResponseFilesItemOrientationLandscape, nil
 	case "portrait":
-		return MediaGetResponseDataFilesItemOrientationPortrait, nil
+		return MediaGetResponseFilesItemOrientationPortrait, nil
 	case "square":
-		return MediaGetResponseDataFilesItemOrientationSquare, nil
+		return MediaGetResponseFilesItemOrientationSquare, nil
 	}
-	var t MediaGetResponseDataFilesItemOrientation
+	var t MediaGetResponseFilesItemOrientation
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaGetResponseDataFilesItemOrientation) Ptr() *MediaGetResponseDataFilesItemOrientation {
+func (m MediaGetResponseFilesItemOrientation) Ptr() *MediaGetResponseFilesItemOrientation {
 	return &m
 }
 
-type MediaGetResponseDataFilesItemStatus string
+type MediaGetResponseFilesItemStatus string
 
 const (
-	MediaGetResponseDataFilesItemStatusWaiting    MediaGetResponseDataFilesItemStatus = "waiting"
-	MediaGetResponseDataFilesItemStatusProcessing MediaGetResponseDataFilesItemStatus = "processing"
-	MediaGetResponseDataFilesItemStatusReady      MediaGetResponseDataFilesItemStatus = "ready"
-	MediaGetResponseDataFilesItemStatusFailed     MediaGetResponseDataFilesItemStatus = "failed"
+	MediaGetResponseFilesItemStatusWaiting    MediaGetResponseFilesItemStatus = "waiting"
+	MediaGetResponseFilesItemStatusProcessing MediaGetResponseFilesItemStatus = "processing"
+	MediaGetResponseFilesItemStatusReady      MediaGetResponseFilesItemStatus = "ready"
+	MediaGetResponseFilesItemStatusFailed     MediaGetResponseFilesItemStatus = "failed"
 )
 
-func NewMediaGetResponseDataFilesItemStatusFromString(s string) (MediaGetResponseDataFilesItemStatus, error) {
+func NewMediaGetResponseFilesItemStatusFromString(s string) (MediaGetResponseFilesItemStatus, error) {
 	switch s {
 	case "waiting":
-		return MediaGetResponseDataFilesItemStatusWaiting, nil
+		return MediaGetResponseFilesItemStatusWaiting, nil
 	case "processing":
-		return MediaGetResponseDataFilesItemStatusProcessing, nil
+		return MediaGetResponseFilesItemStatusProcessing, nil
 	case "ready":
-		return MediaGetResponseDataFilesItemStatusReady, nil
+		return MediaGetResponseFilesItemStatusReady, nil
 	case "failed":
-		return MediaGetResponseDataFilesItemStatusFailed, nil
+		return MediaGetResponseFilesItemStatusFailed, nil
 	}
-	var t MediaGetResponseDataFilesItemStatus
+	var t MediaGetResponseFilesItemStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaGetResponseDataFilesItemStatus) Ptr() *MediaGetResponseDataFilesItemStatus {
+func (m MediaGetResponseFilesItemStatus) Ptr() *MediaGetResponseFilesItemStatus {
 	return &m
 }
 
-type MediaGetResponseDataKind string
+type MediaGetResponseKind string
 
 const (
-	MediaGetResponseDataKindVideo MediaGetResponseDataKind = "video"
-	MediaGetResponseDataKindImage MediaGetResponseDataKind = "image"
-	MediaGetResponseDataKindAudio MediaGetResponseDataKind = "audio"
+	MediaGetResponseKindVideo MediaGetResponseKind = "video"
+	MediaGetResponseKindImage MediaGetResponseKind = "image"
+	MediaGetResponseKindAudio MediaGetResponseKind = "audio"
 )
 
-func NewMediaGetResponseDataKindFromString(s string) (MediaGetResponseDataKind, error) {
+func NewMediaGetResponseKindFromString(s string) (MediaGetResponseKind, error) {
 	switch s {
 	case "video":
-		return MediaGetResponseDataKindVideo, nil
+		return MediaGetResponseKindVideo, nil
 	case "image":
-		return MediaGetResponseDataKindImage, nil
+		return MediaGetResponseKindImage, nil
 	case "audio":
-		return MediaGetResponseDataKindAudio, nil
+		return MediaGetResponseKindAudio, nil
 	}
-	var t MediaGetResponseDataKind
+	var t MediaGetResponseKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaGetResponseDataKind) Ptr() *MediaGetResponseDataKind {
-	return &m
-}
-
-type MediaGetResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaGetResponseError) GetMessage() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Message
-}
-
-func (m *MediaGetResponseError) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaGetResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaGetResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaGetResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaGetResponseError) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaGetResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaGetResponseLinks) GetSelf() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Self
-}
-
-func (m *MediaGetResponseLinks) GetParent() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Parent
-}
-
-func (m *MediaGetResponseLinks) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaGetResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaGetResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaGetResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaGetResponseLinks) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaGetResponseMeta struct {
-	RequestID *string                   `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                   `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                   `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                   `json:"version,omitempty" url:"version,omitempty"`
-	Type      *MediaGetResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaGetResponseMeta) GetRequestID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.RequestID
-}
-
-func (m *MediaGetResponseMeta) GetOrgID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.OrgID
-}
-
-func (m *MediaGetResponseMeta) GetProjectID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.ProjectID
-}
-
-func (m *MediaGetResponseMeta) GetVersion() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Version
-}
-
-func (m *MediaGetResponseMeta) GetType() *MediaGetResponseMetaType {
-	if m == nil {
-		return nil
-	}
-	return m.Type
-}
-
-func (m *MediaGetResponseMeta) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaGetResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaGetResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaGetResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaGetResponseMeta) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaGetResponseMetaType string
-
-const (
-	MediaGetResponseMetaTypeObject MediaGetResponseMetaType = "object"
-	MediaGetResponseMetaTypeList   MediaGetResponseMetaType = "list"
-)
-
-func NewMediaGetResponseMetaTypeFromString(s string) (MediaGetResponseMetaType, error) {
-	switch s {
-	case "object":
-		return MediaGetResponseMetaTypeObject, nil
-	case "list":
-		return MediaGetResponseMetaTypeList, nil
-	}
-	var t MediaGetResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (m MediaGetResponseMetaType) Ptr() *MediaGetResponseMetaType {
+func (m MediaGetResponseKind) Ptr() *MediaGetResponseKind {
 	return &m
 }
 
 type MediaUpdateResponse struct {
-	Meta  *MediaUpdateResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *MediaUpdateResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *MediaUpdateResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *MediaUpdateResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+	ID         string                          `json:"id" url:"id"`
+	Object     string                          `json:"object" url:"object"`
+	Kind       *MediaUpdateResponseKind        `json:"kind,omitempty" url:"kind,omitempty"`
+	Title      *string                         `json:"title,omitempty" url:"title,omitempty"`
+	Alt        *string                         `json:"alt,omitempty" url:"alt,omitempty"`
+	Width      *int                            `json:"width,omitempty" url:"width,omitempty"`
+	Height     *int                            `json:"height,omitempty" url:"height,omitempty"`
+	Duration   *float64                        `json:"duration,omitempty" url:"duration,omitempty"`
+	Files      []*MediaUpdateResponseFilesItem `json:"files,omitempty" url:"files,omitempty"`
+	URLs       map[string]interface{}          `json:"urls,omitempty" url:"urls,omitempty"`
+	Background *string                         `json:"background,omitempty" url:"background,omitempty"`
+	Metadata   map[string]interface{}          `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Created    time.Time                       `json:"created" url:"created"`
+	Updated    time.Time                       `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaUpdateResponse) GetMeta() *MediaUpdateResponseMeta {
+func (m *MediaUpdateResponse) GetID() string {
 	if m == nil {
-		return nil
+		return ""
 	}
-	return m.Meta
+	return m.ID
 }
 
-func (m *MediaUpdateResponse) GetData() *MediaUpdateResponseData {
+func (m *MediaUpdateResponse) GetObject() string {
 	if m == nil {
-		return nil
+		return ""
 	}
-	return m.Data
+	return m.Object
 }
 
-func (m *MediaUpdateResponse) GetError() *MediaUpdateResponseError {
+func (m *MediaUpdateResponse) GetKind() *MediaUpdateResponseKind {
 	if m == nil {
 		return nil
 	}
-	return m.Error
+	return m.Kind
 }
 
-func (m *MediaUpdateResponse) GetLinks() *MediaUpdateResponseLinks {
+func (m *MediaUpdateResponse) GetTitle() *string {
 	if m == nil {
 		return nil
 	}
-	return m.Links
+	return m.Title
+}
+
+func (m *MediaUpdateResponse) GetAlt() *string {
+	if m == nil {
+		return nil
+	}
+	return m.Alt
+}
+
+func (m *MediaUpdateResponse) GetWidth() *int {
+	if m == nil {
+		return nil
+	}
+	return m.Width
+}
+
+func (m *MediaUpdateResponse) GetHeight() *int {
+	if m == nil {
+		return nil
+	}
+	return m.Height
+}
+
+func (m *MediaUpdateResponse) GetDuration() *float64 {
+	if m == nil {
+		return nil
+	}
+	return m.Duration
+}
+
+func (m *MediaUpdateResponse) GetFiles() []*MediaUpdateResponseFilesItem {
+	if m == nil {
+		return nil
+	}
+	return m.Files
+}
+
+func (m *MediaUpdateResponse) GetURLs() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.URLs
+}
+
+func (m *MediaUpdateResponse) GetBackground() *string {
+	if m == nil {
+		return nil
+	}
+	return m.Background
+}
+
+func (m *MediaUpdateResponse) GetMetadata() map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return m.Metadata
+}
+
+func (m *MediaUpdateResponse) GetCreated() time.Time {
+	if m == nil {
+		return time.Time{}
+	}
+	return m.Created
+}
+
+func (m *MediaUpdateResponse) GetUpdated() time.Time {
+	if m == nil {
+		return time.Time{}
+	}
+	return m.Updated
 }
 
 func (m *MediaUpdateResponse) GetExtraProperties() map[string]interface{} {
@@ -2925,12 +1906,20 @@ func (m *MediaUpdateResponse) GetExtraProperties() map[string]interface{} {
 }
 
 func (m *MediaUpdateResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaUpdateResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed MediaUpdateResponse
+	var unmarshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed: embed(*m),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaUpdateResponse(value)
+	*m = MediaUpdateResponse(unmarshaler.embed)
+	m.Created = unmarshaler.Created.Time()
+	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
 	if err != nil {
 		return err
@@ -2938,6 +1927,20 @@ func (m *MediaUpdateResponse) UnmarshalJSON(data []byte) error {
 	m.extraProperties = extraProperties
 	m.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (m *MediaUpdateResponse) MarshalJSON() ([]byte, error) {
+	type embed MediaUpdateResponse
+	var marshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed:   embed(*m),
+		Created: internal.NewDateTime(m.Created),
+		Updated: internal.NewDateTime(m.Updated),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (m *MediaUpdateResponse) String() string {
@@ -2952,390 +1955,218 @@ func (m *MediaUpdateResponse) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaUpdateResponseData struct {
-	ID         string                              `json:"id" url:"id"`
-	Object     string                              `json:"object" url:"object"`
-	Kind       *MediaUpdateResponseDataKind        `json:"kind,omitempty" url:"kind,omitempty"`
-	Title      *string                             `json:"title,omitempty" url:"title,omitempty"`
-	Alt        *string                             `json:"alt,omitempty" url:"alt,omitempty"`
-	Width      *int                                `json:"width,omitempty" url:"width,omitempty"`
-	Height     *int                                `json:"height,omitempty" url:"height,omitempty"`
-	Duration   *float64                            `json:"duration,omitempty" url:"duration,omitempty"`
-	Files      []*MediaUpdateResponseDataFilesItem `json:"files,omitempty" url:"files,omitempty"`
-	URLs       map[string]interface{}              `json:"urls,omitempty" url:"urls,omitempty"`
-	Background *string                             `json:"background,omitempty" url:"background,omitempty"`
-	Metadata   map[string]interface{}              `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Created    time.Time                           `json:"created" url:"created"`
-	Updated    time.Time                           `json:"updated" url:"updated"`
+type MediaUpdateResponseFilesItem struct {
+	ID           string                                   `json:"id" url:"id"`
+	Object       MediaUpdateResponseFilesItemObject       `json:"object" url:"object"`
+	Kind         MediaUpdateResponseFilesItemKind         `json:"kind" url:"kind"`
+	Type         string                                   `json:"type" url:"type"`
+	Codec        *string                                  `json:"codec,omitempty" url:"codec,omitempty"`
+	Container    *string                                  `json:"container,omitempty" url:"container,omitempty"`
+	Width        *int                                     `json:"width,omitempty" url:"width,omitempty"`
+	Height       *int                                     `json:"height,omitempty" url:"height,omitempty"`
+	Orientation  *MediaUpdateResponseFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
+	Rotation     *float64                                 `json:"rotation,omitempty" url:"rotation,omitempty"`
+	Transparency *bool                                    `json:"transparency,omitempty" url:"transparency,omitempty"`
+	Frames       *int                                     `json:"frames,omitempty" url:"frames,omitempty"`
+	Duration     *float64                                 `json:"duration,omitempty" url:"duration,omitempty"`
+	Fps          *float64                                 `json:"fps,omitempty" url:"fps,omitempty"`
+	Filesize     int                                      `json:"filesize" url:"filesize"`
+	Bitrate      *int                                     `json:"bitrate,omitempty" url:"bitrate,omitempty"`
+	Ref          *string                                  `json:"ref,omitempty" url:"ref,omitempty"`
+	Folder       *string                                  `json:"folder,omitempty" url:"folder,omitempty"`
+	Filename     *string                                  `json:"filename,omitempty" url:"filename,omitempty"`
+	URL          string                                   `json:"url" url:"url"`
+	Metadata     map[string]interface{}                   `json:"metadata,omitempty" url:"metadata,omitempty"`
+	Original     *bool                                    `json:"original,omitempty" url:"original,omitempty"`
+	Created      time.Time                                `json:"created" url:"created"`
+	Updated      time.Time                                `json:"updated" url:"updated"`
+	Status       MediaUpdateResponseFilesItemStatus       `json:"status" url:"status"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (m *MediaUpdateResponseData) GetID() string {
+func (m *MediaUpdateResponseFilesItem) GetID() string {
 	if m == nil {
 		return ""
 	}
 	return m.ID
 }
 
-func (m *MediaUpdateResponseData) GetObject() string {
+func (m *MediaUpdateResponseFilesItem) GetObject() MediaUpdateResponseFilesItemObject {
 	if m == nil {
 		return ""
 	}
 	return m.Object
 }
 
-func (m *MediaUpdateResponseData) GetKind() *MediaUpdateResponseDataKind {
-	if m == nil {
-		return nil
-	}
-	return m.Kind
-}
-
-func (m *MediaUpdateResponseData) GetTitle() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Title
-}
-
-func (m *MediaUpdateResponseData) GetAlt() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Alt
-}
-
-func (m *MediaUpdateResponseData) GetWidth() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Width
-}
-
-func (m *MediaUpdateResponseData) GetHeight() *int {
-	if m == nil {
-		return nil
-	}
-	return m.Height
-}
-
-func (m *MediaUpdateResponseData) GetDuration() *float64 {
-	if m == nil {
-		return nil
-	}
-	return m.Duration
-}
-
-func (m *MediaUpdateResponseData) GetFiles() []*MediaUpdateResponseDataFilesItem {
-	if m == nil {
-		return nil
-	}
-	return m.Files
-}
-
-func (m *MediaUpdateResponseData) GetURLs() map[string]interface{} {
-	if m == nil {
-		return nil
-	}
-	return m.URLs
-}
-
-func (m *MediaUpdateResponseData) GetBackground() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Background
-}
-
-func (m *MediaUpdateResponseData) GetMetadata() map[string]interface{} {
-	if m == nil {
-		return nil
-	}
-	return m.Metadata
-}
-
-func (m *MediaUpdateResponseData) GetCreated() time.Time {
-	if m == nil {
-		return time.Time{}
-	}
-	return m.Created
-}
-
-func (m *MediaUpdateResponseData) GetUpdated() time.Time {
-	if m == nil {
-		return time.Time{}
-	}
-	return m.Updated
-}
-
-func (m *MediaUpdateResponseData) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaUpdateResponseData) UnmarshalJSON(data []byte) error {
-	type embed MediaUpdateResponseData
-	var unmarshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed: embed(*m),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*m = MediaUpdateResponseData(unmarshaler.embed)
-	m.Created = unmarshaler.Created.Time()
-	m.Updated = unmarshaler.Updated.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaUpdateResponseData) MarshalJSON() ([]byte, error) {
-	type embed MediaUpdateResponseData
-	var marshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed:   embed(*m),
-		Created: internal.NewDateTime(m.Created),
-		Updated: internal.NewDateTime(m.Updated),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (m *MediaUpdateResponseData) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaUpdateResponseDataFilesItem struct {
-	ID           string                                       `json:"id" url:"id"`
-	Object       MediaUpdateResponseDataFilesItemObject       `json:"object" url:"object"`
-	Kind         MediaUpdateResponseDataFilesItemKind         `json:"kind" url:"kind"`
-	Type         string                                       `json:"type" url:"type"`
-	Codec        *string                                      `json:"codec,omitempty" url:"codec,omitempty"`
-	Container    *string                                      `json:"container,omitempty" url:"container,omitempty"`
-	Width        *int                                         `json:"width,omitempty" url:"width,omitempty"`
-	Height       *int                                         `json:"height,omitempty" url:"height,omitempty"`
-	Orientation  *MediaUpdateResponseDataFilesItemOrientation `json:"orientation,omitempty" url:"orientation,omitempty"`
-	Rotation     *float64                                     `json:"rotation,omitempty" url:"rotation,omitempty"`
-	Transparency *bool                                        `json:"transparency,omitempty" url:"transparency,omitempty"`
-	Frames       *int                                         `json:"frames,omitempty" url:"frames,omitempty"`
-	Duration     *float64                                     `json:"duration,omitempty" url:"duration,omitempty"`
-	Fps          *float64                                     `json:"fps,omitempty" url:"fps,omitempty"`
-	Filesize     int                                          `json:"filesize" url:"filesize"`
-	Bitrate      *int                                         `json:"bitrate,omitempty" url:"bitrate,omitempty"`
-	Ref          *string                                      `json:"ref,omitempty" url:"ref,omitempty"`
-	Folder       *string                                      `json:"folder,omitempty" url:"folder,omitempty"`
-	Filename     *string                                      `json:"filename,omitempty" url:"filename,omitempty"`
-	URL          string                                       `json:"url" url:"url"`
-	Metadata     map[string]interface{}                       `json:"metadata,omitempty" url:"metadata,omitempty"`
-	Original     *bool                                        `json:"original,omitempty" url:"original,omitempty"`
-	Created      time.Time                                    `json:"created" url:"created"`
-	Updated      time.Time                                    `json:"updated" url:"updated"`
-	Status       MediaUpdateResponseDataFilesItemStatus       `json:"status" url:"status"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaUpdateResponseDataFilesItem) GetID() string {
-	if m == nil {
-		return ""
-	}
-	return m.ID
-}
-
-func (m *MediaUpdateResponseDataFilesItem) GetObject() MediaUpdateResponseDataFilesItemObject {
-	if m == nil {
-		return ""
-	}
-	return m.Object
-}
-
-func (m *MediaUpdateResponseDataFilesItem) GetKind() MediaUpdateResponseDataFilesItemKind {
+func (m *MediaUpdateResponseFilesItem) GetKind() MediaUpdateResponseFilesItemKind {
 	if m == nil {
 		return ""
 	}
 	return m.Kind
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetType() string {
+func (m *MediaUpdateResponseFilesItem) GetType() string {
 	if m == nil {
 		return ""
 	}
 	return m.Type
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetCodec() *string {
+func (m *MediaUpdateResponseFilesItem) GetCodec() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Codec
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetContainer() *string {
+func (m *MediaUpdateResponseFilesItem) GetContainer() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Container
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetWidth() *int {
+func (m *MediaUpdateResponseFilesItem) GetWidth() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Width
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetHeight() *int {
+func (m *MediaUpdateResponseFilesItem) GetHeight() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Height
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetOrientation() *MediaUpdateResponseDataFilesItemOrientation {
+func (m *MediaUpdateResponseFilesItem) GetOrientation() *MediaUpdateResponseFilesItemOrientation {
 	if m == nil {
 		return nil
 	}
 	return m.Orientation
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetRotation() *float64 {
+func (m *MediaUpdateResponseFilesItem) GetRotation() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Rotation
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetTransparency() *bool {
+func (m *MediaUpdateResponseFilesItem) GetTransparency() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Transparency
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetFrames() *int {
+func (m *MediaUpdateResponseFilesItem) GetFrames() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Frames
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetDuration() *float64 {
+func (m *MediaUpdateResponseFilesItem) GetDuration() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Duration
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetFps() *float64 {
+func (m *MediaUpdateResponseFilesItem) GetFps() *float64 {
 	if m == nil {
 		return nil
 	}
 	return m.Fps
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetFilesize() int {
+func (m *MediaUpdateResponseFilesItem) GetFilesize() int {
 	if m == nil {
 		return 0
 	}
 	return m.Filesize
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetBitrate() *int {
+func (m *MediaUpdateResponseFilesItem) GetBitrate() *int {
 	if m == nil {
 		return nil
 	}
 	return m.Bitrate
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetRef() *string {
+func (m *MediaUpdateResponseFilesItem) GetRef() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Ref
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetFolder() *string {
+func (m *MediaUpdateResponseFilesItem) GetFolder() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Folder
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetFilename() *string {
+func (m *MediaUpdateResponseFilesItem) GetFilename() *string {
 	if m == nil {
 		return nil
 	}
 	return m.Filename
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetURL() string {
+func (m *MediaUpdateResponseFilesItem) GetURL() string {
 	if m == nil {
 		return ""
 	}
 	return m.URL
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetMetadata() map[string]interface{} {
+func (m *MediaUpdateResponseFilesItem) GetMetadata() map[string]interface{} {
 	if m == nil {
 		return nil
 	}
 	return m.Metadata
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetOriginal() *bool {
+func (m *MediaUpdateResponseFilesItem) GetOriginal() *bool {
 	if m == nil {
 		return nil
 	}
 	return m.Original
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetCreated() time.Time {
+func (m *MediaUpdateResponseFilesItem) GetCreated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Created
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetUpdated() time.Time {
+func (m *MediaUpdateResponseFilesItem) GetUpdated() time.Time {
 	if m == nil {
 		return time.Time{}
 	}
 	return m.Updated
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetStatus() MediaUpdateResponseDataFilesItemStatus {
+func (m *MediaUpdateResponseFilesItem) GetStatus() MediaUpdateResponseFilesItemStatus {
 	if m == nil {
 		return ""
 	}
 	return m.Status
 }
 
-func (m *MediaUpdateResponseDataFilesItem) GetExtraProperties() map[string]interface{} {
+func (m *MediaUpdateResponseFilesItem) GetExtraProperties() map[string]interface{} {
 	return m.extraProperties
 }
 
-func (m *MediaUpdateResponseDataFilesItem) UnmarshalJSON(data []byte) error {
-	type embed MediaUpdateResponseDataFilesItem
+func (m *MediaUpdateResponseFilesItem) UnmarshalJSON(data []byte) error {
+	type embed MediaUpdateResponseFilesItem
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -3346,7 +2177,7 @@ func (m *MediaUpdateResponseDataFilesItem) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*m = MediaUpdateResponseDataFilesItem(unmarshaler.embed)
+	*m = MediaUpdateResponseFilesItem(unmarshaler.embed)
 	m.Created = unmarshaler.Created.Time()
 	m.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *m)
@@ -3358,8 +2189,8 @@ func (m *MediaUpdateResponseDataFilesItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (m *MediaUpdateResponseDataFilesItem) MarshalJSON() ([]byte, error) {
-	type embed MediaUpdateResponseDataFilesItem
+func (m *MediaUpdateResponseFilesItem) MarshalJSON() ([]byte, error) {
+	type embed MediaUpdateResponseFilesItem
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -3372,7 +2203,7 @@ func (m *MediaUpdateResponseDataFilesItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (m *MediaUpdateResponseDataFilesItem) String() string {
+func (m *MediaUpdateResponseFilesItem) String() string {
 	if len(m.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
 			return value
@@ -3384,336 +2215,165 @@ func (m *MediaUpdateResponseDataFilesItem) String() string {
 	return fmt.Sprintf("%#v", m)
 }
 
-type MediaUpdateResponseDataFilesItemKind string
+type MediaUpdateResponseFilesItemKind string
 
 const (
-	MediaUpdateResponseDataFilesItemKindVideo MediaUpdateResponseDataFilesItemKind = "video"
-	MediaUpdateResponseDataFilesItemKindImage MediaUpdateResponseDataFilesItemKind = "image"
-	MediaUpdateResponseDataFilesItemKindAudio MediaUpdateResponseDataFilesItemKind = "audio"
+	MediaUpdateResponseFilesItemKindVideo MediaUpdateResponseFilesItemKind = "video"
+	MediaUpdateResponseFilesItemKindImage MediaUpdateResponseFilesItemKind = "image"
+	MediaUpdateResponseFilesItemKindAudio MediaUpdateResponseFilesItemKind = "audio"
 )
 
-func NewMediaUpdateResponseDataFilesItemKindFromString(s string) (MediaUpdateResponseDataFilesItemKind, error) {
+func NewMediaUpdateResponseFilesItemKindFromString(s string) (MediaUpdateResponseFilesItemKind, error) {
 	switch s {
 	case "video":
-		return MediaUpdateResponseDataFilesItemKindVideo, nil
+		return MediaUpdateResponseFilesItemKindVideo, nil
 	case "image":
-		return MediaUpdateResponseDataFilesItemKindImage, nil
+		return MediaUpdateResponseFilesItemKindImage, nil
 	case "audio":
-		return MediaUpdateResponseDataFilesItemKindAudio, nil
+		return MediaUpdateResponseFilesItemKindAudio, nil
 	}
-	var t MediaUpdateResponseDataFilesItemKind
+	var t MediaUpdateResponseFilesItemKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaUpdateResponseDataFilesItemKind) Ptr() *MediaUpdateResponseDataFilesItemKind {
+func (m MediaUpdateResponseFilesItemKind) Ptr() *MediaUpdateResponseFilesItemKind {
 	return &m
 }
 
-type MediaUpdateResponseDataFilesItemObject string
+type MediaUpdateResponseFilesItemObject string
 
 const (
-	MediaUpdateResponseDataFilesItemObjectSource       MediaUpdateResponseDataFilesItemObject = "source"
-	MediaUpdateResponseDataFilesItemObjectTrack        MediaUpdateResponseDataFilesItemObject = "track"
-	MediaUpdateResponseDataFilesItemObjectIntelligence MediaUpdateResponseDataFilesItemObject = "intelligence"
+	MediaUpdateResponseFilesItemObjectSource       MediaUpdateResponseFilesItemObject = "source"
+	MediaUpdateResponseFilesItemObjectTrack        MediaUpdateResponseFilesItemObject = "track"
+	MediaUpdateResponseFilesItemObjectIntelligence MediaUpdateResponseFilesItemObject = "intelligence"
 )
 
-func NewMediaUpdateResponseDataFilesItemObjectFromString(s string) (MediaUpdateResponseDataFilesItemObject, error) {
+func NewMediaUpdateResponseFilesItemObjectFromString(s string) (MediaUpdateResponseFilesItemObject, error) {
 	switch s {
 	case "source":
-		return MediaUpdateResponseDataFilesItemObjectSource, nil
+		return MediaUpdateResponseFilesItemObjectSource, nil
 	case "track":
-		return MediaUpdateResponseDataFilesItemObjectTrack, nil
+		return MediaUpdateResponseFilesItemObjectTrack, nil
 	case "intelligence":
-		return MediaUpdateResponseDataFilesItemObjectIntelligence, nil
+		return MediaUpdateResponseFilesItemObjectIntelligence, nil
 	}
-	var t MediaUpdateResponseDataFilesItemObject
+	var t MediaUpdateResponseFilesItemObject
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaUpdateResponseDataFilesItemObject) Ptr() *MediaUpdateResponseDataFilesItemObject {
+func (m MediaUpdateResponseFilesItemObject) Ptr() *MediaUpdateResponseFilesItemObject {
 	return &m
 }
 
-type MediaUpdateResponseDataFilesItemOrientation string
+type MediaUpdateResponseFilesItemOrientation string
 
 const (
-	MediaUpdateResponseDataFilesItemOrientationLandscape MediaUpdateResponseDataFilesItemOrientation = "landscape"
-	MediaUpdateResponseDataFilesItemOrientationPortrait  MediaUpdateResponseDataFilesItemOrientation = "portrait"
-	MediaUpdateResponseDataFilesItemOrientationSquare    MediaUpdateResponseDataFilesItemOrientation = "square"
+	MediaUpdateResponseFilesItemOrientationLandscape MediaUpdateResponseFilesItemOrientation = "landscape"
+	MediaUpdateResponseFilesItemOrientationPortrait  MediaUpdateResponseFilesItemOrientation = "portrait"
+	MediaUpdateResponseFilesItemOrientationSquare    MediaUpdateResponseFilesItemOrientation = "square"
 )
 
-func NewMediaUpdateResponseDataFilesItemOrientationFromString(s string) (MediaUpdateResponseDataFilesItemOrientation, error) {
+func NewMediaUpdateResponseFilesItemOrientationFromString(s string) (MediaUpdateResponseFilesItemOrientation, error) {
 	switch s {
 	case "landscape":
-		return MediaUpdateResponseDataFilesItemOrientationLandscape, nil
+		return MediaUpdateResponseFilesItemOrientationLandscape, nil
 	case "portrait":
-		return MediaUpdateResponseDataFilesItemOrientationPortrait, nil
+		return MediaUpdateResponseFilesItemOrientationPortrait, nil
 	case "square":
-		return MediaUpdateResponseDataFilesItemOrientationSquare, nil
+		return MediaUpdateResponseFilesItemOrientationSquare, nil
 	}
-	var t MediaUpdateResponseDataFilesItemOrientation
+	var t MediaUpdateResponseFilesItemOrientation
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaUpdateResponseDataFilesItemOrientation) Ptr() *MediaUpdateResponseDataFilesItemOrientation {
+func (m MediaUpdateResponseFilesItemOrientation) Ptr() *MediaUpdateResponseFilesItemOrientation {
 	return &m
 }
 
-type MediaUpdateResponseDataFilesItemStatus string
+type MediaUpdateResponseFilesItemStatus string
 
 const (
-	MediaUpdateResponseDataFilesItemStatusWaiting    MediaUpdateResponseDataFilesItemStatus = "waiting"
-	MediaUpdateResponseDataFilesItemStatusProcessing MediaUpdateResponseDataFilesItemStatus = "processing"
-	MediaUpdateResponseDataFilesItemStatusReady      MediaUpdateResponseDataFilesItemStatus = "ready"
-	MediaUpdateResponseDataFilesItemStatusFailed     MediaUpdateResponseDataFilesItemStatus = "failed"
+	MediaUpdateResponseFilesItemStatusWaiting    MediaUpdateResponseFilesItemStatus = "waiting"
+	MediaUpdateResponseFilesItemStatusProcessing MediaUpdateResponseFilesItemStatus = "processing"
+	MediaUpdateResponseFilesItemStatusReady      MediaUpdateResponseFilesItemStatus = "ready"
+	MediaUpdateResponseFilesItemStatusFailed     MediaUpdateResponseFilesItemStatus = "failed"
 )
 
-func NewMediaUpdateResponseDataFilesItemStatusFromString(s string) (MediaUpdateResponseDataFilesItemStatus, error) {
+func NewMediaUpdateResponseFilesItemStatusFromString(s string) (MediaUpdateResponseFilesItemStatus, error) {
 	switch s {
 	case "waiting":
-		return MediaUpdateResponseDataFilesItemStatusWaiting, nil
+		return MediaUpdateResponseFilesItemStatusWaiting, nil
 	case "processing":
-		return MediaUpdateResponseDataFilesItemStatusProcessing, nil
+		return MediaUpdateResponseFilesItemStatusProcessing, nil
 	case "ready":
-		return MediaUpdateResponseDataFilesItemStatusReady, nil
+		return MediaUpdateResponseFilesItemStatusReady, nil
 	case "failed":
-		return MediaUpdateResponseDataFilesItemStatusFailed, nil
+		return MediaUpdateResponseFilesItemStatusFailed, nil
 	}
-	var t MediaUpdateResponseDataFilesItemStatus
+	var t MediaUpdateResponseFilesItemStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaUpdateResponseDataFilesItemStatus) Ptr() *MediaUpdateResponseDataFilesItemStatus {
+func (m MediaUpdateResponseFilesItemStatus) Ptr() *MediaUpdateResponseFilesItemStatus {
 	return &m
 }
 
-type MediaUpdateResponseDataKind string
+type MediaUpdateResponseKind string
 
 const (
-	MediaUpdateResponseDataKindVideo MediaUpdateResponseDataKind = "video"
-	MediaUpdateResponseDataKindImage MediaUpdateResponseDataKind = "image"
-	MediaUpdateResponseDataKindAudio MediaUpdateResponseDataKind = "audio"
+	MediaUpdateResponseKindVideo MediaUpdateResponseKind = "video"
+	MediaUpdateResponseKindImage MediaUpdateResponseKind = "image"
+	MediaUpdateResponseKindAudio MediaUpdateResponseKind = "audio"
 )
 
-func NewMediaUpdateResponseDataKindFromString(s string) (MediaUpdateResponseDataKind, error) {
+func NewMediaUpdateResponseKindFromString(s string) (MediaUpdateResponseKind, error) {
 	switch s {
 	case "video":
-		return MediaUpdateResponseDataKindVideo, nil
+		return MediaUpdateResponseKindVideo, nil
 	case "image":
-		return MediaUpdateResponseDataKindImage, nil
+		return MediaUpdateResponseKindImage, nil
 	case "audio":
-		return MediaUpdateResponseDataKindAudio, nil
+		return MediaUpdateResponseKindAudio, nil
 	}
-	var t MediaUpdateResponseDataKind
+	var t MediaUpdateResponseKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (m MediaUpdateResponseDataKind) Ptr() *MediaUpdateResponseDataKind {
-	return &m
-}
-
-type MediaUpdateResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaUpdateResponseError) GetMessage() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Message
-}
-
-func (m *MediaUpdateResponseError) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaUpdateResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaUpdateResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaUpdateResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaUpdateResponseError) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaUpdateResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaUpdateResponseLinks) GetSelf() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Self
-}
-
-func (m *MediaUpdateResponseLinks) GetParent() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Parent
-}
-
-func (m *MediaUpdateResponseLinks) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaUpdateResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaUpdateResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaUpdateResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaUpdateResponseLinks) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaUpdateResponseMeta struct {
-	RequestID *string                      `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                      `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                      `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                      `json:"version,omitempty" url:"version,omitempty"`
-	Type      *MediaUpdateResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (m *MediaUpdateResponseMeta) GetRequestID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.RequestID
-}
-
-func (m *MediaUpdateResponseMeta) GetOrgID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.OrgID
-}
-
-func (m *MediaUpdateResponseMeta) GetProjectID() *string {
-	if m == nil {
-		return nil
-	}
-	return m.ProjectID
-}
-
-func (m *MediaUpdateResponseMeta) GetVersion() *string {
-	if m == nil {
-		return nil
-	}
-	return m.Version
-}
-
-func (m *MediaUpdateResponseMeta) GetType() *MediaUpdateResponseMetaType {
-	if m == nil {
-		return nil
-	}
-	return m.Type
-}
-
-func (m *MediaUpdateResponseMeta) GetExtraProperties() map[string]interface{} {
-	return m.extraProperties
-}
-
-func (m *MediaUpdateResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler MediaUpdateResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*m = MediaUpdateResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *m)
-	if err != nil {
-		return err
-	}
-	m.extraProperties = extraProperties
-	m.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (m *MediaUpdateResponseMeta) String() string {
-	if len(m.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(m.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(m); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", m)
-}
-
-type MediaUpdateResponseMetaType string
-
-const (
-	MediaUpdateResponseMetaTypeObject MediaUpdateResponseMetaType = "object"
-	MediaUpdateResponseMetaTypeList   MediaUpdateResponseMetaType = "list"
-)
-
-func NewMediaUpdateResponseMetaTypeFromString(s string) (MediaUpdateResponseMetaType, error) {
-	switch s {
-	case "object":
-		return MediaUpdateResponseMetaTypeObject, nil
-	case "list":
-		return MediaUpdateResponseMetaTypeList, nil
-	}
-	var t MediaUpdateResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (m MediaUpdateResponseMetaType) Ptr() *MediaUpdateResponseMetaType {
+func (m MediaUpdateResponseKind) Ptr() *MediaUpdateResponseKind {
 	return &m
 }
 
 type MediaUpdateRequest struct {
-	Title    *string                `json:"title,omitempty" url:"-"`
-	Alt      *string                `json:"alt,omitempty" url:"-"`
-	Metadata map[string]interface{} `json:"metadata,omitempty" url:"-"`
+	// Specifies the API Version
+	Title         *string                `json:"title,omitempty" url:"-"`
+	Alt           *string                `json:"alt,omitempty" url:"-"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty" url:"-"`
+	acceptVersion string
+}
+
+func (m *MediaUpdateRequest) AcceptVersion() string {
+	return m.acceptVersion
+}
+
+func (m *MediaUpdateRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler MediaUpdateRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*m = MediaUpdateRequest(body)
+	m.acceptVersion = "2025-08-20"
+	return nil
+}
+
+func (m *MediaUpdateRequest) MarshalJSON() ([]byte, error) {
+	type embed MediaUpdateRequest
+	var marshaler = struct {
+		embed
+		AcceptVersion string `json:"Accept-Version"`
+	}{
+		embed:         embed(*m),
+		AcceptVersion: "2025-08-20",
+	}
+	return json.Marshal(marshaler)
 }

@@ -18,8 +18,14 @@ type AutomationsCreateRequest struct {
 }
 
 type AutomationsListRequest struct {
-	Page  *int `json:"-" url:"page,omitempty"`
-	Limit *int `json:"-" url:"limit,omitempty"`
+	// Specifies the API Version
+	Page          *int `json:"-" url:"page,omitempty"`
+	Limit         *int `json:"-" url:"limit,omitempty"`
+	acceptVersion string
+}
+
+func (a *AutomationsListRequest) AcceptVersion() string {
+	return a.acceptVersion
 }
 
 type AutomationsCreateRequestStatus string
@@ -289,41 +295,73 @@ func (a *AutomationsCreateRequestWorkflowItemNextItem) String() string {
 }
 
 type AutomationsCreateResponse struct {
-	Meta  *AutomationsCreateResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *AutomationsCreateResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *AutomationsCreateResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *AutomationsCreateResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+	ID          string                                   `json:"id" url:"id"`
+	Name        *string                                  `json:"name,omitempty" url:"name,omitempty"`
+	Description *string                                  `json:"description,omitempty" url:"description,omitempty"`
+	Trigger     *AutomationsCreateResponseTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
+	Workflow    []*AutomationsCreateResponseWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Status      AutomationsCreateResponseStatus          `json:"status" url:"status"`
+	Created     time.Time                                `json:"created" url:"created"`
+	Updated     time.Time                                `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponse) GetMeta() *AutomationsCreateResponseMeta {
+func (a *AutomationsCreateResponse) GetID() string {
 	if a == nil {
-		return nil
+		return ""
 	}
-	return a.Meta
+	return a.ID
 }
 
-func (a *AutomationsCreateResponse) GetData() *AutomationsCreateResponseData {
+func (a *AutomationsCreateResponse) GetName() *string {
 	if a == nil {
 		return nil
 	}
-	return a.Data
+	return a.Name
 }
 
-func (a *AutomationsCreateResponse) GetError() *AutomationsCreateResponseError {
+func (a *AutomationsCreateResponse) GetDescription() *string {
 	if a == nil {
 		return nil
 	}
-	return a.Error
+	return a.Description
 }
 
-func (a *AutomationsCreateResponse) GetLinks() *AutomationsCreateResponseLinks {
+func (a *AutomationsCreateResponse) GetTrigger() *AutomationsCreateResponseTrigger {
 	if a == nil {
 		return nil
 	}
-	return a.Links
+	return a.Trigger
+}
+
+func (a *AutomationsCreateResponse) GetWorkflow() []*AutomationsCreateResponseWorkflowItem {
+	if a == nil {
+		return nil
+	}
+	return a.Workflow
+}
+
+func (a *AutomationsCreateResponse) GetStatus() AutomationsCreateResponseStatus {
+	if a == nil {
+		return ""
+	}
+	return a.Status
+}
+
+func (a *AutomationsCreateResponse) GetCreated() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Created
+}
+
+func (a *AutomationsCreateResponse) GetUpdated() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Updated
 }
 
 func (a *AutomationsCreateResponse) GetExtraProperties() map[string]interface{} {
@@ -331,12 +369,20 @@ func (a *AutomationsCreateResponse) GetExtraProperties() map[string]interface{} 
 }
 
 func (a *AutomationsCreateResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed AutomationsCreateResponse
+	var unmarshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsCreateResponse(value)
+	*a = AutomationsCreateResponse(unmarshaler.embed)
+	a.Created = unmarshaler.Created.Time()
+	a.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -344,6 +390,20 @@ func (a *AutomationsCreateResponse) UnmarshalJSON(data []byte) error {
 	a.extraProperties = extraProperties
 	a.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (a *AutomationsCreateResponse) MarshalJSON() ([]byte, error) {
+	type embed AutomationsCreateResponse
+	var marshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed:   embed(*a),
+		Created: internal.NewDateTime(a.Created),
+		Updated: internal.NewDateTime(a.Updated),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (a *AutomationsCreateResponse) String() string {
@@ -358,153 +418,29 @@ func (a *AutomationsCreateResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsCreateResponseData struct {
-	ID          string                                       `json:"id" url:"id"`
-	Name        *string                                      `json:"name,omitempty" url:"name,omitempty"`
-	Description *string                                      `json:"description,omitempty" url:"description,omitempty"`
-	Trigger     *AutomationsCreateResponseDataTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
-	Workflow    []*AutomationsCreateResponseDataWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Status      AutomationsCreateResponseDataStatus          `json:"status" url:"status"`
-	Created     time.Time                                    `json:"created" url:"created"`
-	Updated     time.Time                                    `json:"updated" url:"updated"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsCreateResponseData) GetID() string {
-	if a == nil {
-		return ""
-	}
-	return a.ID
-}
-
-func (a *AutomationsCreateResponseData) GetName() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Name
-}
-
-func (a *AutomationsCreateResponseData) GetDescription() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Description
-}
-
-func (a *AutomationsCreateResponseData) GetTrigger() *AutomationsCreateResponseDataTrigger {
-	if a == nil {
-		return nil
-	}
-	return a.Trigger
-}
-
-func (a *AutomationsCreateResponseData) GetWorkflow() []*AutomationsCreateResponseDataWorkflowItem {
-	if a == nil {
-		return nil
-	}
-	return a.Workflow
-}
-
-func (a *AutomationsCreateResponseData) GetStatus() AutomationsCreateResponseDataStatus {
-	if a == nil {
-		return ""
-	}
-	return a.Status
-}
-
-func (a *AutomationsCreateResponseData) GetCreated() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.Created
-}
-
-func (a *AutomationsCreateResponseData) GetUpdated() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.Updated
-}
-
-func (a *AutomationsCreateResponseData) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsCreateResponseData) UnmarshalJSON(data []byte) error {
-	type embed AutomationsCreateResponseData
-	var unmarshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AutomationsCreateResponseData(unmarshaler.embed)
-	a.Created = unmarshaler.Created.Time()
-	a.Updated = unmarshaler.Updated.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsCreateResponseData) MarshalJSON() ([]byte, error) {
-	type embed AutomationsCreateResponseData
-	var marshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed:   embed(*a),
-		Created: internal.NewDateTime(a.Created),
-		Updated: internal.NewDateTime(a.Updated),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AutomationsCreateResponseData) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsCreateResponseDataStatus string
+type AutomationsCreateResponseStatus string
 
 const (
-	AutomationsCreateResponseDataStatusActive AutomationsCreateResponseDataStatus = "active"
-	AutomationsCreateResponseDataStatusPaused AutomationsCreateResponseDataStatus = "paused"
+	AutomationsCreateResponseStatusActive AutomationsCreateResponseStatus = "active"
+	AutomationsCreateResponseStatusPaused AutomationsCreateResponseStatus = "paused"
 )
 
-func NewAutomationsCreateResponseDataStatusFromString(s string) (AutomationsCreateResponseDataStatus, error) {
+func NewAutomationsCreateResponseStatusFromString(s string) (AutomationsCreateResponseStatus, error) {
 	switch s {
 	case "active":
-		return AutomationsCreateResponseDataStatusActive, nil
+		return AutomationsCreateResponseStatusActive, nil
 	case "paused":
-		return AutomationsCreateResponseDataStatusPaused, nil
+		return AutomationsCreateResponseStatusPaused, nil
 	}
-	var t AutomationsCreateResponseDataStatus
+	var t AutomationsCreateResponseStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsCreateResponseDataStatus) Ptr() *AutomationsCreateResponseDataStatus {
+func (a AutomationsCreateResponseStatus) Ptr() *AutomationsCreateResponseStatus {
 	return &a
 }
 
-type AutomationsCreateResponseDataTrigger struct {
+type AutomationsCreateResponseTrigger struct {
 	kind  string
 	event string
 
@@ -512,20 +448,20 @@ type AutomationsCreateResponseDataTrigger struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponseDataTrigger) Kind() string {
+func (a *AutomationsCreateResponseTrigger) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsCreateResponseDataTrigger) Event() string {
+func (a *AutomationsCreateResponseTrigger) Event() string {
 	return a.event
 }
 
-func (a *AutomationsCreateResponseDataTrigger) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsCreateResponseTrigger) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsCreateResponseDataTrigger) UnmarshalJSON(data []byte) error {
-	type embed AutomationsCreateResponseDataTrigger
+func (a *AutomationsCreateResponseTrigger) UnmarshalJSON(data []byte) error {
+	type embed AutomationsCreateResponseTrigger
 	var unmarshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -536,7 +472,7 @@ func (a *AutomationsCreateResponseDataTrigger) UnmarshalJSON(data []byte) error 
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsCreateResponseDataTrigger(unmarshaler.embed)
+	*a = AutomationsCreateResponseTrigger(unmarshaler.embed)
 	if unmarshaler.Kind != "event" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "event", unmarshaler.Kind)
 	}
@@ -554,8 +490,8 @@ func (a *AutomationsCreateResponseDataTrigger) UnmarshalJSON(data []byte) error 
 	return nil
 }
 
-func (a *AutomationsCreateResponseDataTrigger) MarshalJSON() ([]byte, error) {
-	type embed AutomationsCreateResponseDataTrigger
+func (a *AutomationsCreateResponseTrigger) MarshalJSON() ([]byte, error) {
+	type embed AutomationsCreateResponseTrigger
 	var marshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -568,7 +504,7 @@ func (a *AutomationsCreateResponseDataTrigger) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsCreateResponseDataTrigger) String() string {
+func (a *AutomationsCreateResponseTrigger) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -580,109 +516,109 @@ func (a *AutomationsCreateResponseDataTrigger) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsCreateResponseDataWorkflowItem struct {
-	AutomationsCreateResponseDataWorkflowItemRef        *AutomationsCreateResponseDataWorkflowItemRef
-	AutomationsCreateResponseDataWorkflowItemConditions *AutomationsCreateResponseDataWorkflowItemConditions
+type AutomationsCreateResponseWorkflowItem struct {
+	AutomationsCreateResponseWorkflowItemRef        *AutomationsCreateResponseWorkflowItemRef
+	AutomationsCreateResponseWorkflowItemConditions *AutomationsCreateResponseWorkflowItemConditions
 
 	typ string
 }
 
-func NewAutomationsCreateResponseDataWorkflowItemFromAutomationsCreateResponseDataWorkflowItemRef(value *AutomationsCreateResponseDataWorkflowItemRef) *AutomationsCreateResponseDataWorkflowItem {
-	return &AutomationsCreateResponseDataWorkflowItem{typ: "AutomationsCreateResponseDataWorkflowItemRef", AutomationsCreateResponseDataWorkflowItemRef: value}
+func NewAutomationsCreateResponseWorkflowItemFromAutomationsCreateResponseWorkflowItemRef(value *AutomationsCreateResponseWorkflowItemRef) *AutomationsCreateResponseWorkflowItem {
+	return &AutomationsCreateResponseWorkflowItem{typ: "AutomationsCreateResponseWorkflowItemRef", AutomationsCreateResponseWorkflowItemRef: value}
 }
 
-func NewAutomationsCreateResponseDataWorkflowItemFromAutomationsCreateResponseDataWorkflowItemConditions(value *AutomationsCreateResponseDataWorkflowItemConditions) *AutomationsCreateResponseDataWorkflowItem {
-	return &AutomationsCreateResponseDataWorkflowItem{typ: "AutomationsCreateResponseDataWorkflowItemConditions", AutomationsCreateResponseDataWorkflowItemConditions: value}
+func NewAutomationsCreateResponseWorkflowItemFromAutomationsCreateResponseWorkflowItemConditions(value *AutomationsCreateResponseWorkflowItemConditions) *AutomationsCreateResponseWorkflowItem {
+	return &AutomationsCreateResponseWorkflowItem{typ: "AutomationsCreateResponseWorkflowItemConditions", AutomationsCreateResponseWorkflowItemConditions: value}
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItem) GetAutomationsCreateResponseDataWorkflowItemRef() *AutomationsCreateResponseDataWorkflowItemRef {
+func (a *AutomationsCreateResponseWorkflowItem) GetAutomationsCreateResponseWorkflowItemRef() *AutomationsCreateResponseWorkflowItemRef {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsCreateResponseDataWorkflowItemRef
+	return a.AutomationsCreateResponseWorkflowItemRef
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItem) GetAutomationsCreateResponseDataWorkflowItemConditions() *AutomationsCreateResponseDataWorkflowItemConditions {
+func (a *AutomationsCreateResponseWorkflowItem) GetAutomationsCreateResponseWorkflowItemConditions() *AutomationsCreateResponseWorkflowItemConditions {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsCreateResponseDataWorkflowItemConditions
+	return a.AutomationsCreateResponseWorkflowItemConditions
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItem) UnmarshalJSON(data []byte) error {
-	valueAutomationsCreateResponseDataWorkflowItemRef := new(AutomationsCreateResponseDataWorkflowItemRef)
-	if err := json.Unmarshal(data, &valueAutomationsCreateResponseDataWorkflowItemRef); err == nil {
-		a.typ = "AutomationsCreateResponseDataWorkflowItemRef"
-		a.AutomationsCreateResponseDataWorkflowItemRef = valueAutomationsCreateResponseDataWorkflowItemRef
+func (a *AutomationsCreateResponseWorkflowItem) UnmarshalJSON(data []byte) error {
+	valueAutomationsCreateResponseWorkflowItemRef := new(AutomationsCreateResponseWorkflowItemRef)
+	if err := json.Unmarshal(data, &valueAutomationsCreateResponseWorkflowItemRef); err == nil {
+		a.typ = "AutomationsCreateResponseWorkflowItemRef"
+		a.AutomationsCreateResponseWorkflowItemRef = valueAutomationsCreateResponseWorkflowItemRef
 		return nil
 	}
-	valueAutomationsCreateResponseDataWorkflowItemConditions := new(AutomationsCreateResponseDataWorkflowItemConditions)
-	if err := json.Unmarshal(data, &valueAutomationsCreateResponseDataWorkflowItemConditions); err == nil {
-		a.typ = "AutomationsCreateResponseDataWorkflowItemConditions"
-		a.AutomationsCreateResponseDataWorkflowItemConditions = valueAutomationsCreateResponseDataWorkflowItemConditions
+	valueAutomationsCreateResponseWorkflowItemConditions := new(AutomationsCreateResponseWorkflowItemConditions)
+	if err := json.Unmarshal(data, &valueAutomationsCreateResponseWorkflowItemConditions); err == nil {
+		a.typ = "AutomationsCreateResponseWorkflowItemConditions"
+		a.AutomationsCreateResponseWorkflowItemConditions = valueAutomationsCreateResponseWorkflowItemConditions
 		return nil
 	}
 	return fmt.Errorf("%s cannot be deserialized as a %T", data, a)
 }
 
-func (a AutomationsCreateResponseDataWorkflowItem) MarshalJSON() ([]byte, error) {
-	if a.typ == "AutomationsCreateResponseDataWorkflowItemRef" || a.AutomationsCreateResponseDataWorkflowItemRef != nil {
-		return json.Marshal(a.AutomationsCreateResponseDataWorkflowItemRef)
+func (a AutomationsCreateResponseWorkflowItem) MarshalJSON() ([]byte, error) {
+	if a.typ == "AutomationsCreateResponseWorkflowItemRef" || a.AutomationsCreateResponseWorkflowItemRef != nil {
+		return json.Marshal(a.AutomationsCreateResponseWorkflowItemRef)
 	}
-	if a.typ == "AutomationsCreateResponseDataWorkflowItemConditions" || a.AutomationsCreateResponseDataWorkflowItemConditions != nil {
-		return json.Marshal(a.AutomationsCreateResponseDataWorkflowItemConditions)
+	if a.typ == "AutomationsCreateResponseWorkflowItemConditions" || a.AutomationsCreateResponseWorkflowItemConditions != nil {
+		return json.Marshal(a.AutomationsCreateResponseWorkflowItemConditions)
 	}
 	return nil, fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsCreateResponseDataWorkflowItemVisitor interface {
-	VisitAutomationsCreateResponseDataWorkflowItemRef(*AutomationsCreateResponseDataWorkflowItemRef) error
-	VisitAutomationsCreateResponseDataWorkflowItemConditions(*AutomationsCreateResponseDataWorkflowItemConditions) error
+type AutomationsCreateResponseWorkflowItemVisitor interface {
+	VisitAutomationsCreateResponseWorkflowItemRef(*AutomationsCreateResponseWorkflowItemRef) error
+	VisitAutomationsCreateResponseWorkflowItemConditions(*AutomationsCreateResponseWorkflowItemConditions) error
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItem) Accept(visitor AutomationsCreateResponseDataWorkflowItemVisitor) error {
-	if a.typ == "AutomationsCreateResponseDataWorkflowItemRef" || a.AutomationsCreateResponseDataWorkflowItemRef != nil {
-		return visitor.VisitAutomationsCreateResponseDataWorkflowItemRef(a.AutomationsCreateResponseDataWorkflowItemRef)
+func (a *AutomationsCreateResponseWorkflowItem) Accept(visitor AutomationsCreateResponseWorkflowItemVisitor) error {
+	if a.typ == "AutomationsCreateResponseWorkflowItemRef" || a.AutomationsCreateResponseWorkflowItemRef != nil {
+		return visitor.VisitAutomationsCreateResponseWorkflowItemRef(a.AutomationsCreateResponseWorkflowItemRef)
 	}
-	if a.typ == "AutomationsCreateResponseDataWorkflowItemConditions" || a.AutomationsCreateResponseDataWorkflowItemConditions != nil {
-		return visitor.VisitAutomationsCreateResponseDataWorkflowItemConditions(a.AutomationsCreateResponseDataWorkflowItemConditions)
+	if a.typ == "AutomationsCreateResponseWorkflowItemConditions" || a.AutomationsCreateResponseWorkflowItemConditions != nil {
+		return visitor.VisitAutomationsCreateResponseWorkflowItemConditions(a.AutomationsCreateResponseWorkflowItemConditions)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsCreateResponseDataWorkflowItemConditions struct {
-	Conditions []*AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
-	Next       []*AutomationsCreateResponseDataWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsCreateResponseWorkflowItemConditions struct {
+	Conditions []*AutomationsCreateResponseWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
+	Next       []*AutomationsCreateResponseWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
 	kind       string
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditions) GetConditions() []*AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem {
+func (a *AutomationsCreateResponseWorkflowItemConditions) GetConditions() []*AutomationsCreateResponseWorkflowItemConditionsConditionsItem {
 	if a == nil {
 		return nil
 	}
 	return a.Conditions
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditions) GetNext() []*AutomationsCreateResponseDataWorkflowItemConditionsNextItem {
+func (a *AutomationsCreateResponseWorkflowItemConditions) GetNext() []*AutomationsCreateResponseWorkflowItemConditionsNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditions) Kind() string {
+func (a *AutomationsCreateResponseWorkflowItemConditions) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsCreateResponseWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditions) UnmarshalJSON(data []byte) error {
-	type embed AutomationsCreateResponseDataWorkflowItemConditions
+func (a *AutomationsCreateResponseWorkflowItemConditions) UnmarshalJSON(data []byte) error {
+	type embed AutomationsCreateResponseWorkflowItemConditions
 	var unmarshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -692,7 +628,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditions) UnmarshalJSON(data
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsCreateResponseDataWorkflowItemConditions(unmarshaler.embed)
+	*a = AutomationsCreateResponseWorkflowItemConditions(unmarshaler.embed)
 	if unmarshaler.Kind != "conditions" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "conditions", unmarshaler.Kind)
 	}
@@ -706,8 +642,8 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditions) UnmarshalJSON(data
 	return nil
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditions) MarshalJSON() ([]byte, error) {
-	type embed AutomationsCreateResponseDataWorkflowItemConditions
+func (a *AutomationsCreateResponseWorkflowItemConditions) MarshalJSON() ([]byte, error) {
+	type embed AutomationsCreateResponseWorkflowItemConditions
 	var marshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -718,7 +654,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditions) MarshalJSON() ([]b
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditions) String() string {
+func (a *AutomationsCreateResponseWorkflowItemConditions) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -730,7 +666,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditions) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem struct {
+type AutomationsCreateResponseWorkflowItemConditionsConditionsItem struct {
 	Prop  *string `json:"prop,omitempty" url:"prop,omitempty"`
 	Value *string `json:"value,omitempty" url:"value,omitempty"`
 
@@ -738,31 +674,31 @@ type AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem) GetProp() *string {
+func (a *AutomationsCreateResponseWorkflowItemConditionsConditionsItem) GetProp() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Prop
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem) GetValue() *string {
+func (a *AutomationsCreateResponseWorkflowItemConditionsConditionsItem) GetValue() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Value
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsCreateResponseWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem
+func (a *AutomationsCreateResponseWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsCreateResponseWorkflowItemConditionsConditionsItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem(value)
+	*a = AutomationsCreateResponseWorkflowItemConditionsConditionsItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -772,7 +708,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem) Unma
 	return nil
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem) String() string {
+func (a *AutomationsCreateResponseWorkflowItemConditionsConditionsItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -784,7 +720,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditionsConditionsItem) Stri
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsCreateResponseDataWorkflowItemConditionsNextItem struct {
+type AutomationsCreateResponseWorkflowItemConditionsNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -792,31 +728,31 @@ type AutomationsCreateResponseDataWorkflowItemConditionsNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsNextItem) GetKind() *string {
+func (a *AutomationsCreateResponseWorkflowItemConditionsNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsNextItem) GetRef() *string {
+func (a *AutomationsCreateResponseWorkflowItemConditionsNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsCreateResponseWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponseDataWorkflowItemConditionsNextItem
+func (a *AutomationsCreateResponseWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsCreateResponseWorkflowItemConditionsNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsCreateResponseDataWorkflowItemConditionsNextItem(value)
+	*a = AutomationsCreateResponseWorkflowItemConditionsNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -826,7 +762,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditionsNextItem) UnmarshalJ
 	return nil
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemConditionsNextItem) String() string {
+func (a *AutomationsCreateResponseWorkflowItemConditionsNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -838,47 +774,47 @@ func (a *AutomationsCreateResponseDataWorkflowItemConditionsNextItem) String() s
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsCreateResponseDataWorkflowItemRef struct {
-	Kind AutomationsCreateResponseDataWorkflowItemRefKind        `json:"kind" url:"kind"`
-	Ref  *string                                                 `json:"ref,omitempty" url:"ref,omitempty"`
-	Next []*AutomationsCreateResponseDataWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsCreateResponseWorkflowItemRef struct {
+	Kind AutomationsCreateResponseWorkflowItemRefKind        `json:"kind" url:"kind"`
+	Ref  *string                                             `json:"ref,omitempty" url:"ref,omitempty"`
+	Next []*AutomationsCreateResponseWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRef) GetKind() AutomationsCreateResponseDataWorkflowItemRefKind {
+func (a *AutomationsCreateResponseWorkflowItemRef) GetKind() AutomationsCreateResponseWorkflowItemRefKind {
 	if a == nil {
 		return ""
 	}
 	return a.Kind
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRef) GetRef() *string {
+func (a *AutomationsCreateResponseWorkflowItemRef) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRef) GetNext() []*AutomationsCreateResponseDataWorkflowItemRefNextItem {
+func (a *AutomationsCreateResponseWorkflowItemRef) GetNext() []*AutomationsCreateResponseWorkflowItemRefNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRef) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsCreateResponseWorkflowItemRef) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRef) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponseDataWorkflowItemRef
+func (a *AutomationsCreateResponseWorkflowItemRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsCreateResponseWorkflowItemRef
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsCreateResponseDataWorkflowItemRef(value)
+	*a = AutomationsCreateResponseWorkflowItemRef(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -888,7 +824,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemRef) UnmarshalJSON(data []byte
 	return nil
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRef) String() string {
+func (a *AutomationsCreateResponseWorkflowItemRef) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -900,59 +836,59 @@ func (a *AutomationsCreateResponseDataWorkflowItemRef) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsCreateResponseDataWorkflowItemRefKind string
+type AutomationsCreateResponseWorkflowItemRefKind string
 
 const (
-	AutomationsCreateResponseDataWorkflowItemRefKindVideo       AutomationsCreateResponseDataWorkflowItemRefKind = "video"
-	AutomationsCreateResponseDataWorkflowItemRefKindImage       AutomationsCreateResponseDataWorkflowItemRefKind = "image"
-	AutomationsCreateResponseDataWorkflowItemRefKindAudio       AutomationsCreateResponseDataWorkflowItemRefKind = "audio"
-	AutomationsCreateResponseDataWorkflowItemRefKindChapters    AutomationsCreateResponseDataWorkflowItemRefKind = "chapters"
-	AutomationsCreateResponseDataWorkflowItemRefKindSubtitles   AutomationsCreateResponseDataWorkflowItemRefKind = "subtitles"
-	AutomationsCreateResponseDataWorkflowItemRefKindThumbnails  AutomationsCreateResponseDataWorkflowItemRefKind = "thumbnails"
-	AutomationsCreateResponseDataWorkflowItemRefKindNsfw        AutomationsCreateResponseDataWorkflowItemRefKind = "nsfw"
-	AutomationsCreateResponseDataWorkflowItemRefKindSpeech      AutomationsCreateResponseDataWorkflowItemRefKind = "speech"
-	AutomationsCreateResponseDataWorkflowItemRefKindDescription AutomationsCreateResponseDataWorkflowItemRefKind = "description"
-	AutomationsCreateResponseDataWorkflowItemRefKindOutline     AutomationsCreateResponseDataWorkflowItemRefKind = "outline"
-	AutomationsCreateResponseDataWorkflowItemRefKindPrompt      AutomationsCreateResponseDataWorkflowItemRefKind = "prompt"
-	AutomationsCreateResponseDataWorkflowItemRefKindHTTP        AutomationsCreateResponseDataWorkflowItemRefKind = "http"
+	AutomationsCreateResponseWorkflowItemRefKindVideo       AutomationsCreateResponseWorkflowItemRefKind = "video"
+	AutomationsCreateResponseWorkflowItemRefKindImage       AutomationsCreateResponseWorkflowItemRefKind = "image"
+	AutomationsCreateResponseWorkflowItemRefKindAudio       AutomationsCreateResponseWorkflowItemRefKind = "audio"
+	AutomationsCreateResponseWorkflowItemRefKindChapters    AutomationsCreateResponseWorkflowItemRefKind = "chapters"
+	AutomationsCreateResponseWorkflowItemRefKindSubtitles   AutomationsCreateResponseWorkflowItemRefKind = "subtitles"
+	AutomationsCreateResponseWorkflowItemRefKindThumbnails  AutomationsCreateResponseWorkflowItemRefKind = "thumbnails"
+	AutomationsCreateResponseWorkflowItemRefKindNsfw        AutomationsCreateResponseWorkflowItemRefKind = "nsfw"
+	AutomationsCreateResponseWorkflowItemRefKindSpeech      AutomationsCreateResponseWorkflowItemRefKind = "speech"
+	AutomationsCreateResponseWorkflowItemRefKindDescription AutomationsCreateResponseWorkflowItemRefKind = "description"
+	AutomationsCreateResponseWorkflowItemRefKindOutline     AutomationsCreateResponseWorkflowItemRefKind = "outline"
+	AutomationsCreateResponseWorkflowItemRefKindPrompt      AutomationsCreateResponseWorkflowItemRefKind = "prompt"
+	AutomationsCreateResponseWorkflowItemRefKindHTTP        AutomationsCreateResponseWorkflowItemRefKind = "http"
 )
 
-func NewAutomationsCreateResponseDataWorkflowItemRefKindFromString(s string) (AutomationsCreateResponseDataWorkflowItemRefKind, error) {
+func NewAutomationsCreateResponseWorkflowItemRefKindFromString(s string) (AutomationsCreateResponseWorkflowItemRefKind, error) {
 	switch s {
 	case "video":
-		return AutomationsCreateResponseDataWorkflowItemRefKindVideo, nil
+		return AutomationsCreateResponseWorkflowItemRefKindVideo, nil
 	case "image":
-		return AutomationsCreateResponseDataWorkflowItemRefKindImage, nil
+		return AutomationsCreateResponseWorkflowItemRefKindImage, nil
 	case "audio":
-		return AutomationsCreateResponseDataWorkflowItemRefKindAudio, nil
+		return AutomationsCreateResponseWorkflowItemRefKindAudio, nil
 	case "chapters":
-		return AutomationsCreateResponseDataWorkflowItemRefKindChapters, nil
+		return AutomationsCreateResponseWorkflowItemRefKindChapters, nil
 	case "subtitles":
-		return AutomationsCreateResponseDataWorkflowItemRefKindSubtitles, nil
+		return AutomationsCreateResponseWorkflowItemRefKindSubtitles, nil
 	case "thumbnails":
-		return AutomationsCreateResponseDataWorkflowItemRefKindThumbnails, nil
+		return AutomationsCreateResponseWorkflowItemRefKindThumbnails, nil
 	case "nsfw":
-		return AutomationsCreateResponseDataWorkflowItemRefKindNsfw, nil
+		return AutomationsCreateResponseWorkflowItemRefKindNsfw, nil
 	case "speech":
-		return AutomationsCreateResponseDataWorkflowItemRefKindSpeech, nil
+		return AutomationsCreateResponseWorkflowItemRefKindSpeech, nil
 	case "description":
-		return AutomationsCreateResponseDataWorkflowItemRefKindDescription, nil
+		return AutomationsCreateResponseWorkflowItemRefKindDescription, nil
 	case "outline":
-		return AutomationsCreateResponseDataWorkflowItemRefKindOutline, nil
+		return AutomationsCreateResponseWorkflowItemRefKindOutline, nil
 	case "prompt":
-		return AutomationsCreateResponseDataWorkflowItemRefKindPrompt, nil
+		return AutomationsCreateResponseWorkflowItemRefKindPrompt, nil
 	case "http":
-		return AutomationsCreateResponseDataWorkflowItemRefKindHTTP, nil
+		return AutomationsCreateResponseWorkflowItemRefKindHTTP, nil
 	}
-	var t AutomationsCreateResponseDataWorkflowItemRefKind
+	var t AutomationsCreateResponseWorkflowItemRefKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsCreateResponseDataWorkflowItemRefKind) Ptr() *AutomationsCreateResponseDataWorkflowItemRefKind {
+func (a AutomationsCreateResponseWorkflowItemRefKind) Ptr() *AutomationsCreateResponseWorkflowItemRefKind {
 	return &a
 }
 
-type AutomationsCreateResponseDataWorkflowItemRefNextItem struct {
+type AutomationsCreateResponseWorkflowItemRefNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -960,31 +896,31 @@ type AutomationsCreateResponseDataWorkflowItemRefNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRefNextItem) GetKind() *string {
+func (a *AutomationsCreateResponseWorkflowItemRefNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRefNextItem) GetRef() *string {
+func (a *AutomationsCreateResponseWorkflowItemRefNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsCreateResponseWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponseDataWorkflowItemRefNextItem
+func (a *AutomationsCreateResponseWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsCreateResponseWorkflowItemRefNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsCreateResponseDataWorkflowItemRefNextItem(value)
+	*a = AutomationsCreateResponseWorkflowItemRefNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -994,7 +930,7 @@ func (a *AutomationsCreateResponseDataWorkflowItemRefNextItem) UnmarshalJSON(dat
 	return nil
 }
 
-func (a *AutomationsCreateResponseDataWorkflowItemRefNextItem) String() string {
+func (a *AutomationsCreateResponseWorkflowItemRefNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1006,242 +942,18 @@ func (a *AutomationsCreateResponseDataWorkflowItemRefNextItem) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsCreateResponseError struct {
+type AutomationsDeleteResponse struct {
 	Message *string `json:"message,omitempty" url:"message,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsCreateResponseError) GetMessage() *string {
+func (a *AutomationsDeleteResponse) GetMessage() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Message
-}
-
-func (a *AutomationsCreateResponseError) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsCreateResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsCreateResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsCreateResponseError) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsCreateResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsCreateResponseLinks) GetSelf() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Self
-}
-
-func (a *AutomationsCreateResponseLinks) GetParent() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Parent
-}
-
-func (a *AutomationsCreateResponseLinks) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsCreateResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsCreateResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsCreateResponseLinks) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsCreateResponseMeta struct {
-	RequestID *string                            `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                            `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                            `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                            `json:"version,omitempty" url:"version,omitempty"`
-	Type      *AutomationsCreateResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsCreateResponseMeta) GetRequestID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.RequestID
-}
-
-func (a *AutomationsCreateResponseMeta) GetOrgID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.OrgID
-}
-
-func (a *AutomationsCreateResponseMeta) GetProjectID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ProjectID
-}
-
-func (a *AutomationsCreateResponseMeta) GetVersion() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Version
-}
-
-func (a *AutomationsCreateResponseMeta) GetType() *AutomationsCreateResponseMetaType {
-	if a == nil {
-		return nil
-	}
-	return a.Type
-}
-
-func (a *AutomationsCreateResponseMeta) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsCreateResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsCreateResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsCreateResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsCreateResponseMeta) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsCreateResponseMetaType string
-
-const (
-	AutomationsCreateResponseMetaTypeObject AutomationsCreateResponseMetaType = "object"
-	AutomationsCreateResponseMetaTypeList   AutomationsCreateResponseMetaType = "list"
-)
-
-func NewAutomationsCreateResponseMetaTypeFromString(s string) (AutomationsCreateResponseMetaType, error) {
-	switch s {
-	case "object":
-		return AutomationsCreateResponseMetaTypeObject, nil
-	case "list":
-		return AutomationsCreateResponseMetaTypeList, nil
-	}
-	var t AutomationsCreateResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AutomationsCreateResponseMetaType) Ptr() *AutomationsCreateResponseMetaType {
-	return &a
-}
-
-type AutomationsDeleteResponse struct {
-	Meta  *AutomationsDeleteResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *AutomationsDeleteResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *AutomationsDeleteResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *AutomationsDeleteResponseLinks `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsDeleteResponse) GetMeta() *AutomationsDeleteResponseMeta {
-	if a == nil {
-		return nil
-	}
-	return a.Meta
-}
-
-func (a *AutomationsDeleteResponse) GetData() *AutomationsDeleteResponseData {
-	if a == nil {
-		return nil
-	}
-	return a.Data
-}
-
-func (a *AutomationsDeleteResponse) GetError() *AutomationsDeleteResponseError {
-	if a == nil {
-		return nil
-	}
-	return a.Error
-}
-
-func (a *AutomationsDeleteResponse) GetLinks() *AutomationsDeleteResponseLinks {
-	if a == nil {
-		return nil
-	}
-	return a.Links
 }
 
 func (a *AutomationsDeleteResponse) GetExtraProperties() map[string]interface{} {
@@ -1276,288 +988,74 @@ func (a *AutomationsDeleteResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsDeleteResponseData struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsDeleteResponseData) GetMessage() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Message
-}
-
-func (a *AutomationsDeleteResponseData) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsDeleteResponseData) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsDeleteResponseData
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsDeleteResponseData(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsDeleteResponseData) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsDeleteResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsDeleteResponseError) GetMessage() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Message
-}
-
-func (a *AutomationsDeleteResponseError) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsDeleteResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsDeleteResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsDeleteResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsDeleteResponseError) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsDeleteResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsDeleteResponseLinks) GetSelf() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Self
-}
-
-func (a *AutomationsDeleteResponseLinks) GetParent() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Parent
-}
-
-func (a *AutomationsDeleteResponseLinks) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsDeleteResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsDeleteResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsDeleteResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsDeleteResponseLinks) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsDeleteResponseMeta struct {
-	RequestID *string                            `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                            `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                            `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                            `json:"version,omitempty" url:"version,omitempty"`
-	Type      *AutomationsDeleteResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsDeleteResponseMeta) GetRequestID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.RequestID
-}
-
-func (a *AutomationsDeleteResponseMeta) GetOrgID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.OrgID
-}
-
-func (a *AutomationsDeleteResponseMeta) GetProjectID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ProjectID
-}
-
-func (a *AutomationsDeleteResponseMeta) GetVersion() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Version
-}
-
-func (a *AutomationsDeleteResponseMeta) GetType() *AutomationsDeleteResponseMetaType {
-	if a == nil {
-		return nil
-	}
-	return a.Type
-}
-
-func (a *AutomationsDeleteResponseMeta) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsDeleteResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsDeleteResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsDeleteResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsDeleteResponseMeta) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsDeleteResponseMetaType string
-
-const (
-	AutomationsDeleteResponseMetaTypeObject AutomationsDeleteResponseMetaType = "object"
-	AutomationsDeleteResponseMetaTypeList   AutomationsDeleteResponseMetaType = "list"
-)
-
-func NewAutomationsDeleteResponseMetaTypeFromString(s string) (AutomationsDeleteResponseMetaType, error) {
-	switch s {
-	case "object":
-		return AutomationsDeleteResponseMetaTypeObject, nil
-	case "list":
-		return AutomationsDeleteResponseMetaTypeList, nil
-	}
-	var t AutomationsDeleteResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AutomationsDeleteResponseMetaType) Ptr() *AutomationsDeleteResponseMetaType {
-	return &a
-}
-
 type AutomationsGetResponse struct {
-	Meta  *AutomationsGetResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *AutomationsGetResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *AutomationsGetResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *AutomationsGetResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+	ID          string                                `json:"id" url:"id"`
+	Name        *string                               `json:"name,omitempty" url:"name,omitempty"`
+	Description *string                               `json:"description,omitempty" url:"description,omitempty"`
+	Trigger     *AutomationsGetResponseTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
+	Workflow    []*AutomationsGetResponseWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Status      AutomationsGetResponseStatus          `json:"status" url:"status"`
+	Created     time.Time                             `json:"created" url:"created"`
+	Updated     time.Time                             `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponse) GetMeta() *AutomationsGetResponseMeta {
+func (a *AutomationsGetResponse) GetID() string {
 	if a == nil {
-		return nil
+		return ""
 	}
-	return a.Meta
+	return a.ID
 }
 
-func (a *AutomationsGetResponse) GetData() *AutomationsGetResponseData {
+func (a *AutomationsGetResponse) GetName() *string {
 	if a == nil {
 		return nil
 	}
-	return a.Data
+	return a.Name
 }
 
-func (a *AutomationsGetResponse) GetError() *AutomationsGetResponseError {
+func (a *AutomationsGetResponse) GetDescription() *string {
 	if a == nil {
 		return nil
 	}
-	return a.Error
+	return a.Description
 }
 
-func (a *AutomationsGetResponse) GetLinks() *AutomationsGetResponseLinks {
+func (a *AutomationsGetResponse) GetTrigger() *AutomationsGetResponseTrigger {
 	if a == nil {
 		return nil
 	}
-	return a.Links
+	return a.Trigger
+}
+
+func (a *AutomationsGetResponse) GetWorkflow() []*AutomationsGetResponseWorkflowItem {
+	if a == nil {
+		return nil
+	}
+	return a.Workflow
+}
+
+func (a *AutomationsGetResponse) GetStatus() AutomationsGetResponseStatus {
+	if a == nil {
+		return ""
+	}
+	return a.Status
+}
+
+func (a *AutomationsGetResponse) GetCreated() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Created
+}
+
+func (a *AutomationsGetResponse) GetUpdated() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Updated
 }
 
 func (a *AutomationsGetResponse) GetExtraProperties() map[string]interface{} {
@@ -1565,12 +1063,20 @@ func (a *AutomationsGetResponse) GetExtraProperties() map[string]interface{} {
 }
 
 func (a *AutomationsGetResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed AutomationsGetResponse
+	var unmarshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsGetResponse(value)
+	*a = AutomationsGetResponse(unmarshaler.embed)
+	a.Created = unmarshaler.Created.Time()
+	a.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -1578,6 +1084,20 @@ func (a *AutomationsGetResponse) UnmarshalJSON(data []byte) error {
 	a.extraProperties = extraProperties
 	a.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (a *AutomationsGetResponse) MarshalJSON() ([]byte, error) {
+	type embed AutomationsGetResponse
+	var marshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed:   embed(*a),
+		Created: internal.NewDateTime(a.Created),
+		Updated: internal.NewDateTime(a.Updated),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (a *AutomationsGetResponse) String() string {
@@ -1592,153 +1112,29 @@ func (a *AutomationsGetResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsGetResponseData struct {
-	ID          string                                    `json:"id" url:"id"`
-	Name        *string                                   `json:"name,omitempty" url:"name,omitempty"`
-	Description *string                                   `json:"description,omitempty" url:"description,omitempty"`
-	Trigger     *AutomationsGetResponseDataTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
-	Workflow    []*AutomationsGetResponseDataWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Status      AutomationsGetResponseDataStatus          `json:"status" url:"status"`
-	Created     time.Time                                 `json:"created" url:"created"`
-	Updated     time.Time                                 `json:"updated" url:"updated"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsGetResponseData) GetID() string {
-	if a == nil {
-		return ""
-	}
-	return a.ID
-}
-
-func (a *AutomationsGetResponseData) GetName() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Name
-}
-
-func (a *AutomationsGetResponseData) GetDescription() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Description
-}
-
-func (a *AutomationsGetResponseData) GetTrigger() *AutomationsGetResponseDataTrigger {
-	if a == nil {
-		return nil
-	}
-	return a.Trigger
-}
-
-func (a *AutomationsGetResponseData) GetWorkflow() []*AutomationsGetResponseDataWorkflowItem {
-	if a == nil {
-		return nil
-	}
-	return a.Workflow
-}
-
-func (a *AutomationsGetResponseData) GetStatus() AutomationsGetResponseDataStatus {
-	if a == nil {
-		return ""
-	}
-	return a.Status
-}
-
-func (a *AutomationsGetResponseData) GetCreated() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.Created
-}
-
-func (a *AutomationsGetResponseData) GetUpdated() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.Updated
-}
-
-func (a *AutomationsGetResponseData) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsGetResponseData) UnmarshalJSON(data []byte) error {
-	type embed AutomationsGetResponseData
-	var unmarshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AutomationsGetResponseData(unmarshaler.embed)
-	a.Created = unmarshaler.Created.Time()
-	a.Updated = unmarshaler.Updated.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsGetResponseData) MarshalJSON() ([]byte, error) {
-	type embed AutomationsGetResponseData
-	var marshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed:   embed(*a),
-		Created: internal.NewDateTime(a.Created),
-		Updated: internal.NewDateTime(a.Updated),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AutomationsGetResponseData) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsGetResponseDataStatus string
+type AutomationsGetResponseStatus string
 
 const (
-	AutomationsGetResponseDataStatusActive AutomationsGetResponseDataStatus = "active"
-	AutomationsGetResponseDataStatusPaused AutomationsGetResponseDataStatus = "paused"
+	AutomationsGetResponseStatusActive AutomationsGetResponseStatus = "active"
+	AutomationsGetResponseStatusPaused AutomationsGetResponseStatus = "paused"
 )
 
-func NewAutomationsGetResponseDataStatusFromString(s string) (AutomationsGetResponseDataStatus, error) {
+func NewAutomationsGetResponseStatusFromString(s string) (AutomationsGetResponseStatus, error) {
 	switch s {
 	case "active":
-		return AutomationsGetResponseDataStatusActive, nil
+		return AutomationsGetResponseStatusActive, nil
 	case "paused":
-		return AutomationsGetResponseDataStatusPaused, nil
+		return AutomationsGetResponseStatusPaused, nil
 	}
-	var t AutomationsGetResponseDataStatus
+	var t AutomationsGetResponseStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsGetResponseDataStatus) Ptr() *AutomationsGetResponseDataStatus {
+func (a AutomationsGetResponseStatus) Ptr() *AutomationsGetResponseStatus {
 	return &a
 }
 
-type AutomationsGetResponseDataTrigger struct {
+type AutomationsGetResponseTrigger struct {
 	kind  string
 	event string
 
@@ -1746,20 +1142,20 @@ type AutomationsGetResponseDataTrigger struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponseDataTrigger) Kind() string {
+func (a *AutomationsGetResponseTrigger) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsGetResponseDataTrigger) Event() string {
+func (a *AutomationsGetResponseTrigger) Event() string {
 	return a.event
 }
 
-func (a *AutomationsGetResponseDataTrigger) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsGetResponseTrigger) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsGetResponseDataTrigger) UnmarshalJSON(data []byte) error {
-	type embed AutomationsGetResponseDataTrigger
+func (a *AutomationsGetResponseTrigger) UnmarshalJSON(data []byte) error {
+	type embed AutomationsGetResponseTrigger
 	var unmarshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -1770,7 +1166,7 @@ func (a *AutomationsGetResponseDataTrigger) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsGetResponseDataTrigger(unmarshaler.embed)
+	*a = AutomationsGetResponseTrigger(unmarshaler.embed)
 	if unmarshaler.Kind != "event" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "event", unmarshaler.Kind)
 	}
@@ -1788,8 +1184,8 @@ func (a *AutomationsGetResponseDataTrigger) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (a *AutomationsGetResponseDataTrigger) MarshalJSON() ([]byte, error) {
-	type embed AutomationsGetResponseDataTrigger
+func (a *AutomationsGetResponseTrigger) MarshalJSON() ([]byte, error) {
+	type embed AutomationsGetResponseTrigger
 	var marshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -1802,7 +1198,7 @@ func (a *AutomationsGetResponseDataTrigger) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsGetResponseDataTrigger) String() string {
+func (a *AutomationsGetResponseTrigger) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1814,109 +1210,109 @@ func (a *AutomationsGetResponseDataTrigger) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsGetResponseDataWorkflowItem struct {
-	AutomationsGetResponseDataWorkflowItemRef        *AutomationsGetResponseDataWorkflowItemRef
-	AutomationsGetResponseDataWorkflowItemConditions *AutomationsGetResponseDataWorkflowItemConditions
+type AutomationsGetResponseWorkflowItem struct {
+	AutomationsGetResponseWorkflowItemRef        *AutomationsGetResponseWorkflowItemRef
+	AutomationsGetResponseWorkflowItemConditions *AutomationsGetResponseWorkflowItemConditions
 
 	typ string
 }
 
-func NewAutomationsGetResponseDataWorkflowItemFromAutomationsGetResponseDataWorkflowItemRef(value *AutomationsGetResponseDataWorkflowItemRef) *AutomationsGetResponseDataWorkflowItem {
-	return &AutomationsGetResponseDataWorkflowItem{typ: "AutomationsGetResponseDataWorkflowItemRef", AutomationsGetResponseDataWorkflowItemRef: value}
+func NewAutomationsGetResponseWorkflowItemFromAutomationsGetResponseWorkflowItemRef(value *AutomationsGetResponseWorkflowItemRef) *AutomationsGetResponseWorkflowItem {
+	return &AutomationsGetResponseWorkflowItem{typ: "AutomationsGetResponseWorkflowItemRef", AutomationsGetResponseWorkflowItemRef: value}
 }
 
-func NewAutomationsGetResponseDataWorkflowItemFromAutomationsGetResponseDataWorkflowItemConditions(value *AutomationsGetResponseDataWorkflowItemConditions) *AutomationsGetResponseDataWorkflowItem {
-	return &AutomationsGetResponseDataWorkflowItem{typ: "AutomationsGetResponseDataWorkflowItemConditions", AutomationsGetResponseDataWorkflowItemConditions: value}
+func NewAutomationsGetResponseWorkflowItemFromAutomationsGetResponseWorkflowItemConditions(value *AutomationsGetResponseWorkflowItemConditions) *AutomationsGetResponseWorkflowItem {
+	return &AutomationsGetResponseWorkflowItem{typ: "AutomationsGetResponseWorkflowItemConditions", AutomationsGetResponseWorkflowItemConditions: value}
 }
 
-func (a *AutomationsGetResponseDataWorkflowItem) GetAutomationsGetResponseDataWorkflowItemRef() *AutomationsGetResponseDataWorkflowItemRef {
+func (a *AutomationsGetResponseWorkflowItem) GetAutomationsGetResponseWorkflowItemRef() *AutomationsGetResponseWorkflowItemRef {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsGetResponseDataWorkflowItemRef
+	return a.AutomationsGetResponseWorkflowItemRef
 }
 
-func (a *AutomationsGetResponseDataWorkflowItem) GetAutomationsGetResponseDataWorkflowItemConditions() *AutomationsGetResponseDataWorkflowItemConditions {
+func (a *AutomationsGetResponseWorkflowItem) GetAutomationsGetResponseWorkflowItemConditions() *AutomationsGetResponseWorkflowItemConditions {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsGetResponseDataWorkflowItemConditions
+	return a.AutomationsGetResponseWorkflowItemConditions
 }
 
-func (a *AutomationsGetResponseDataWorkflowItem) UnmarshalJSON(data []byte) error {
-	valueAutomationsGetResponseDataWorkflowItemRef := new(AutomationsGetResponseDataWorkflowItemRef)
-	if err := json.Unmarshal(data, &valueAutomationsGetResponseDataWorkflowItemRef); err == nil {
-		a.typ = "AutomationsGetResponseDataWorkflowItemRef"
-		a.AutomationsGetResponseDataWorkflowItemRef = valueAutomationsGetResponseDataWorkflowItemRef
+func (a *AutomationsGetResponseWorkflowItem) UnmarshalJSON(data []byte) error {
+	valueAutomationsGetResponseWorkflowItemRef := new(AutomationsGetResponseWorkflowItemRef)
+	if err := json.Unmarshal(data, &valueAutomationsGetResponseWorkflowItemRef); err == nil {
+		a.typ = "AutomationsGetResponseWorkflowItemRef"
+		a.AutomationsGetResponseWorkflowItemRef = valueAutomationsGetResponseWorkflowItemRef
 		return nil
 	}
-	valueAutomationsGetResponseDataWorkflowItemConditions := new(AutomationsGetResponseDataWorkflowItemConditions)
-	if err := json.Unmarshal(data, &valueAutomationsGetResponseDataWorkflowItemConditions); err == nil {
-		a.typ = "AutomationsGetResponseDataWorkflowItemConditions"
-		a.AutomationsGetResponseDataWorkflowItemConditions = valueAutomationsGetResponseDataWorkflowItemConditions
+	valueAutomationsGetResponseWorkflowItemConditions := new(AutomationsGetResponseWorkflowItemConditions)
+	if err := json.Unmarshal(data, &valueAutomationsGetResponseWorkflowItemConditions); err == nil {
+		a.typ = "AutomationsGetResponseWorkflowItemConditions"
+		a.AutomationsGetResponseWorkflowItemConditions = valueAutomationsGetResponseWorkflowItemConditions
 		return nil
 	}
 	return fmt.Errorf("%s cannot be deserialized as a %T", data, a)
 }
 
-func (a AutomationsGetResponseDataWorkflowItem) MarshalJSON() ([]byte, error) {
-	if a.typ == "AutomationsGetResponseDataWorkflowItemRef" || a.AutomationsGetResponseDataWorkflowItemRef != nil {
-		return json.Marshal(a.AutomationsGetResponseDataWorkflowItemRef)
+func (a AutomationsGetResponseWorkflowItem) MarshalJSON() ([]byte, error) {
+	if a.typ == "AutomationsGetResponseWorkflowItemRef" || a.AutomationsGetResponseWorkflowItemRef != nil {
+		return json.Marshal(a.AutomationsGetResponseWorkflowItemRef)
 	}
-	if a.typ == "AutomationsGetResponseDataWorkflowItemConditions" || a.AutomationsGetResponseDataWorkflowItemConditions != nil {
-		return json.Marshal(a.AutomationsGetResponseDataWorkflowItemConditions)
+	if a.typ == "AutomationsGetResponseWorkflowItemConditions" || a.AutomationsGetResponseWorkflowItemConditions != nil {
+		return json.Marshal(a.AutomationsGetResponseWorkflowItemConditions)
 	}
 	return nil, fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsGetResponseDataWorkflowItemVisitor interface {
-	VisitAutomationsGetResponseDataWorkflowItemRef(*AutomationsGetResponseDataWorkflowItemRef) error
-	VisitAutomationsGetResponseDataWorkflowItemConditions(*AutomationsGetResponseDataWorkflowItemConditions) error
+type AutomationsGetResponseWorkflowItemVisitor interface {
+	VisitAutomationsGetResponseWorkflowItemRef(*AutomationsGetResponseWorkflowItemRef) error
+	VisitAutomationsGetResponseWorkflowItemConditions(*AutomationsGetResponseWorkflowItemConditions) error
 }
 
-func (a *AutomationsGetResponseDataWorkflowItem) Accept(visitor AutomationsGetResponseDataWorkflowItemVisitor) error {
-	if a.typ == "AutomationsGetResponseDataWorkflowItemRef" || a.AutomationsGetResponseDataWorkflowItemRef != nil {
-		return visitor.VisitAutomationsGetResponseDataWorkflowItemRef(a.AutomationsGetResponseDataWorkflowItemRef)
+func (a *AutomationsGetResponseWorkflowItem) Accept(visitor AutomationsGetResponseWorkflowItemVisitor) error {
+	if a.typ == "AutomationsGetResponseWorkflowItemRef" || a.AutomationsGetResponseWorkflowItemRef != nil {
+		return visitor.VisitAutomationsGetResponseWorkflowItemRef(a.AutomationsGetResponseWorkflowItemRef)
 	}
-	if a.typ == "AutomationsGetResponseDataWorkflowItemConditions" || a.AutomationsGetResponseDataWorkflowItemConditions != nil {
-		return visitor.VisitAutomationsGetResponseDataWorkflowItemConditions(a.AutomationsGetResponseDataWorkflowItemConditions)
+	if a.typ == "AutomationsGetResponseWorkflowItemConditions" || a.AutomationsGetResponseWorkflowItemConditions != nil {
+		return visitor.VisitAutomationsGetResponseWorkflowItemConditions(a.AutomationsGetResponseWorkflowItemConditions)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsGetResponseDataWorkflowItemConditions struct {
-	Conditions []*AutomationsGetResponseDataWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
-	Next       []*AutomationsGetResponseDataWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsGetResponseWorkflowItemConditions struct {
+	Conditions []*AutomationsGetResponseWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
+	Next       []*AutomationsGetResponseWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
 	kind       string
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditions) GetConditions() []*AutomationsGetResponseDataWorkflowItemConditionsConditionsItem {
+func (a *AutomationsGetResponseWorkflowItemConditions) GetConditions() []*AutomationsGetResponseWorkflowItemConditionsConditionsItem {
 	if a == nil {
 		return nil
 	}
 	return a.Conditions
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditions) GetNext() []*AutomationsGetResponseDataWorkflowItemConditionsNextItem {
+func (a *AutomationsGetResponseWorkflowItemConditions) GetNext() []*AutomationsGetResponseWorkflowItemConditionsNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditions) Kind() string {
+func (a *AutomationsGetResponseWorkflowItemConditions) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsGetResponseWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditions) UnmarshalJSON(data []byte) error {
-	type embed AutomationsGetResponseDataWorkflowItemConditions
+func (a *AutomationsGetResponseWorkflowItemConditions) UnmarshalJSON(data []byte) error {
+	type embed AutomationsGetResponseWorkflowItemConditions
 	var unmarshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -1926,7 +1322,7 @@ func (a *AutomationsGetResponseDataWorkflowItemConditions) UnmarshalJSON(data []
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsGetResponseDataWorkflowItemConditions(unmarshaler.embed)
+	*a = AutomationsGetResponseWorkflowItemConditions(unmarshaler.embed)
 	if unmarshaler.Kind != "conditions" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "conditions", unmarshaler.Kind)
 	}
@@ -1940,8 +1336,8 @@ func (a *AutomationsGetResponseDataWorkflowItemConditions) UnmarshalJSON(data []
 	return nil
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditions) MarshalJSON() ([]byte, error) {
-	type embed AutomationsGetResponseDataWorkflowItemConditions
+func (a *AutomationsGetResponseWorkflowItemConditions) MarshalJSON() ([]byte, error) {
+	type embed AutomationsGetResponseWorkflowItemConditions
 	var marshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -1952,7 +1348,7 @@ func (a *AutomationsGetResponseDataWorkflowItemConditions) MarshalJSON() ([]byte
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditions) String() string {
+func (a *AutomationsGetResponseWorkflowItemConditions) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -1964,7 +1360,7 @@ func (a *AutomationsGetResponseDataWorkflowItemConditions) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsGetResponseDataWorkflowItemConditionsConditionsItem struct {
+type AutomationsGetResponseWorkflowItemConditionsConditionsItem struct {
 	Prop  *string `json:"prop,omitempty" url:"prop,omitempty"`
 	Value *string `json:"value,omitempty" url:"value,omitempty"`
 
@@ -1972,31 +1368,31 @@ type AutomationsGetResponseDataWorkflowItemConditionsConditionsItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsConditionsItem) GetProp() *string {
+func (a *AutomationsGetResponseWorkflowItemConditionsConditionsItem) GetProp() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Prop
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsConditionsItem) GetValue() *string {
+func (a *AutomationsGetResponseWorkflowItemConditionsConditionsItem) GetValue() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Value
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsGetResponseWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponseDataWorkflowItemConditionsConditionsItem
+func (a *AutomationsGetResponseWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsGetResponseWorkflowItemConditionsConditionsItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsGetResponseDataWorkflowItemConditionsConditionsItem(value)
+	*a = AutomationsGetResponseWorkflowItemConditionsConditionsItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -2006,7 +1402,7 @@ func (a *AutomationsGetResponseDataWorkflowItemConditionsConditionsItem) Unmarsh
 	return nil
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsConditionsItem) String() string {
+func (a *AutomationsGetResponseWorkflowItemConditionsConditionsItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2018,7 +1414,7 @@ func (a *AutomationsGetResponseDataWorkflowItemConditionsConditionsItem) String(
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsGetResponseDataWorkflowItemConditionsNextItem struct {
+type AutomationsGetResponseWorkflowItemConditionsNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -2026,31 +1422,31 @@ type AutomationsGetResponseDataWorkflowItemConditionsNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsNextItem) GetKind() *string {
+func (a *AutomationsGetResponseWorkflowItemConditionsNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsNextItem) GetRef() *string {
+func (a *AutomationsGetResponseWorkflowItemConditionsNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsGetResponseWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponseDataWorkflowItemConditionsNextItem
+func (a *AutomationsGetResponseWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsGetResponseWorkflowItemConditionsNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsGetResponseDataWorkflowItemConditionsNextItem(value)
+	*a = AutomationsGetResponseWorkflowItemConditionsNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -2060,7 +1456,7 @@ func (a *AutomationsGetResponseDataWorkflowItemConditionsNextItem) UnmarshalJSON
 	return nil
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemConditionsNextItem) String() string {
+func (a *AutomationsGetResponseWorkflowItemConditionsNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2072,47 +1468,47 @@ func (a *AutomationsGetResponseDataWorkflowItemConditionsNextItem) String() stri
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsGetResponseDataWorkflowItemRef struct {
-	Kind AutomationsGetResponseDataWorkflowItemRefKind        `json:"kind" url:"kind"`
-	Ref  *string                                              `json:"ref,omitempty" url:"ref,omitempty"`
-	Next []*AutomationsGetResponseDataWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsGetResponseWorkflowItemRef struct {
+	Kind AutomationsGetResponseWorkflowItemRefKind        `json:"kind" url:"kind"`
+	Ref  *string                                          `json:"ref,omitempty" url:"ref,omitempty"`
+	Next []*AutomationsGetResponseWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRef) GetKind() AutomationsGetResponseDataWorkflowItemRefKind {
+func (a *AutomationsGetResponseWorkflowItemRef) GetKind() AutomationsGetResponseWorkflowItemRefKind {
 	if a == nil {
 		return ""
 	}
 	return a.Kind
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRef) GetRef() *string {
+func (a *AutomationsGetResponseWorkflowItemRef) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRef) GetNext() []*AutomationsGetResponseDataWorkflowItemRefNextItem {
+func (a *AutomationsGetResponseWorkflowItemRef) GetNext() []*AutomationsGetResponseWorkflowItemRefNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRef) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsGetResponseWorkflowItemRef) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRef) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponseDataWorkflowItemRef
+func (a *AutomationsGetResponseWorkflowItemRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsGetResponseWorkflowItemRef
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsGetResponseDataWorkflowItemRef(value)
+	*a = AutomationsGetResponseWorkflowItemRef(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -2122,7 +1518,7 @@ func (a *AutomationsGetResponseDataWorkflowItemRef) UnmarshalJSON(data []byte) e
 	return nil
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRef) String() string {
+func (a *AutomationsGetResponseWorkflowItemRef) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2134,59 +1530,59 @@ func (a *AutomationsGetResponseDataWorkflowItemRef) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsGetResponseDataWorkflowItemRefKind string
+type AutomationsGetResponseWorkflowItemRefKind string
 
 const (
-	AutomationsGetResponseDataWorkflowItemRefKindVideo       AutomationsGetResponseDataWorkflowItemRefKind = "video"
-	AutomationsGetResponseDataWorkflowItemRefKindImage       AutomationsGetResponseDataWorkflowItemRefKind = "image"
-	AutomationsGetResponseDataWorkflowItemRefKindAudio       AutomationsGetResponseDataWorkflowItemRefKind = "audio"
-	AutomationsGetResponseDataWorkflowItemRefKindChapters    AutomationsGetResponseDataWorkflowItemRefKind = "chapters"
-	AutomationsGetResponseDataWorkflowItemRefKindSubtitles   AutomationsGetResponseDataWorkflowItemRefKind = "subtitles"
-	AutomationsGetResponseDataWorkflowItemRefKindThumbnails  AutomationsGetResponseDataWorkflowItemRefKind = "thumbnails"
-	AutomationsGetResponseDataWorkflowItemRefKindNsfw        AutomationsGetResponseDataWorkflowItemRefKind = "nsfw"
-	AutomationsGetResponseDataWorkflowItemRefKindSpeech      AutomationsGetResponseDataWorkflowItemRefKind = "speech"
-	AutomationsGetResponseDataWorkflowItemRefKindDescription AutomationsGetResponseDataWorkflowItemRefKind = "description"
-	AutomationsGetResponseDataWorkflowItemRefKindOutline     AutomationsGetResponseDataWorkflowItemRefKind = "outline"
-	AutomationsGetResponseDataWorkflowItemRefKindPrompt      AutomationsGetResponseDataWorkflowItemRefKind = "prompt"
-	AutomationsGetResponseDataWorkflowItemRefKindHTTP        AutomationsGetResponseDataWorkflowItemRefKind = "http"
+	AutomationsGetResponseWorkflowItemRefKindVideo       AutomationsGetResponseWorkflowItemRefKind = "video"
+	AutomationsGetResponseWorkflowItemRefKindImage       AutomationsGetResponseWorkflowItemRefKind = "image"
+	AutomationsGetResponseWorkflowItemRefKindAudio       AutomationsGetResponseWorkflowItemRefKind = "audio"
+	AutomationsGetResponseWorkflowItemRefKindChapters    AutomationsGetResponseWorkflowItemRefKind = "chapters"
+	AutomationsGetResponseWorkflowItemRefKindSubtitles   AutomationsGetResponseWorkflowItemRefKind = "subtitles"
+	AutomationsGetResponseWorkflowItemRefKindThumbnails  AutomationsGetResponseWorkflowItemRefKind = "thumbnails"
+	AutomationsGetResponseWorkflowItemRefKindNsfw        AutomationsGetResponseWorkflowItemRefKind = "nsfw"
+	AutomationsGetResponseWorkflowItemRefKindSpeech      AutomationsGetResponseWorkflowItemRefKind = "speech"
+	AutomationsGetResponseWorkflowItemRefKindDescription AutomationsGetResponseWorkflowItemRefKind = "description"
+	AutomationsGetResponseWorkflowItemRefKindOutline     AutomationsGetResponseWorkflowItemRefKind = "outline"
+	AutomationsGetResponseWorkflowItemRefKindPrompt      AutomationsGetResponseWorkflowItemRefKind = "prompt"
+	AutomationsGetResponseWorkflowItemRefKindHTTP        AutomationsGetResponseWorkflowItemRefKind = "http"
 )
 
-func NewAutomationsGetResponseDataWorkflowItemRefKindFromString(s string) (AutomationsGetResponseDataWorkflowItemRefKind, error) {
+func NewAutomationsGetResponseWorkflowItemRefKindFromString(s string) (AutomationsGetResponseWorkflowItemRefKind, error) {
 	switch s {
 	case "video":
-		return AutomationsGetResponseDataWorkflowItemRefKindVideo, nil
+		return AutomationsGetResponseWorkflowItemRefKindVideo, nil
 	case "image":
-		return AutomationsGetResponseDataWorkflowItemRefKindImage, nil
+		return AutomationsGetResponseWorkflowItemRefKindImage, nil
 	case "audio":
-		return AutomationsGetResponseDataWorkflowItemRefKindAudio, nil
+		return AutomationsGetResponseWorkflowItemRefKindAudio, nil
 	case "chapters":
-		return AutomationsGetResponseDataWorkflowItemRefKindChapters, nil
+		return AutomationsGetResponseWorkflowItemRefKindChapters, nil
 	case "subtitles":
-		return AutomationsGetResponseDataWorkflowItemRefKindSubtitles, nil
+		return AutomationsGetResponseWorkflowItemRefKindSubtitles, nil
 	case "thumbnails":
-		return AutomationsGetResponseDataWorkflowItemRefKindThumbnails, nil
+		return AutomationsGetResponseWorkflowItemRefKindThumbnails, nil
 	case "nsfw":
-		return AutomationsGetResponseDataWorkflowItemRefKindNsfw, nil
+		return AutomationsGetResponseWorkflowItemRefKindNsfw, nil
 	case "speech":
-		return AutomationsGetResponseDataWorkflowItemRefKindSpeech, nil
+		return AutomationsGetResponseWorkflowItemRefKindSpeech, nil
 	case "description":
-		return AutomationsGetResponseDataWorkflowItemRefKindDescription, nil
+		return AutomationsGetResponseWorkflowItemRefKindDescription, nil
 	case "outline":
-		return AutomationsGetResponseDataWorkflowItemRefKindOutline, nil
+		return AutomationsGetResponseWorkflowItemRefKindOutline, nil
 	case "prompt":
-		return AutomationsGetResponseDataWorkflowItemRefKindPrompt, nil
+		return AutomationsGetResponseWorkflowItemRefKindPrompt, nil
 	case "http":
-		return AutomationsGetResponseDataWorkflowItemRefKindHTTP, nil
+		return AutomationsGetResponseWorkflowItemRefKindHTTP, nil
 	}
-	var t AutomationsGetResponseDataWorkflowItemRefKind
+	var t AutomationsGetResponseWorkflowItemRefKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsGetResponseDataWorkflowItemRefKind) Ptr() *AutomationsGetResponseDataWorkflowItemRefKind {
+func (a AutomationsGetResponseWorkflowItemRefKind) Ptr() *AutomationsGetResponseWorkflowItemRefKind {
 	return &a
 }
 
-type AutomationsGetResponseDataWorkflowItemRefNextItem struct {
+type AutomationsGetResponseWorkflowItemRefNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -2194,31 +1590,31 @@ type AutomationsGetResponseDataWorkflowItemRefNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRefNextItem) GetKind() *string {
+func (a *AutomationsGetResponseWorkflowItemRefNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRefNextItem) GetRef() *string {
+func (a *AutomationsGetResponseWorkflowItemRefNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsGetResponseWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponseDataWorkflowItemRefNextItem
+func (a *AutomationsGetResponseWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsGetResponseWorkflowItemRefNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsGetResponseDataWorkflowItemRefNextItem(value)
+	*a = AutomationsGetResponseWorkflowItemRefNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -2228,7 +1624,7 @@ func (a *AutomationsGetResponseDataWorkflowItemRefNextItem) UnmarshalJSON(data [
 	return nil
 }
 
-func (a *AutomationsGetResponseDataWorkflowItemRefNextItem) String() string {
+func (a *AutomationsGetResponseWorkflowItemRefNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2240,352 +1636,82 @@ func (a *AutomationsGetResponseDataWorkflowItemRefNextItem) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsGetResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
+type AutomationsListResponseItem struct {
+	ID          string                                     `json:"id" url:"id"`
+	Name        *string                                    `json:"name,omitempty" url:"name,omitempty"`
+	Description *string                                    `json:"description,omitempty" url:"description,omitempty"`
+	Trigger     *AutomationsListResponseItemTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
+	Workflow    []*AutomationsListResponseItemWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Status      AutomationsListResponseItemStatus          `json:"status" url:"status"`
+	Created     time.Time                                  `json:"created" url:"created"`
+	Updated     time.Time                                  `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsGetResponseError) GetMessage() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Message
-}
-
-func (a *AutomationsGetResponseError) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsGetResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsGetResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsGetResponseError) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsGetResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsGetResponseLinks) GetSelf() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Self
-}
-
-func (a *AutomationsGetResponseLinks) GetParent() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Parent
-}
-
-func (a *AutomationsGetResponseLinks) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsGetResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsGetResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsGetResponseLinks) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsGetResponseMeta struct {
-	RequestID *string                         `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                         `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                         `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                         `json:"version,omitempty" url:"version,omitempty"`
-	Type      *AutomationsGetResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsGetResponseMeta) GetRequestID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.RequestID
-}
-
-func (a *AutomationsGetResponseMeta) GetOrgID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.OrgID
-}
-
-func (a *AutomationsGetResponseMeta) GetProjectID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ProjectID
-}
-
-func (a *AutomationsGetResponseMeta) GetVersion() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Version
-}
-
-func (a *AutomationsGetResponseMeta) GetType() *AutomationsGetResponseMetaType {
-	if a == nil {
-		return nil
-	}
-	return a.Type
-}
-
-func (a *AutomationsGetResponseMeta) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsGetResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsGetResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsGetResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsGetResponseMeta) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsGetResponseMetaType string
-
-const (
-	AutomationsGetResponseMetaTypeObject AutomationsGetResponseMetaType = "object"
-	AutomationsGetResponseMetaTypeList   AutomationsGetResponseMetaType = "list"
-)
-
-func NewAutomationsGetResponseMetaTypeFromString(s string) (AutomationsGetResponseMetaType, error) {
-	switch s {
-	case "object":
-		return AutomationsGetResponseMetaTypeObject, nil
-	case "list":
-		return AutomationsGetResponseMetaTypeList, nil
-	}
-	var t AutomationsGetResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AutomationsGetResponseMetaType) Ptr() *AutomationsGetResponseMetaType {
-	return &a
-}
-
-type AutomationsListResponse struct {
-	Meta  *AutomationsListResponseMeta       `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  []*AutomationsListResponseDataItem `json:"data,omitempty" url:"data,omitempty"`
-	Error *AutomationsListResponseError      `json:"error,omitempty" url:"error,omitempty"`
-	Links *AutomationsListResponseLinks      `json:"links,omitempty" url:"links,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsListResponse) GetMeta() *AutomationsListResponseMeta {
-	if a == nil {
-		return nil
-	}
-	return a.Meta
-}
-
-func (a *AutomationsListResponse) GetData() []*AutomationsListResponseDataItem {
-	if a == nil {
-		return nil
-	}
-	return a.Data
-}
-
-func (a *AutomationsListResponse) GetError() *AutomationsListResponseError {
-	if a == nil {
-		return nil
-	}
-	return a.Error
-}
-
-func (a *AutomationsListResponse) GetLinks() *AutomationsListResponseLinks {
-	if a == nil {
-		return nil
-	}
-	return a.Links
-}
-
-func (a *AutomationsListResponse) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsListResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsListResponse(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsListResponse) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsListResponseDataItem struct {
-	ID          string                                         `json:"id" url:"id"`
-	Name        *string                                        `json:"name,omitempty" url:"name,omitempty"`
-	Description *string                                        `json:"description,omitempty" url:"description,omitempty"`
-	Trigger     *AutomationsListResponseDataItemTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
-	Workflow    []*AutomationsListResponseDataItemWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Status      AutomationsListResponseDataItemStatus          `json:"status" url:"status"`
-	Created     time.Time                                      `json:"created" url:"created"`
-	Updated     time.Time                                      `json:"updated" url:"updated"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsListResponseDataItem) GetID() string {
+func (a *AutomationsListResponseItem) GetID() string {
 	if a == nil {
 		return ""
 	}
 	return a.ID
 }
 
-func (a *AutomationsListResponseDataItem) GetName() *string {
+func (a *AutomationsListResponseItem) GetName() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Name
 }
 
-func (a *AutomationsListResponseDataItem) GetDescription() *string {
+func (a *AutomationsListResponseItem) GetDescription() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Description
 }
 
-func (a *AutomationsListResponseDataItem) GetTrigger() *AutomationsListResponseDataItemTrigger {
+func (a *AutomationsListResponseItem) GetTrigger() *AutomationsListResponseItemTrigger {
 	if a == nil {
 		return nil
 	}
 	return a.Trigger
 }
 
-func (a *AutomationsListResponseDataItem) GetWorkflow() []*AutomationsListResponseDataItemWorkflowItem {
+func (a *AutomationsListResponseItem) GetWorkflow() []*AutomationsListResponseItemWorkflowItem {
 	if a == nil {
 		return nil
 	}
 	return a.Workflow
 }
 
-func (a *AutomationsListResponseDataItem) GetStatus() AutomationsListResponseDataItemStatus {
+func (a *AutomationsListResponseItem) GetStatus() AutomationsListResponseItemStatus {
 	if a == nil {
 		return ""
 	}
 	return a.Status
 }
 
-func (a *AutomationsListResponseDataItem) GetCreated() time.Time {
+func (a *AutomationsListResponseItem) GetCreated() time.Time {
 	if a == nil {
 		return time.Time{}
 	}
 	return a.Created
 }
 
-func (a *AutomationsListResponseDataItem) GetUpdated() time.Time {
+func (a *AutomationsListResponseItem) GetUpdated() time.Time {
 	if a == nil {
 		return time.Time{}
 	}
 	return a.Updated
 }
 
-func (a *AutomationsListResponseDataItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsListResponseItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsListResponseDataItem) UnmarshalJSON(data []byte) error {
-	type embed AutomationsListResponseDataItem
+func (a *AutomationsListResponseItem) UnmarshalJSON(data []byte) error {
+	type embed AutomationsListResponseItem
 	var unmarshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -2596,7 +1722,7 @@ func (a *AutomationsListResponseDataItem) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsListResponseDataItem(unmarshaler.embed)
+	*a = AutomationsListResponseItem(unmarshaler.embed)
 	a.Created = unmarshaler.Created.Time()
 	a.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
@@ -2608,8 +1734,8 @@ func (a *AutomationsListResponseDataItem) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (a *AutomationsListResponseDataItem) MarshalJSON() ([]byte, error) {
-	type embed AutomationsListResponseDataItem
+func (a *AutomationsListResponseItem) MarshalJSON() ([]byte, error) {
+	type embed AutomationsListResponseItem
 	var marshaler = struct {
 		embed
 		Created *internal.DateTime `json:"created"`
@@ -2622,7 +1748,7 @@ func (a *AutomationsListResponseDataItem) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsListResponseDataItem) String() string {
+func (a *AutomationsListResponseItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2634,29 +1760,29 @@ func (a *AutomationsListResponseDataItem) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsListResponseDataItemStatus string
+type AutomationsListResponseItemStatus string
 
 const (
-	AutomationsListResponseDataItemStatusActive AutomationsListResponseDataItemStatus = "active"
-	AutomationsListResponseDataItemStatusPaused AutomationsListResponseDataItemStatus = "paused"
+	AutomationsListResponseItemStatusActive AutomationsListResponseItemStatus = "active"
+	AutomationsListResponseItemStatusPaused AutomationsListResponseItemStatus = "paused"
 )
 
-func NewAutomationsListResponseDataItemStatusFromString(s string) (AutomationsListResponseDataItemStatus, error) {
+func NewAutomationsListResponseItemStatusFromString(s string) (AutomationsListResponseItemStatus, error) {
 	switch s {
 	case "active":
-		return AutomationsListResponseDataItemStatusActive, nil
+		return AutomationsListResponseItemStatusActive, nil
 	case "paused":
-		return AutomationsListResponseDataItemStatusPaused, nil
+		return AutomationsListResponseItemStatusPaused, nil
 	}
-	var t AutomationsListResponseDataItemStatus
+	var t AutomationsListResponseItemStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsListResponseDataItemStatus) Ptr() *AutomationsListResponseDataItemStatus {
+func (a AutomationsListResponseItemStatus) Ptr() *AutomationsListResponseItemStatus {
 	return &a
 }
 
-type AutomationsListResponseDataItemTrigger struct {
+type AutomationsListResponseItemTrigger struct {
 	kind  string
 	event string
 
@@ -2664,20 +1790,20 @@ type AutomationsListResponseDataItemTrigger struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsListResponseDataItemTrigger) Kind() string {
+func (a *AutomationsListResponseItemTrigger) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsListResponseDataItemTrigger) Event() string {
+func (a *AutomationsListResponseItemTrigger) Event() string {
 	return a.event
 }
 
-func (a *AutomationsListResponseDataItemTrigger) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsListResponseItemTrigger) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsListResponseDataItemTrigger) UnmarshalJSON(data []byte) error {
-	type embed AutomationsListResponseDataItemTrigger
+func (a *AutomationsListResponseItemTrigger) UnmarshalJSON(data []byte) error {
+	type embed AutomationsListResponseItemTrigger
 	var unmarshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -2688,7 +1814,7 @@ func (a *AutomationsListResponseDataItemTrigger) UnmarshalJSON(data []byte) erro
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsListResponseDataItemTrigger(unmarshaler.embed)
+	*a = AutomationsListResponseItemTrigger(unmarshaler.embed)
 	if unmarshaler.Kind != "event" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "event", unmarshaler.Kind)
 	}
@@ -2706,8 +1832,8 @@ func (a *AutomationsListResponseDataItemTrigger) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
-func (a *AutomationsListResponseDataItemTrigger) MarshalJSON() ([]byte, error) {
-	type embed AutomationsListResponseDataItemTrigger
+func (a *AutomationsListResponseItemTrigger) MarshalJSON() ([]byte, error) {
+	type embed AutomationsListResponseItemTrigger
 	var marshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -2720,7 +1846,7 @@ func (a *AutomationsListResponseDataItemTrigger) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsListResponseDataItemTrigger) String() string {
+func (a *AutomationsListResponseItemTrigger) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2732,109 +1858,109 @@ func (a *AutomationsListResponseDataItemTrigger) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsListResponseDataItemWorkflowItem struct {
-	AutomationsListResponseDataItemWorkflowItemRef        *AutomationsListResponseDataItemWorkflowItemRef
-	AutomationsListResponseDataItemWorkflowItemConditions *AutomationsListResponseDataItemWorkflowItemConditions
+type AutomationsListResponseItemWorkflowItem struct {
+	AutomationsListResponseItemWorkflowItemRef        *AutomationsListResponseItemWorkflowItemRef
+	AutomationsListResponseItemWorkflowItemConditions *AutomationsListResponseItemWorkflowItemConditions
 
 	typ string
 }
 
-func NewAutomationsListResponseDataItemWorkflowItemFromAutomationsListResponseDataItemWorkflowItemRef(value *AutomationsListResponseDataItemWorkflowItemRef) *AutomationsListResponseDataItemWorkflowItem {
-	return &AutomationsListResponseDataItemWorkflowItem{typ: "AutomationsListResponseDataItemWorkflowItemRef", AutomationsListResponseDataItemWorkflowItemRef: value}
+func NewAutomationsListResponseItemWorkflowItemFromAutomationsListResponseItemWorkflowItemRef(value *AutomationsListResponseItemWorkflowItemRef) *AutomationsListResponseItemWorkflowItem {
+	return &AutomationsListResponseItemWorkflowItem{typ: "AutomationsListResponseItemWorkflowItemRef", AutomationsListResponseItemWorkflowItemRef: value}
 }
 
-func NewAutomationsListResponseDataItemWorkflowItemFromAutomationsListResponseDataItemWorkflowItemConditions(value *AutomationsListResponseDataItemWorkflowItemConditions) *AutomationsListResponseDataItemWorkflowItem {
-	return &AutomationsListResponseDataItemWorkflowItem{typ: "AutomationsListResponseDataItemWorkflowItemConditions", AutomationsListResponseDataItemWorkflowItemConditions: value}
+func NewAutomationsListResponseItemWorkflowItemFromAutomationsListResponseItemWorkflowItemConditions(value *AutomationsListResponseItemWorkflowItemConditions) *AutomationsListResponseItemWorkflowItem {
+	return &AutomationsListResponseItemWorkflowItem{typ: "AutomationsListResponseItemWorkflowItemConditions", AutomationsListResponseItemWorkflowItemConditions: value}
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItem) GetAutomationsListResponseDataItemWorkflowItemRef() *AutomationsListResponseDataItemWorkflowItemRef {
+func (a *AutomationsListResponseItemWorkflowItem) GetAutomationsListResponseItemWorkflowItemRef() *AutomationsListResponseItemWorkflowItemRef {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsListResponseDataItemWorkflowItemRef
+	return a.AutomationsListResponseItemWorkflowItemRef
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItem) GetAutomationsListResponseDataItemWorkflowItemConditions() *AutomationsListResponseDataItemWorkflowItemConditions {
+func (a *AutomationsListResponseItemWorkflowItem) GetAutomationsListResponseItemWorkflowItemConditions() *AutomationsListResponseItemWorkflowItemConditions {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsListResponseDataItemWorkflowItemConditions
+	return a.AutomationsListResponseItemWorkflowItemConditions
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItem) UnmarshalJSON(data []byte) error {
-	valueAutomationsListResponseDataItemWorkflowItemRef := new(AutomationsListResponseDataItemWorkflowItemRef)
-	if err := json.Unmarshal(data, &valueAutomationsListResponseDataItemWorkflowItemRef); err == nil {
-		a.typ = "AutomationsListResponseDataItemWorkflowItemRef"
-		a.AutomationsListResponseDataItemWorkflowItemRef = valueAutomationsListResponseDataItemWorkflowItemRef
+func (a *AutomationsListResponseItemWorkflowItem) UnmarshalJSON(data []byte) error {
+	valueAutomationsListResponseItemWorkflowItemRef := new(AutomationsListResponseItemWorkflowItemRef)
+	if err := json.Unmarshal(data, &valueAutomationsListResponseItemWorkflowItemRef); err == nil {
+		a.typ = "AutomationsListResponseItemWorkflowItemRef"
+		a.AutomationsListResponseItemWorkflowItemRef = valueAutomationsListResponseItemWorkflowItemRef
 		return nil
 	}
-	valueAutomationsListResponseDataItemWorkflowItemConditions := new(AutomationsListResponseDataItemWorkflowItemConditions)
-	if err := json.Unmarshal(data, &valueAutomationsListResponseDataItemWorkflowItemConditions); err == nil {
-		a.typ = "AutomationsListResponseDataItemWorkflowItemConditions"
-		a.AutomationsListResponseDataItemWorkflowItemConditions = valueAutomationsListResponseDataItemWorkflowItemConditions
+	valueAutomationsListResponseItemWorkflowItemConditions := new(AutomationsListResponseItemWorkflowItemConditions)
+	if err := json.Unmarshal(data, &valueAutomationsListResponseItemWorkflowItemConditions); err == nil {
+		a.typ = "AutomationsListResponseItemWorkflowItemConditions"
+		a.AutomationsListResponseItemWorkflowItemConditions = valueAutomationsListResponseItemWorkflowItemConditions
 		return nil
 	}
 	return fmt.Errorf("%s cannot be deserialized as a %T", data, a)
 }
 
-func (a AutomationsListResponseDataItemWorkflowItem) MarshalJSON() ([]byte, error) {
-	if a.typ == "AutomationsListResponseDataItemWorkflowItemRef" || a.AutomationsListResponseDataItemWorkflowItemRef != nil {
-		return json.Marshal(a.AutomationsListResponseDataItemWorkflowItemRef)
+func (a AutomationsListResponseItemWorkflowItem) MarshalJSON() ([]byte, error) {
+	if a.typ == "AutomationsListResponseItemWorkflowItemRef" || a.AutomationsListResponseItemWorkflowItemRef != nil {
+		return json.Marshal(a.AutomationsListResponseItemWorkflowItemRef)
 	}
-	if a.typ == "AutomationsListResponseDataItemWorkflowItemConditions" || a.AutomationsListResponseDataItemWorkflowItemConditions != nil {
-		return json.Marshal(a.AutomationsListResponseDataItemWorkflowItemConditions)
+	if a.typ == "AutomationsListResponseItemWorkflowItemConditions" || a.AutomationsListResponseItemWorkflowItemConditions != nil {
+		return json.Marshal(a.AutomationsListResponseItemWorkflowItemConditions)
 	}
 	return nil, fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsListResponseDataItemWorkflowItemVisitor interface {
-	VisitAutomationsListResponseDataItemWorkflowItemRef(*AutomationsListResponseDataItemWorkflowItemRef) error
-	VisitAutomationsListResponseDataItemWorkflowItemConditions(*AutomationsListResponseDataItemWorkflowItemConditions) error
+type AutomationsListResponseItemWorkflowItemVisitor interface {
+	VisitAutomationsListResponseItemWorkflowItemRef(*AutomationsListResponseItemWorkflowItemRef) error
+	VisitAutomationsListResponseItemWorkflowItemConditions(*AutomationsListResponseItemWorkflowItemConditions) error
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItem) Accept(visitor AutomationsListResponseDataItemWorkflowItemVisitor) error {
-	if a.typ == "AutomationsListResponseDataItemWorkflowItemRef" || a.AutomationsListResponseDataItemWorkflowItemRef != nil {
-		return visitor.VisitAutomationsListResponseDataItemWorkflowItemRef(a.AutomationsListResponseDataItemWorkflowItemRef)
+func (a *AutomationsListResponseItemWorkflowItem) Accept(visitor AutomationsListResponseItemWorkflowItemVisitor) error {
+	if a.typ == "AutomationsListResponseItemWorkflowItemRef" || a.AutomationsListResponseItemWorkflowItemRef != nil {
+		return visitor.VisitAutomationsListResponseItemWorkflowItemRef(a.AutomationsListResponseItemWorkflowItemRef)
 	}
-	if a.typ == "AutomationsListResponseDataItemWorkflowItemConditions" || a.AutomationsListResponseDataItemWorkflowItemConditions != nil {
-		return visitor.VisitAutomationsListResponseDataItemWorkflowItemConditions(a.AutomationsListResponseDataItemWorkflowItemConditions)
+	if a.typ == "AutomationsListResponseItemWorkflowItemConditions" || a.AutomationsListResponseItemWorkflowItemConditions != nil {
+		return visitor.VisitAutomationsListResponseItemWorkflowItemConditions(a.AutomationsListResponseItemWorkflowItemConditions)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsListResponseDataItemWorkflowItemConditions struct {
-	Conditions []*AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
-	Next       []*AutomationsListResponseDataItemWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsListResponseItemWorkflowItemConditions struct {
+	Conditions []*AutomationsListResponseItemWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
+	Next       []*AutomationsListResponseItemWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
 	kind       string
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditions) GetConditions() []*AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem {
+func (a *AutomationsListResponseItemWorkflowItemConditions) GetConditions() []*AutomationsListResponseItemWorkflowItemConditionsConditionsItem {
 	if a == nil {
 		return nil
 	}
 	return a.Conditions
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditions) GetNext() []*AutomationsListResponseDataItemWorkflowItemConditionsNextItem {
+func (a *AutomationsListResponseItemWorkflowItemConditions) GetNext() []*AutomationsListResponseItemWorkflowItemConditionsNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditions) Kind() string {
+func (a *AutomationsListResponseItemWorkflowItemConditions) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsListResponseItemWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditions) UnmarshalJSON(data []byte) error {
-	type embed AutomationsListResponseDataItemWorkflowItemConditions
+func (a *AutomationsListResponseItemWorkflowItemConditions) UnmarshalJSON(data []byte) error {
+	type embed AutomationsListResponseItemWorkflowItemConditions
 	var unmarshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -2844,7 +1970,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditions) UnmarshalJSON(da
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsListResponseDataItemWorkflowItemConditions(unmarshaler.embed)
+	*a = AutomationsListResponseItemWorkflowItemConditions(unmarshaler.embed)
 	if unmarshaler.Kind != "conditions" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "conditions", unmarshaler.Kind)
 	}
@@ -2858,8 +1984,8 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditions) UnmarshalJSON(da
 	return nil
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditions) MarshalJSON() ([]byte, error) {
-	type embed AutomationsListResponseDataItemWorkflowItemConditions
+func (a *AutomationsListResponseItemWorkflowItemConditions) MarshalJSON() ([]byte, error) {
+	type embed AutomationsListResponseItemWorkflowItemConditions
 	var marshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -2870,7 +1996,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditions) MarshalJSON() ([
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditions) String() string {
+func (a *AutomationsListResponseItemWorkflowItemConditions) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2882,7 +2008,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditions) String() string 
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem struct {
+type AutomationsListResponseItemWorkflowItemConditionsConditionsItem struct {
 	Prop  *string `json:"prop,omitempty" url:"prop,omitempty"`
 	Value *string `json:"value,omitempty" url:"value,omitempty"`
 
@@ -2890,31 +2016,31 @@ type AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem struct 
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem) GetProp() *string {
+func (a *AutomationsListResponseItemWorkflowItemConditionsConditionsItem) GetProp() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Prop
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem) GetValue() *string {
+func (a *AutomationsListResponseItemWorkflowItemConditionsConditionsItem) GetValue() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Value
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsListResponseItemWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem
+func (a *AutomationsListResponseItemWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsListResponseItemWorkflowItemConditionsConditionsItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem(value)
+	*a = AutomationsListResponseItemWorkflowItemConditionsConditionsItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -2924,7 +2050,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem) Un
 	return nil
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem) String() string {
+func (a *AutomationsListResponseItemWorkflowItemConditionsConditionsItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2936,7 +2062,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditionsConditionsItem) St
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsListResponseDataItemWorkflowItemConditionsNextItem struct {
+type AutomationsListResponseItemWorkflowItemConditionsNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -2944,31 +2070,31 @@ type AutomationsListResponseDataItemWorkflowItemConditionsNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsNextItem) GetKind() *string {
+func (a *AutomationsListResponseItemWorkflowItemConditionsNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsNextItem) GetRef() *string {
+func (a *AutomationsListResponseItemWorkflowItemConditionsNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsListResponseItemWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponseDataItemWorkflowItemConditionsNextItem
+func (a *AutomationsListResponseItemWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsListResponseItemWorkflowItemConditionsNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsListResponseDataItemWorkflowItemConditionsNextItem(value)
+	*a = AutomationsListResponseItemWorkflowItemConditionsNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -2978,7 +2104,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditionsNextItem) Unmarsha
 	return nil
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemConditionsNextItem) String() string {
+func (a *AutomationsListResponseItemWorkflowItemConditionsNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -2990,47 +2116,47 @@ func (a *AutomationsListResponseDataItemWorkflowItemConditionsNextItem) String()
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsListResponseDataItemWorkflowItemRef struct {
-	Kind AutomationsListResponseDataItemWorkflowItemRefKind        `json:"kind" url:"kind"`
-	Ref  *string                                                   `json:"ref,omitempty" url:"ref,omitempty"`
-	Next []*AutomationsListResponseDataItemWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsListResponseItemWorkflowItemRef struct {
+	Kind AutomationsListResponseItemWorkflowItemRefKind        `json:"kind" url:"kind"`
+	Ref  *string                                               `json:"ref,omitempty" url:"ref,omitempty"`
+	Next []*AutomationsListResponseItemWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRef) GetKind() AutomationsListResponseDataItemWorkflowItemRefKind {
+func (a *AutomationsListResponseItemWorkflowItemRef) GetKind() AutomationsListResponseItemWorkflowItemRefKind {
 	if a == nil {
 		return ""
 	}
 	return a.Kind
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRef) GetRef() *string {
+func (a *AutomationsListResponseItemWorkflowItemRef) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRef) GetNext() []*AutomationsListResponseDataItemWorkflowItemRefNextItem {
+func (a *AutomationsListResponseItemWorkflowItemRef) GetNext() []*AutomationsListResponseItemWorkflowItemRefNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRef) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsListResponseItemWorkflowItemRef) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRef) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponseDataItemWorkflowItemRef
+func (a *AutomationsListResponseItemWorkflowItemRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsListResponseItemWorkflowItemRef
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsListResponseDataItemWorkflowItemRef(value)
+	*a = AutomationsListResponseItemWorkflowItemRef(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -3040,7 +2166,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemRef) UnmarshalJSON(data []by
 	return nil
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRef) String() string {
+func (a *AutomationsListResponseItemWorkflowItemRef) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -3052,59 +2178,59 @@ func (a *AutomationsListResponseDataItemWorkflowItemRef) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsListResponseDataItemWorkflowItemRefKind string
+type AutomationsListResponseItemWorkflowItemRefKind string
 
 const (
-	AutomationsListResponseDataItemWorkflowItemRefKindVideo       AutomationsListResponseDataItemWorkflowItemRefKind = "video"
-	AutomationsListResponseDataItemWorkflowItemRefKindImage       AutomationsListResponseDataItemWorkflowItemRefKind = "image"
-	AutomationsListResponseDataItemWorkflowItemRefKindAudio       AutomationsListResponseDataItemWorkflowItemRefKind = "audio"
-	AutomationsListResponseDataItemWorkflowItemRefKindChapters    AutomationsListResponseDataItemWorkflowItemRefKind = "chapters"
-	AutomationsListResponseDataItemWorkflowItemRefKindSubtitles   AutomationsListResponseDataItemWorkflowItemRefKind = "subtitles"
-	AutomationsListResponseDataItemWorkflowItemRefKindThumbnails  AutomationsListResponseDataItemWorkflowItemRefKind = "thumbnails"
-	AutomationsListResponseDataItemWorkflowItemRefKindNsfw        AutomationsListResponseDataItemWorkflowItemRefKind = "nsfw"
-	AutomationsListResponseDataItemWorkflowItemRefKindSpeech      AutomationsListResponseDataItemWorkflowItemRefKind = "speech"
-	AutomationsListResponseDataItemWorkflowItemRefKindDescription AutomationsListResponseDataItemWorkflowItemRefKind = "description"
-	AutomationsListResponseDataItemWorkflowItemRefKindOutline     AutomationsListResponseDataItemWorkflowItemRefKind = "outline"
-	AutomationsListResponseDataItemWorkflowItemRefKindPrompt      AutomationsListResponseDataItemWorkflowItemRefKind = "prompt"
-	AutomationsListResponseDataItemWorkflowItemRefKindHTTP        AutomationsListResponseDataItemWorkflowItemRefKind = "http"
+	AutomationsListResponseItemWorkflowItemRefKindVideo       AutomationsListResponseItemWorkflowItemRefKind = "video"
+	AutomationsListResponseItemWorkflowItemRefKindImage       AutomationsListResponseItemWorkflowItemRefKind = "image"
+	AutomationsListResponseItemWorkflowItemRefKindAudio       AutomationsListResponseItemWorkflowItemRefKind = "audio"
+	AutomationsListResponseItemWorkflowItemRefKindChapters    AutomationsListResponseItemWorkflowItemRefKind = "chapters"
+	AutomationsListResponseItemWorkflowItemRefKindSubtitles   AutomationsListResponseItemWorkflowItemRefKind = "subtitles"
+	AutomationsListResponseItemWorkflowItemRefKindThumbnails  AutomationsListResponseItemWorkflowItemRefKind = "thumbnails"
+	AutomationsListResponseItemWorkflowItemRefKindNsfw        AutomationsListResponseItemWorkflowItemRefKind = "nsfw"
+	AutomationsListResponseItemWorkflowItemRefKindSpeech      AutomationsListResponseItemWorkflowItemRefKind = "speech"
+	AutomationsListResponseItemWorkflowItemRefKindDescription AutomationsListResponseItemWorkflowItemRefKind = "description"
+	AutomationsListResponseItemWorkflowItemRefKindOutline     AutomationsListResponseItemWorkflowItemRefKind = "outline"
+	AutomationsListResponseItemWorkflowItemRefKindPrompt      AutomationsListResponseItemWorkflowItemRefKind = "prompt"
+	AutomationsListResponseItemWorkflowItemRefKindHTTP        AutomationsListResponseItemWorkflowItemRefKind = "http"
 )
 
-func NewAutomationsListResponseDataItemWorkflowItemRefKindFromString(s string) (AutomationsListResponseDataItemWorkflowItemRefKind, error) {
+func NewAutomationsListResponseItemWorkflowItemRefKindFromString(s string) (AutomationsListResponseItemWorkflowItemRefKind, error) {
 	switch s {
 	case "video":
-		return AutomationsListResponseDataItemWorkflowItemRefKindVideo, nil
+		return AutomationsListResponseItemWorkflowItemRefKindVideo, nil
 	case "image":
-		return AutomationsListResponseDataItemWorkflowItemRefKindImage, nil
+		return AutomationsListResponseItemWorkflowItemRefKindImage, nil
 	case "audio":
-		return AutomationsListResponseDataItemWorkflowItemRefKindAudio, nil
+		return AutomationsListResponseItemWorkflowItemRefKindAudio, nil
 	case "chapters":
-		return AutomationsListResponseDataItemWorkflowItemRefKindChapters, nil
+		return AutomationsListResponseItemWorkflowItemRefKindChapters, nil
 	case "subtitles":
-		return AutomationsListResponseDataItemWorkflowItemRefKindSubtitles, nil
+		return AutomationsListResponseItemWorkflowItemRefKindSubtitles, nil
 	case "thumbnails":
-		return AutomationsListResponseDataItemWorkflowItemRefKindThumbnails, nil
+		return AutomationsListResponseItemWorkflowItemRefKindThumbnails, nil
 	case "nsfw":
-		return AutomationsListResponseDataItemWorkflowItemRefKindNsfw, nil
+		return AutomationsListResponseItemWorkflowItemRefKindNsfw, nil
 	case "speech":
-		return AutomationsListResponseDataItemWorkflowItemRefKindSpeech, nil
+		return AutomationsListResponseItemWorkflowItemRefKindSpeech, nil
 	case "description":
-		return AutomationsListResponseDataItemWorkflowItemRefKindDescription, nil
+		return AutomationsListResponseItemWorkflowItemRefKindDescription, nil
 	case "outline":
-		return AutomationsListResponseDataItemWorkflowItemRefKindOutline, nil
+		return AutomationsListResponseItemWorkflowItemRefKindOutline, nil
 	case "prompt":
-		return AutomationsListResponseDataItemWorkflowItemRefKindPrompt, nil
+		return AutomationsListResponseItemWorkflowItemRefKindPrompt, nil
 	case "http":
-		return AutomationsListResponseDataItemWorkflowItemRefKindHTTP, nil
+		return AutomationsListResponseItemWorkflowItemRefKindHTTP, nil
 	}
-	var t AutomationsListResponseDataItemWorkflowItemRefKind
+	var t AutomationsListResponseItemWorkflowItemRefKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsListResponseDataItemWorkflowItemRefKind) Ptr() *AutomationsListResponseDataItemWorkflowItemRefKind {
+func (a AutomationsListResponseItemWorkflowItemRefKind) Ptr() *AutomationsListResponseItemWorkflowItemRefKind {
 	return &a
 }
 
-type AutomationsListResponseDataItemWorkflowItemRefNextItem struct {
+type AutomationsListResponseItemWorkflowItemRefNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -3112,31 +2238,31 @@ type AutomationsListResponseDataItemWorkflowItemRefNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRefNextItem) GetKind() *string {
+func (a *AutomationsListResponseItemWorkflowItemRefNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRefNextItem) GetRef() *string {
+func (a *AutomationsListResponseItemWorkflowItemRefNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsListResponseItemWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponseDataItemWorkflowItemRefNextItem
+func (a *AutomationsListResponseItemWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsListResponseItemWorkflowItemRefNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsListResponseDataItemWorkflowItemRefNextItem(value)
+	*a = AutomationsListResponseItemWorkflowItemRefNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -3146,7 +2272,7 @@ func (a *AutomationsListResponseDataItemWorkflowItemRefNextItem) UnmarshalJSON(d
 	return nil
 }
 
-func (a *AutomationsListResponseDataItemWorkflowItemRefNextItem) String() string {
+func (a *AutomationsListResponseItemWorkflowItemRefNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -3156,262 +2282,6 @@ func (a *AutomationsListResponseDataItemWorkflowItemRefNextItem) String() string
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsListResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsListResponseError) GetMessage() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Message
-}
-
-func (a *AutomationsListResponseError) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsListResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsListResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsListResponseError) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsListResponseLinks struct {
-	Self  *string `json:"self,omitempty" url:"self,omitempty"`
-	First *string `json:"first,omitempty" url:"first,omitempty"`
-	Next  *string `json:"next,omitempty" url:"next,omitempty"`
-	Prev  *string `json:"prev,omitempty" url:"prev,omitempty"`
-	Last  *string `json:"last,omitempty" url:"last,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsListResponseLinks) GetSelf() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Self
-}
-
-func (a *AutomationsListResponseLinks) GetFirst() *string {
-	if a == nil {
-		return nil
-	}
-	return a.First
-}
-
-func (a *AutomationsListResponseLinks) GetNext() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Next
-}
-
-func (a *AutomationsListResponseLinks) GetPrev() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Prev
-}
-
-func (a *AutomationsListResponseLinks) GetLast() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Last
-}
-
-func (a *AutomationsListResponseLinks) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsListResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsListResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsListResponseLinks) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsListResponseMeta struct {
-	RequestID *string                          `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                          `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                          `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                          `json:"version,omitempty" url:"version,omitempty"`
-	Type      *AutomationsListResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-	Limit     *int                             `json:"limit,omitempty" url:"limit,omitempty"`
-	Total     *int                             `json:"total,omitempty" url:"total,omitempty"`
-	Page      *int                             `json:"page,omitempty" url:"page,omitempty"`
-	Pages     *int                             `json:"pages,omitempty" url:"pages,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsListResponseMeta) GetRequestID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.RequestID
-}
-
-func (a *AutomationsListResponseMeta) GetOrgID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.OrgID
-}
-
-func (a *AutomationsListResponseMeta) GetProjectID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ProjectID
-}
-
-func (a *AutomationsListResponseMeta) GetVersion() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Version
-}
-
-func (a *AutomationsListResponseMeta) GetType() *AutomationsListResponseMetaType {
-	if a == nil {
-		return nil
-	}
-	return a.Type
-}
-
-func (a *AutomationsListResponseMeta) GetLimit() *int {
-	if a == nil {
-		return nil
-	}
-	return a.Limit
-}
-
-func (a *AutomationsListResponseMeta) GetTotal() *int {
-	if a == nil {
-		return nil
-	}
-	return a.Total
-}
-
-func (a *AutomationsListResponseMeta) GetPage() *int {
-	if a == nil {
-		return nil
-	}
-	return a.Page
-}
-
-func (a *AutomationsListResponseMeta) GetPages() *int {
-	if a == nil {
-		return nil
-	}
-	return a.Pages
-}
-
-func (a *AutomationsListResponseMeta) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsListResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsListResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsListResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsListResponseMeta) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsListResponseMetaType string
-
-const (
-	AutomationsListResponseMetaTypeObject AutomationsListResponseMetaType = "object"
-	AutomationsListResponseMetaTypeList   AutomationsListResponseMetaType = "list"
-)
-
-func NewAutomationsListResponseMetaTypeFromString(s string) (AutomationsListResponseMetaType, error) {
-	switch s {
-	case "object":
-		return AutomationsListResponseMetaTypeObject, nil
-	case "list":
-		return AutomationsListResponseMetaTypeList, nil
-	}
-	var t AutomationsListResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AutomationsListResponseMetaType) Ptr() *AutomationsListResponseMetaType {
-	return &a
 }
 
 type AutomationsUpdateRequestStatus string
@@ -3681,41 +2551,73 @@ func (a *AutomationsUpdateRequestWorkflowItemNextItem) String() string {
 }
 
 type AutomationsUpdateResponse struct {
-	Meta  *AutomationsUpdateResponseMeta  `json:"meta,omitempty" url:"meta,omitempty"`
-	Data  *AutomationsUpdateResponseData  `json:"data,omitempty" url:"data,omitempty"`
-	Error *AutomationsUpdateResponseError `json:"error,omitempty" url:"error,omitempty"`
-	Links *AutomationsUpdateResponseLinks `json:"links,omitempty" url:"links,omitempty"`
+	ID          string                                   `json:"id" url:"id"`
+	Name        *string                                  `json:"name,omitempty" url:"name,omitempty"`
+	Description *string                                  `json:"description,omitempty" url:"description,omitempty"`
+	Trigger     *AutomationsUpdateResponseTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
+	Workflow    []*AutomationsUpdateResponseWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
+	Status      AutomationsUpdateResponseStatus          `json:"status" url:"status"`
+	Created     time.Time                                `json:"created" url:"created"`
+	Updated     time.Time                                `json:"updated" url:"updated"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateResponse) GetMeta() *AutomationsUpdateResponseMeta {
+func (a *AutomationsUpdateResponse) GetID() string {
 	if a == nil {
-		return nil
+		return ""
 	}
-	return a.Meta
+	return a.ID
 }
 
-func (a *AutomationsUpdateResponse) GetData() *AutomationsUpdateResponseData {
+func (a *AutomationsUpdateResponse) GetName() *string {
 	if a == nil {
 		return nil
 	}
-	return a.Data
+	return a.Name
 }
 
-func (a *AutomationsUpdateResponse) GetError() *AutomationsUpdateResponseError {
+func (a *AutomationsUpdateResponse) GetDescription() *string {
 	if a == nil {
 		return nil
 	}
-	return a.Error
+	return a.Description
 }
 
-func (a *AutomationsUpdateResponse) GetLinks() *AutomationsUpdateResponseLinks {
+func (a *AutomationsUpdateResponse) GetTrigger() *AutomationsUpdateResponseTrigger {
 	if a == nil {
 		return nil
 	}
-	return a.Links
+	return a.Trigger
+}
+
+func (a *AutomationsUpdateResponse) GetWorkflow() []*AutomationsUpdateResponseWorkflowItem {
+	if a == nil {
+		return nil
+	}
+	return a.Workflow
+}
+
+func (a *AutomationsUpdateResponse) GetStatus() AutomationsUpdateResponseStatus {
+	if a == nil {
+		return ""
+	}
+	return a.Status
+}
+
+func (a *AutomationsUpdateResponse) GetCreated() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Created
+}
+
+func (a *AutomationsUpdateResponse) GetUpdated() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+	return a.Updated
 }
 
 func (a *AutomationsUpdateResponse) GetExtraProperties() map[string]interface{} {
@@ -3723,12 +2625,20 @@ func (a *AutomationsUpdateResponse) GetExtraProperties() map[string]interface{} 
 }
 
 func (a *AutomationsUpdateResponse) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponse
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
+	type embed AutomationsUpdateResponse
+	var unmarshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed: embed(*a),
+	}
+	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateResponse(value)
+	*a = AutomationsUpdateResponse(unmarshaler.embed)
+	a.Created = unmarshaler.Created.Time()
+	a.Updated = unmarshaler.Updated.Time()
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -3736,6 +2646,20 @@ func (a *AutomationsUpdateResponse) UnmarshalJSON(data []byte) error {
 	a.extraProperties = extraProperties
 	a.rawJSON = json.RawMessage(data)
 	return nil
+}
+
+func (a *AutomationsUpdateResponse) MarshalJSON() ([]byte, error) {
+	type embed AutomationsUpdateResponse
+	var marshaler = struct {
+		embed
+		Created *internal.DateTime `json:"created"`
+		Updated *internal.DateTime `json:"updated"`
+	}{
+		embed:   embed(*a),
+		Created: internal.NewDateTime(a.Created),
+		Updated: internal.NewDateTime(a.Updated),
+	}
+	return json.Marshal(marshaler)
 }
 
 func (a *AutomationsUpdateResponse) String() string {
@@ -3750,153 +2674,29 @@ func (a *AutomationsUpdateResponse) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsUpdateResponseData struct {
-	ID          string                                       `json:"id" url:"id"`
-	Name        *string                                      `json:"name,omitempty" url:"name,omitempty"`
-	Description *string                                      `json:"description,omitempty" url:"description,omitempty"`
-	Trigger     *AutomationsUpdateResponseDataTrigger        `json:"trigger,omitempty" url:"trigger,omitempty"`
-	Workflow    []*AutomationsUpdateResponseDataWorkflowItem `json:"workflow,omitempty" url:"workflow,omitempty"`
-	Status      AutomationsUpdateResponseDataStatus          `json:"status" url:"status"`
-	Created     time.Time                                    `json:"created" url:"created"`
-	Updated     time.Time                                    `json:"updated" url:"updated"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsUpdateResponseData) GetID() string {
-	if a == nil {
-		return ""
-	}
-	return a.ID
-}
-
-func (a *AutomationsUpdateResponseData) GetName() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Name
-}
-
-func (a *AutomationsUpdateResponseData) GetDescription() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Description
-}
-
-func (a *AutomationsUpdateResponseData) GetTrigger() *AutomationsUpdateResponseDataTrigger {
-	if a == nil {
-		return nil
-	}
-	return a.Trigger
-}
-
-func (a *AutomationsUpdateResponseData) GetWorkflow() []*AutomationsUpdateResponseDataWorkflowItem {
-	if a == nil {
-		return nil
-	}
-	return a.Workflow
-}
-
-func (a *AutomationsUpdateResponseData) GetStatus() AutomationsUpdateResponseDataStatus {
-	if a == nil {
-		return ""
-	}
-	return a.Status
-}
-
-func (a *AutomationsUpdateResponseData) GetCreated() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.Created
-}
-
-func (a *AutomationsUpdateResponseData) GetUpdated() time.Time {
-	if a == nil {
-		return time.Time{}
-	}
-	return a.Updated
-}
-
-func (a *AutomationsUpdateResponseData) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsUpdateResponseData) UnmarshalJSON(data []byte) error {
-	type embed AutomationsUpdateResponseData
-	var unmarshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed: embed(*a),
-	}
-	if err := json.Unmarshal(data, &unmarshaler); err != nil {
-		return err
-	}
-	*a = AutomationsUpdateResponseData(unmarshaler.embed)
-	a.Created = unmarshaler.Created.Time()
-	a.Updated = unmarshaler.Updated.Time()
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsUpdateResponseData) MarshalJSON() ([]byte, error) {
-	type embed AutomationsUpdateResponseData
-	var marshaler = struct {
-		embed
-		Created *internal.DateTime `json:"created"`
-		Updated *internal.DateTime `json:"updated"`
-	}{
-		embed:   embed(*a),
-		Created: internal.NewDateTime(a.Created),
-		Updated: internal.NewDateTime(a.Updated),
-	}
-	return json.Marshal(marshaler)
-}
-
-func (a *AutomationsUpdateResponseData) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsUpdateResponseDataStatus string
+type AutomationsUpdateResponseStatus string
 
 const (
-	AutomationsUpdateResponseDataStatusActive AutomationsUpdateResponseDataStatus = "active"
-	AutomationsUpdateResponseDataStatusPaused AutomationsUpdateResponseDataStatus = "paused"
+	AutomationsUpdateResponseStatusActive AutomationsUpdateResponseStatus = "active"
+	AutomationsUpdateResponseStatusPaused AutomationsUpdateResponseStatus = "paused"
 )
 
-func NewAutomationsUpdateResponseDataStatusFromString(s string) (AutomationsUpdateResponseDataStatus, error) {
+func NewAutomationsUpdateResponseStatusFromString(s string) (AutomationsUpdateResponseStatus, error) {
 	switch s {
 	case "active":
-		return AutomationsUpdateResponseDataStatusActive, nil
+		return AutomationsUpdateResponseStatusActive, nil
 	case "paused":
-		return AutomationsUpdateResponseDataStatusPaused, nil
+		return AutomationsUpdateResponseStatusPaused, nil
 	}
-	var t AutomationsUpdateResponseDataStatus
+	var t AutomationsUpdateResponseStatus
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsUpdateResponseDataStatus) Ptr() *AutomationsUpdateResponseDataStatus {
+func (a AutomationsUpdateResponseStatus) Ptr() *AutomationsUpdateResponseStatus {
 	return &a
 }
 
-type AutomationsUpdateResponseDataTrigger struct {
+type AutomationsUpdateResponseTrigger struct {
 	kind  string
 	event string
 
@@ -3904,20 +2704,20 @@ type AutomationsUpdateResponseDataTrigger struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateResponseDataTrigger) Kind() string {
+func (a *AutomationsUpdateResponseTrigger) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsUpdateResponseDataTrigger) Event() string {
+func (a *AutomationsUpdateResponseTrigger) Event() string {
 	return a.event
 }
 
-func (a *AutomationsUpdateResponseDataTrigger) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsUpdateResponseTrigger) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsUpdateResponseDataTrigger) UnmarshalJSON(data []byte) error {
-	type embed AutomationsUpdateResponseDataTrigger
+func (a *AutomationsUpdateResponseTrigger) UnmarshalJSON(data []byte) error {
+	type embed AutomationsUpdateResponseTrigger
 	var unmarshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -3928,7 +2728,7 @@ func (a *AutomationsUpdateResponseDataTrigger) UnmarshalJSON(data []byte) error 
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateResponseDataTrigger(unmarshaler.embed)
+	*a = AutomationsUpdateResponseTrigger(unmarshaler.embed)
 	if unmarshaler.Kind != "event" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "event", unmarshaler.Kind)
 	}
@@ -3946,8 +2746,8 @@ func (a *AutomationsUpdateResponseDataTrigger) UnmarshalJSON(data []byte) error 
 	return nil
 }
 
-func (a *AutomationsUpdateResponseDataTrigger) MarshalJSON() ([]byte, error) {
-	type embed AutomationsUpdateResponseDataTrigger
+func (a *AutomationsUpdateResponseTrigger) MarshalJSON() ([]byte, error) {
+	type embed AutomationsUpdateResponseTrigger
 	var marshaler = struct {
 		embed
 		Kind  string `json:"kind"`
@@ -3960,7 +2760,7 @@ func (a *AutomationsUpdateResponseDataTrigger) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsUpdateResponseDataTrigger) String() string {
+func (a *AutomationsUpdateResponseTrigger) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -3972,109 +2772,109 @@ func (a *AutomationsUpdateResponseDataTrigger) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsUpdateResponseDataWorkflowItem struct {
-	AutomationsUpdateResponseDataWorkflowItemRef        *AutomationsUpdateResponseDataWorkflowItemRef
-	AutomationsUpdateResponseDataWorkflowItemConditions *AutomationsUpdateResponseDataWorkflowItemConditions
+type AutomationsUpdateResponseWorkflowItem struct {
+	AutomationsUpdateResponseWorkflowItemRef        *AutomationsUpdateResponseWorkflowItemRef
+	AutomationsUpdateResponseWorkflowItemConditions *AutomationsUpdateResponseWorkflowItemConditions
 
 	typ string
 }
 
-func NewAutomationsUpdateResponseDataWorkflowItemFromAutomationsUpdateResponseDataWorkflowItemRef(value *AutomationsUpdateResponseDataWorkflowItemRef) *AutomationsUpdateResponseDataWorkflowItem {
-	return &AutomationsUpdateResponseDataWorkflowItem{typ: "AutomationsUpdateResponseDataWorkflowItemRef", AutomationsUpdateResponseDataWorkflowItemRef: value}
+func NewAutomationsUpdateResponseWorkflowItemFromAutomationsUpdateResponseWorkflowItemRef(value *AutomationsUpdateResponseWorkflowItemRef) *AutomationsUpdateResponseWorkflowItem {
+	return &AutomationsUpdateResponseWorkflowItem{typ: "AutomationsUpdateResponseWorkflowItemRef", AutomationsUpdateResponseWorkflowItemRef: value}
 }
 
-func NewAutomationsUpdateResponseDataWorkflowItemFromAutomationsUpdateResponseDataWorkflowItemConditions(value *AutomationsUpdateResponseDataWorkflowItemConditions) *AutomationsUpdateResponseDataWorkflowItem {
-	return &AutomationsUpdateResponseDataWorkflowItem{typ: "AutomationsUpdateResponseDataWorkflowItemConditions", AutomationsUpdateResponseDataWorkflowItemConditions: value}
+func NewAutomationsUpdateResponseWorkflowItemFromAutomationsUpdateResponseWorkflowItemConditions(value *AutomationsUpdateResponseWorkflowItemConditions) *AutomationsUpdateResponseWorkflowItem {
+	return &AutomationsUpdateResponseWorkflowItem{typ: "AutomationsUpdateResponseWorkflowItemConditions", AutomationsUpdateResponseWorkflowItemConditions: value}
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItem) GetAutomationsUpdateResponseDataWorkflowItemRef() *AutomationsUpdateResponseDataWorkflowItemRef {
+func (a *AutomationsUpdateResponseWorkflowItem) GetAutomationsUpdateResponseWorkflowItemRef() *AutomationsUpdateResponseWorkflowItemRef {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsUpdateResponseDataWorkflowItemRef
+	return a.AutomationsUpdateResponseWorkflowItemRef
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItem) GetAutomationsUpdateResponseDataWorkflowItemConditions() *AutomationsUpdateResponseDataWorkflowItemConditions {
+func (a *AutomationsUpdateResponseWorkflowItem) GetAutomationsUpdateResponseWorkflowItemConditions() *AutomationsUpdateResponseWorkflowItemConditions {
 	if a == nil {
 		return nil
 	}
-	return a.AutomationsUpdateResponseDataWorkflowItemConditions
+	return a.AutomationsUpdateResponseWorkflowItemConditions
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItem) UnmarshalJSON(data []byte) error {
-	valueAutomationsUpdateResponseDataWorkflowItemRef := new(AutomationsUpdateResponseDataWorkflowItemRef)
-	if err := json.Unmarshal(data, &valueAutomationsUpdateResponseDataWorkflowItemRef); err == nil {
-		a.typ = "AutomationsUpdateResponseDataWorkflowItemRef"
-		a.AutomationsUpdateResponseDataWorkflowItemRef = valueAutomationsUpdateResponseDataWorkflowItemRef
+func (a *AutomationsUpdateResponseWorkflowItem) UnmarshalJSON(data []byte) error {
+	valueAutomationsUpdateResponseWorkflowItemRef := new(AutomationsUpdateResponseWorkflowItemRef)
+	if err := json.Unmarshal(data, &valueAutomationsUpdateResponseWorkflowItemRef); err == nil {
+		a.typ = "AutomationsUpdateResponseWorkflowItemRef"
+		a.AutomationsUpdateResponseWorkflowItemRef = valueAutomationsUpdateResponseWorkflowItemRef
 		return nil
 	}
-	valueAutomationsUpdateResponseDataWorkflowItemConditions := new(AutomationsUpdateResponseDataWorkflowItemConditions)
-	if err := json.Unmarshal(data, &valueAutomationsUpdateResponseDataWorkflowItemConditions); err == nil {
-		a.typ = "AutomationsUpdateResponseDataWorkflowItemConditions"
-		a.AutomationsUpdateResponseDataWorkflowItemConditions = valueAutomationsUpdateResponseDataWorkflowItemConditions
+	valueAutomationsUpdateResponseWorkflowItemConditions := new(AutomationsUpdateResponseWorkflowItemConditions)
+	if err := json.Unmarshal(data, &valueAutomationsUpdateResponseWorkflowItemConditions); err == nil {
+		a.typ = "AutomationsUpdateResponseWorkflowItemConditions"
+		a.AutomationsUpdateResponseWorkflowItemConditions = valueAutomationsUpdateResponseWorkflowItemConditions
 		return nil
 	}
 	return fmt.Errorf("%s cannot be deserialized as a %T", data, a)
 }
 
-func (a AutomationsUpdateResponseDataWorkflowItem) MarshalJSON() ([]byte, error) {
-	if a.typ == "AutomationsUpdateResponseDataWorkflowItemRef" || a.AutomationsUpdateResponseDataWorkflowItemRef != nil {
-		return json.Marshal(a.AutomationsUpdateResponseDataWorkflowItemRef)
+func (a AutomationsUpdateResponseWorkflowItem) MarshalJSON() ([]byte, error) {
+	if a.typ == "AutomationsUpdateResponseWorkflowItemRef" || a.AutomationsUpdateResponseWorkflowItemRef != nil {
+		return json.Marshal(a.AutomationsUpdateResponseWorkflowItemRef)
 	}
-	if a.typ == "AutomationsUpdateResponseDataWorkflowItemConditions" || a.AutomationsUpdateResponseDataWorkflowItemConditions != nil {
-		return json.Marshal(a.AutomationsUpdateResponseDataWorkflowItemConditions)
+	if a.typ == "AutomationsUpdateResponseWorkflowItemConditions" || a.AutomationsUpdateResponseWorkflowItemConditions != nil {
+		return json.Marshal(a.AutomationsUpdateResponseWorkflowItemConditions)
 	}
 	return nil, fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsUpdateResponseDataWorkflowItemVisitor interface {
-	VisitAutomationsUpdateResponseDataWorkflowItemRef(*AutomationsUpdateResponseDataWorkflowItemRef) error
-	VisitAutomationsUpdateResponseDataWorkflowItemConditions(*AutomationsUpdateResponseDataWorkflowItemConditions) error
+type AutomationsUpdateResponseWorkflowItemVisitor interface {
+	VisitAutomationsUpdateResponseWorkflowItemRef(*AutomationsUpdateResponseWorkflowItemRef) error
+	VisitAutomationsUpdateResponseWorkflowItemConditions(*AutomationsUpdateResponseWorkflowItemConditions) error
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItem) Accept(visitor AutomationsUpdateResponseDataWorkflowItemVisitor) error {
-	if a.typ == "AutomationsUpdateResponseDataWorkflowItemRef" || a.AutomationsUpdateResponseDataWorkflowItemRef != nil {
-		return visitor.VisitAutomationsUpdateResponseDataWorkflowItemRef(a.AutomationsUpdateResponseDataWorkflowItemRef)
+func (a *AutomationsUpdateResponseWorkflowItem) Accept(visitor AutomationsUpdateResponseWorkflowItemVisitor) error {
+	if a.typ == "AutomationsUpdateResponseWorkflowItemRef" || a.AutomationsUpdateResponseWorkflowItemRef != nil {
+		return visitor.VisitAutomationsUpdateResponseWorkflowItemRef(a.AutomationsUpdateResponseWorkflowItemRef)
 	}
-	if a.typ == "AutomationsUpdateResponseDataWorkflowItemConditions" || a.AutomationsUpdateResponseDataWorkflowItemConditions != nil {
-		return visitor.VisitAutomationsUpdateResponseDataWorkflowItemConditions(a.AutomationsUpdateResponseDataWorkflowItemConditions)
+	if a.typ == "AutomationsUpdateResponseWorkflowItemConditions" || a.AutomationsUpdateResponseWorkflowItemConditions != nil {
+		return visitor.VisitAutomationsUpdateResponseWorkflowItemConditions(a.AutomationsUpdateResponseWorkflowItemConditions)
 	}
 	return fmt.Errorf("type %T does not include a non-empty union type", a)
 }
 
-type AutomationsUpdateResponseDataWorkflowItemConditions struct {
-	Conditions []*AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
-	Next       []*AutomationsUpdateResponseDataWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsUpdateResponseWorkflowItemConditions struct {
+	Conditions []*AutomationsUpdateResponseWorkflowItemConditionsConditionsItem `json:"conditions,omitempty" url:"conditions,omitempty"`
+	Next       []*AutomationsUpdateResponseWorkflowItemConditionsNextItem       `json:"next,omitempty" url:"next,omitempty"`
 	kind       string
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditions) GetConditions() []*AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem {
+func (a *AutomationsUpdateResponseWorkflowItemConditions) GetConditions() []*AutomationsUpdateResponseWorkflowItemConditionsConditionsItem {
 	if a == nil {
 		return nil
 	}
 	return a.Conditions
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditions) GetNext() []*AutomationsUpdateResponseDataWorkflowItemConditionsNextItem {
+func (a *AutomationsUpdateResponseWorkflowItemConditions) GetNext() []*AutomationsUpdateResponseWorkflowItemConditionsNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditions) Kind() string {
+func (a *AutomationsUpdateResponseWorkflowItemConditions) Kind() string {
 	return a.kind
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsUpdateResponseWorkflowItemConditions) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditions) UnmarshalJSON(data []byte) error {
-	type embed AutomationsUpdateResponseDataWorkflowItemConditions
+func (a *AutomationsUpdateResponseWorkflowItemConditions) UnmarshalJSON(data []byte) error {
+	type embed AutomationsUpdateResponseWorkflowItemConditions
 	var unmarshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -4084,7 +2884,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditions) UnmarshalJSON(data
 	if err := json.Unmarshal(data, &unmarshaler); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateResponseDataWorkflowItemConditions(unmarshaler.embed)
+	*a = AutomationsUpdateResponseWorkflowItemConditions(unmarshaler.embed)
 	if unmarshaler.Kind != "conditions" {
 		return fmt.Errorf("unexpected value for literal on type %T; expected %v got %v", a, "conditions", unmarshaler.Kind)
 	}
@@ -4098,8 +2898,8 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditions) UnmarshalJSON(data
 	return nil
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditions) MarshalJSON() ([]byte, error) {
-	type embed AutomationsUpdateResponseDataWorkflowItemConditions
+func (a *AutomationsUpdateResponseWorkflowItemConditions) MarshalJSON() ([]byte, error) {
+	type embed AutomationsUpdateResponseWorkflowItemConditions
 	var marshaler = struct {
 		embed
 		Kind string `json:"kind"`
@@ -4110,7 +2910,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditions) MarshalJSON() ([]b
 	return json.Marshal(marshaler)
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditions) String() string {
+func (a *AutomationsUpdateResponseWorkflowItemConditions) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -4122,7 +2922,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditions) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem struct {
+type AutomationsUpdateResponseWorkflowItemConditionsConditionsItem struct {
 	Prop  *string `json:"prop,omitempty" url:"prop,omitempty"`
 	Value *string `json:"value,omitempty" url:"value,omitempty"`
 
@@ -4130,31 +2930,31 @@ type AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem) GetProp() *string {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsConditionsItem) GetProp() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Prop
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem) GetValue() *string {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsConditionsItem) GetValue() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Value
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsConditionsItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem
+func (a *AutomationsUpdateResponseWorkflowItemConditionsConditionsItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsUpdateResponseWorkflowItemConditionsConditionsItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem(value)
+	*a = AutomationsUpdateResponseWorkflowItemConditionsConditionsItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -4164,7 +2964,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem) Unma
 	return nil
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem) String() string {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsConditionsItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -4176,7 +2976,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditionsConditionsItem) Stri
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsUpdateResponseDataWorkflowItemConditionsNextItem struct {
+type AutomationsUpdateResponseWorkflowItemConditionsNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -4184,31 +2984,31 @@ type AutomationsUpdateResponseDataWorkflowItemConditionsNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsNextItem) GetKind() *string {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsNextItem) GetRef() *string {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponseDataWorkflowItemConditionsNextItem
+func (a *AutomationsUpdateResponseWorkflowItemConditionsNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsUpdateResponseWorkflowItemConditionsNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateResponseDataWorkflowItemConditionsNextItem(value)
+	*a = AutomationsUpdateResponseWorkflowItemConditionsNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -4218,7 +3018,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditionsNextItem) UnmarshalJ
 	return nil
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemConditionsNextItem) String() string {
+func (a *AutomationsUpdateResponseWorkflowItemConditionsNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -4230,47 +3030,47 @@ func (a *AutomationsUpdateResponseDataWorkflowItemConditionsNextItem) String() s
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsUpdateResponseDataWorkflowItemRef struct {
-	Kind AutomationsUpdateResponseDataWorkflowItemRefKind        `json:"kind" url:"kind"`
-	Ref  *string                                                 `json:"ref,omitempty" url:"ref,omitempty"`
-	Next []*AutomationsUpdateResponseDataWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
+type AutomationsUpdateResponseWorkflowItemRef struct {
+	Kind AutomationsUpdateResponseWorkflowItemRefKind        `json:"kind" url:"kind"`
+	Ref  *string                                             `json:"ref,omitempty" url:"ref,omitempty"`
+	Next []*AutomationsUpdateResponseWorkflowItemRefNextItem `json:"next,omitempty" url:"next,omitempty"`
 
 	extraProperties map[string]interface{}
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRef) GetKind() AutomationsUpdateResponseDataWorkflowItemRefKind {
+func (a *AutomationsUpdateResponseWorkflowItemRef) GetKind() AutomationsUpdateResponseWorkflowItemRefKind {
 	if a == nil {
 		return ""
 	}
 	return a.Kind
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRef) GetRef() *string {
+func (a *AutomationsUpdateResponseWorkflowItemRef) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRef) GetNext() []*AutomationsUpdateResponseDataWorkflowItemRefNextItem {
+func (a *AutomationsUpdateResponseWorkflowItemRef) GetNext() []*AutomationsUpdateResponseWorkflowItemRefNextItem {
 	if a == nil {
 		return nil
 	}
 	return a.Next
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRef) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsUpdateResponseWorkflowItemRef) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRef) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponseDataWorkflowItemRef
+func (a *AutomationsUpdateResponseWorkflowItemRef) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsUpdateResponseWorkflowItemRef
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateResponseDataWorkflowItemRef(value)
+	*a = AutomationsUpdateResponseWorkflowItemRef(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -4280,7 +3080,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemRef) UnmarshalJSON(data []byte
 	return nil
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRef) String() string {
+func (a *AutomationsUpdateResponseWorkflowItemRef) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -4292,59 +3092,59 @@ func (a *AutomationsUpdateResponseDataWorkflowItemRef) String() string {
 	return fmt.Sprintf("%#v", a)
 }
 
-type AutomationsUpdateResponseDataWorkflowItemRefKind string
+type AutomationsUpdateResponseWorkflowItemRefKind string
 
 const (
-	AutomationsUpdateResponseDataWorkflowItemRefKindVideo       AutomationsUpdateResponseDataWorkflowItemRefKind = "video"
-	AutomationsUpdateResponseDataWorkflowItemRefKindImage       AutomationsUpdateResponseDataWorkflowItemRefKind = "image"
-	AutomationsUpdateResponseDataWorkflowItemRefKindAudio       AutomationsUpdateResponseDataWorkflowItemRefKind = "audio"
-	AutomationsUpdateResponseDataWorkflowItemRefKindChapters    AutomationsUpdateResponseDataWorkflowItemRefKind = "chapters"
-	AutomationsUpdateResponseDataWorkflowItemRefKindSubtitles   AutomationsUpdateResponseDataWorkflowItemRefKind = "subtitles"
-	AutomationsUpdateResponseDataWorkflowItemRefKindThumbnails  AutomationsUpdateResponseDataWorkflowItemRefKind = "thumbnails"
-	AutomationsUpdateResponseDataWorkflowItemRefKindNsfw        AutomationsUpdateResponseDataWorkflowItemRefKind = "nsfw"
-	AutomationsUpdateResponseDataWorkflowItemRefKindSpeech      AutomationsUpdateResponseDataWorkflowItemRefKind = "speech"
-	AutomationsUpdateResponseDataWorkflowItemRefKindDescription AutomationsUpdateResponseDataWorkflowItemRefKind = "description"
-	AutomationsUpdateResponseDataWorkflowItemRefKindOutline     AutomationsUpdateResponseDataWorkflowItemRefKind = "outline"
-	AutomationsUpdateResponseDataWorkflowItemRefKindPrompt      AutomationsUpdateResponseDataWorkflowItemRefKind = "prompt"
-	AutomationsUpdateResponseDataWorkflowItemRefKindHTTP        AutomationsUpdateResponseDataWorkflowItemRefKind = "http"
+	AutomationsUpdateResponseWorkflowItemRefKindVideo       AutomationsUpdateResponseWorkflowItemRefKind = "video"
+	AutomationsUpdateResponseWorkflowItemRefKindImage       AutomationsUpdateResponseWorkflowItemRefKind = "image"
+	AutomationsUpdateResponseWorkflowItemRefKindAudio       AutomationsUpdateResponseWorkflowItemRefKind = "audio"
+	AutomationsUpdateResponseWorkflowItemRefKindChapters    AutomationsUpdateResponseWorkflowItemRefKind = "chapters"
+	AutomationsUpdateResponseWorkflowItemRefKindSubtitles   AutomationsUpdateResponseWorkflowItemRefKind = "subtitles"
+	AutomationsUpdateResponseWorkflowItemRefKindThumbnails  AutomationsUpdateResponseWorkflowItemRefKind = "thumbnails"
+	AutomationsUpdateResponseWorkflowItemRefKindNsfw        AutomationsUpdateResponseWorkflowItemRefKind = "nsfw"
+	AutomationsUpdateResponseWorkflowItemRefKindSpeech      AutomationsUpdateResponseWorkflowItemRefKind = "speech"
+	AutomationsUpdateResponseWorkflowItemRefKindDescription AutomationsUpdateResponseWorkflowItemRefKind = "description"
+	AutomationsUpdateResponseWorkflowItemRefKindOutline     AutomationsUpdateResponseWorkflowItemRefKind = "outline"
+	AutomationsUpdateResponseWorkflowItemRefKindPrompt      AutomationsUpdateResponseWorkflowItemRefKind = "prompt"
+	AutomationsUpdateResponseWorkflowItemRefKindHTTP        AutomationsUpdateResponseWorkflowItemRefKind = "http"
 )
 
-func NewAutomationsUpdateResponseDataWorkflowItemRefKindFromString(s string) (AutomationsUpdateResponseDataWorkflowItemRefKind, error) {
+func NewAutomationsUpdateResponseWorkflowItemRefKindFromString(s string) (AutomationsUpdateResponseWorkflowItemRefKind, error) {
 	switch s {
 	case "video":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindVideo, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindVideo, nil
 	case "image":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindImage, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindImage, nil
 	case "audio":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindAudio, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindAudio, nil
 	case "chapters":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindChapters, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindChapters, nil
 	case "subtitles":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindSubtitles, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindSubtitles, nil
 	case "thumbnails":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindThumbnails, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindThumbnails, nil
 	case "nsfw":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindNsfw, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindNsfw, nil
 	case "speech":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindSpeech, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindSpeech, nil
 	case "description":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindDescription, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindDescription, nil
 	case "outline":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindOutline, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindOutline, nil
 	case "prompt":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindPrompt, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindPrompt, nil
 	case "http":
-		return AutomationsUpdateResponseDataWorkflowItemRefKindHTTP, nil
+		return AutomationsUpdateResponseWorkflowItemRefKindHTTP, nil
 	}
-	var t AutomationsUpdateResponseDataWorkflowItemRefKind
+	var t AutomationsUpdateResponseWorkflowItemRefKind
 	return "", fmt.Errorf("%s is not a valid %T", s, t)
 }
 
-func (a AutomationsUpdateResponseDataWorkflowItemRefKind) Ptr() *AutomationsUpdateResponseDataWorkflowItemRefKind {
+func (a AutomationsUpdateResponseWorkflowItemRefKind) Ptr() *AutomationsUpdateResponseWorkflowItemRefKind {
 	return &a
 }
 
-type AutomationsUpdateResponseDataWorkflowItemRefNextItem struct {
+type AutomationsUpdateResponseWorkflowItemRefNextItem struct {
 	Kind *string `json:"kind,omitempty" url:"kind,omitempty"`
 	Ref  *string `json:"ref,omitempty" url:"ref,omitempty"`
 
@@ -4352,31 +3152,31 @@ type AutomationsUpdateResponseDataWorkflowItemRefNextItem struct {
 	rawJSON         json.RawMessage
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRefNextItem) GetKind() *string {
+func (a *AutomationsUpdateResponseWorkflowItemRefNextItem) GetKind() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Kind
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRefNextItem) GetRef() *string {
+func (a *AutomationsUpdateResponseWorkflowItemRefNextItem) GetRef() *string {
 	if a == nil {
 		return nil
 	}
 	return a.Ref
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
+func (a *AutomationsUpdateResponseWorkflowItemRefNextItem) GetExtraProperties() map[string]interface{} {
 	return a.extraProperties
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponseDataWorkflowItemRefNextItem
+func (a *AutomationsUpdateResponseWorkflowItemRefNextItem) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsUpdateResponseWorkflowItemRefNextItem
 	var value unmarshaler
 	if err := json.Unmarshal(data, &value); err != nil {
 		return err
 	}
-	*a = AutomationsUpdateResponseDataWorkflowItemRefNextItem(value)
+	*a = AutomationsUpdateResponseWorkflowItemRefNextItem(value)
 	extraProperties, err := internal.ExtractExtraProperties(data, *a)
 	if err != nil {
 		return err
@@ -4386,7 +3186,7 @@ func (a *AutomationsUpdateResponseDataWorkflowItemRefNextItem) UnmarshalJSON(dat
 	return nil
 }
 
-func (a *AutomationsUpdateResponseDataWorkflowItemRefNextItem) String() string {
+func (a *AutomationsUpdateResponseWorkflowItemRefNextItem) String() string {
 	if len(a.rawJSON) > 0 {
 		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
 			return value
@@ -4396,212 +3196,41 @@ func (a *AutomationsUpdateResponseDataWorkflowItemRefNextItem) String() string {
 		return value
 	}
 	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsUpdateResponseError struct {
-	Message *string `json:"message,omitempty" url:"message,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsUpdateResponseError) GetMessage() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Message
-}
-
-func (a *AutomationsUpdateResponseError) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsUpdateResponseError) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponseError
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsUpdateResponseError(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsUpdateResponseError) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsUpdateResponseLinks struct {
-	Self   *string `json:"self,omitempty" url:"self,omitempty"`
-	Parent *string `json:"parent,omitempty" url:"parent,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsUpdateResponseLinks) GetSelf() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Self
-}
-
-func (a *AutomationsUpdateResponseLinks) GetParent() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Parent
-}
-
-func (a *AutomationsUpdateResponseLinks) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsUpdateResponseLinks) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponseLinks
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsUpdateResponseLinks(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsUpdateResponseLinks) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsUpdateResponseMeta struct {
-	RequestID *string                            `json:"request_id,omitempty" url:"request_id,omitempty"`
-	OrgID     *string                            `json:"org_id,omitempty" url:"org_id,omitempty"`
-	ProjectID *string                            `json:"project_id,omitempty" url:"project_id,omitempty"`
-	Version   *string                            `json:"version,omitempty" url:"version,omitempty"`
-	Type      *AutomationsUpdateResponseMetaType `json:"type,omitempty" url:"type,omitempty"`
-
-	extraProperties map[string]interface{}
-	rawJSON         json.RawMessage
-}
-
-func (a *AutomationsUpdateResponseMeta) GetRequestID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.RequestID
-}
-
-func (a *AutomationsUpdateResponseMeta) GetOrgID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.OrgID
-}
-
-func (a *AutomationsUpdateResponseMeta) GetProjectID() *string {
-	if a == nil {
-		return nil
-	}
-	return a.ProjectID
-}
-
-func (a *AutomationsUpdateResponseMeta) GetVersion() *string {
-	if a == nil {
-		return nil
-	}
-	return a.Version
-}
-
-func (a *AutomationsUpdateResponseMeta) GetType() *AutomationsUpdateResponseMetaType {
-	if a == nil {
-		return nil
-	}
-	return a.Type
-}
-
-func (a *AutomationsUpdateResponseMeta) GetExtraProperties() map[string]interface{} {
-	return a.extraProperties
-}
-
-func (a *AutomationsUpdateResponseMeta) UnmarshalJSON(data []byte) error {
-	type unmarshaler AutomationsUpdateResponseMeta
-	var value unmarshaler
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
-	}
-	*a = AutomationsUpdateResponseMeta(value)
-	extraProperties, err := internal.ExtractExtraProperties(data, *a)
-	if err != nil {
-		return err
-	}
-	a.extraProperties = extraProperties
-	a.rawJSON = json.RawMessage(data)
-	return nil
-}
-
-func (a *AutomationsUpdateResponseMeta) String() string {
-	if len(a.rawJSON) > 0 {
-		if value, err := internal.StringifyJSON(a.rawJSON); err == nil {
-			return value
-		}
-	}
-	if value, err := internal.StringifyJSON(a); err == nil {
-		return value
-	}
-	return fmt.Sprintf("%#v", a)
-}
-
-type AutomationsUpdateResponseMetaType string
-
-const (
-	AutomationsUpdateResponseMetaTypeObject AutomationsUpdateResponseMetaType = "object"
-	AutomationsUpdateResponseMetaTypeList   AutomationsUpdateResponseMetaType = "list"
-)
-
-func NewAutomationsUpdateResponseMetaTypeFromString(s string) (AutomationsUpdateResponseMetaType, error) {
-	switch s {
-	case "object":
-		return AutomationsUpdateResponseMetaTypeObject, nil
-	case "list":
-		return AutomationsUpdateResponseMetaTypeList, nil
-	}
-	var t AutomationsUpdateResponseMetaType
-	return "", fmt.Errorf("%s is not a valid %T", s, t)
-}
-
-func (a AutomationsUpdateResponseMetaType) Ptr() *AutomationsUpdateResponseMetaType {
-	return &a
 }
 
 type AutomationsUpdateRequest struct {
-	Name        *string                                 `json:"name,omitempty" url:"-"`
-	Description *string                                 `json:"description,omitempty" url:"-"`
-	Trigger     *AutomationsUpdateRequestTrigger        `json:"trigger,omitempty" url:"-"`
-	Workflow    []*AutomationsUpdateRequestWorkflowItem `json:"workflow,omitempty" url:"-"`
-	Status      *AutomationsUpdateRequestStatus         `json:"status,omitempty" url:"-"`
+	// Specifies the API Version
+	Name          *string                                 `json:"name,omitempty" url:"-"`
+	Description   *string                                 `json:"description,omitempty" url:"-"`
+	Trigger       *AutomationsUpdateRequestTrigger        `json:"trigger,omitempty" url:"-"`
+	Workflow      []*AutomationsUpdateRequestWorkflowItem `json:"workflow,omitempty" url:"-"`
+	Status        *AutomationsUpdateRequestStatus         `json:"status,omitempty" url:"-"`
+	acceptVersion string
+}
+
+func (a *AutomationsUpdateRequest) AcceptVersion() string {
+	return a.acceptVersion
+}
+
+func (a *AutomationsUpdateRequest) UnmarshalJSON(data []byte) error {
+	type unmarshaler AutomationsUpdateRequest
+	var body unmarshaler
+	if err := json.Unmarshal(data, &body); err != nil {
+		return err
+	}
+	*a = AutomationsUpdateRequest(body)
+	a.acceptVersion = "2025-08-20"
+	return nil
+}
+
+func (a *AutomationsUpdateRequest) MarshalJSON() ([]byte, error) {
+	type embed AutomationsUpdateRequest
+	var marshaler = struct {
+		embed
+		AcceptVersion string `json:"Accept-Version"`
+	}{
+		embed:         embed(*a),
+		AcceptVersion: "2025-08-20",
+	}
+	return json.Marshal(marshaler)
 }
